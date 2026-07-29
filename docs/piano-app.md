@@ -170,6 +170,20 @@ azioni e limiti espliciti su cosa puo' fare.
 
 Si puo' decidere alla tappa 4, ma va deciso **prima** di costruirla, non dopo.
 
+## Lo stato del VPS e' accertato
+
+Vedi `docs/vps.md`: Windows Server 2022, accesso solo via RDP, Python 3.12, e
+tre processi attivi di cui uno solo riguarda il trading. Tre cose cambiano
+rispetto a quanto scritto sopra:
+
+- **la porta 8080 e' occupata** da un altro bot: il monitor parte da 8090
+- **i CSV dell'Expert Advisor stanno nella cartella comune** di MetaTrader
+  (`Terminal\Common\Files`), non in quella del singolo terminale: lo dice il
+  flag `FILE_COMMON` nel sorgente, non serve cercarli
+- **il tunnel Cloudflare esiste gia'** per un altro bot, quindi la pagina
+  raggiungibile dal telefono e' molto piu' vicina di quanto stimato — a
+  condizione di metterci davanti un'autenticazione
+
 ## Da accertare sul VPS, prima di scrivere codice
 
 1. **Sistema operativo**: Windows (probabile, se ci gira MT5) o Linux.
