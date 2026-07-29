@@ -1,4 +1,5 @@
 <title>XAUUSD — Laboratorio strategia</title>
+<!--VERSIONE-->
 <style>
   :root {
     --ground:#F7F5F1; --panel:#FFFFFF; --ink:#23202A; --ink2:#5C5650; --ink3:#8E877E;
@@ -160,9 +161,15 @@
 
 <script id="payload" type="application/json">__DATA__</script>
 <script>
-(function () {
+(async function () {
   "use strict";
-  const DATA = JSON.parse(document.getElementById("payload").textContent);
+  // Due sorgenti, una sola pagina: se il payload e' incorporato (pagina
+  // pubblicata) si usa quello, altrimenti si chiedono i dati al server locale
+  // (applicazione di gestione). Vedi docs/piano-app.md.
+  const grezzo = document.getElementById("payload").textContent.trim();
+  const DATA = (grezzo && grezzo !== "__DATA__")
+    ? JSON.parse(grezzo)
+    : await (await fetch("/api/dati")).json();
   const P = DATA.periods, RRS = DATA.rr, BES = DATA.be;
   const NOMI = { "full:H6": "tutto lo storico" };
 

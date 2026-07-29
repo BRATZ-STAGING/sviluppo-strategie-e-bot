@@ -10,6 +10,16 @@
 - Dati M1 2020→2026 in `data/XAUUSD_M1/*.parquet` (BID, UTC, un file/anno).
 - Dipendenze: `pip install pandas pyarrow pytest tabulate` (non in repo).
 
+## Il laboratorio (`trading/scripts/`)
+
+`build_lab.py` costruisce la pagina dal template: `<lab.json> <lab.html>` per la
+pagina con i dati dentro (pubblicabile), `--vuoto <lab.html>` per la versione
+che chiede i dati a `/api/dati`. **Non sostituire il payload a mano.**
+
+Il front-end e' uno solo per la pagina pubblicata e per la futura applicazione
+di gestione: la pagina prova il payload incorporato e, se assente, lo chiede al
+server locale. Piano completo e tappe in `docs/piano-app.md`.
+
 ## Bot in esercizio (`bots/`)
 
 Il codice che opera davvero, separato dalla ricerca in `trading/`: Expert
