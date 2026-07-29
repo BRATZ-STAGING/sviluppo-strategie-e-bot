@@ -1,0 +1,696 @@
+<title>XAUUSD — Replay strategia</title>
+<style>
+  :root {
+    --ground: #F7F5F1; --panel: #FFFFFF; --surface: #FCFCFB;
+    --ink: #23202A; --ink2: #5C5650; --ink3: #8E877E;
+    --line: #E3DFD8; --line2: #EFECE6;
+    --up: #00916B; --down: #BC4127; --vwap: #5F4FC0; --brass: #A87A22;
+    --shadow: 0 1px 2px rgba(35,32,42,.06), 0 8px 24px rgba(35,32,42,.05);
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #151318; --panel: #1C1A20; --surface: #1A1A19;
+      --ink: #E9E4DB; --ink2: #A39C91; --ink3: #6E675F;
+      --line: #2C2932; --line2: #232028;
+      --up: #4EA57F; --down: #C25A46; --vwap: #8E7BD0; --brass: #C99A3E;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #151318; --panel: #1C1A20; --surface: #1A1A19;
+    --ink: #E9E4DB; --ink2: #A39C91; --ink3: #6E675F;
+    --line: #2C2932; --line2: #232028;
+    --up: #4EA57F; --down: #C25A46; --vwap: #8E7BD0; --brass: #C99A3E;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+  :root[data-theme="light"] {
+    --ground: #F7F5F1; --panel: #FFFFFF; --surface: #FCFCFB;
+    --ink: #23202A; --ink2: #5C5650; --ink3: #8E877E;
+    --line: #E3DFD8; --line2: #EFECE6;
+    --up: #00916B; --down: #BC4127; --vwap: #5F4FC0; --brass: #A87A22;
+    --shadow: 0 1px 2px rgba(35,32,42,.06), 0 8px 24px rgba(35,32,42,.05);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { display: flex; flex-direction: column; gap: 12px; padding: 14px; max-width: 1500px; margin: 0 auto; }
+
+  /* ---------- intestazione ---------- */
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 22px; }
+  .brand { display: flex; flex-direction: column; gap: 3px; }
+  .brand h1 {
+    margin: 0; font-family: var(--mono); font-size: 17px; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .brand h1 span { color: var(--brass); }
+  .brand p { margin: 0; color: var(--ink3); font-size: 12.5px; max-width: 62ch; }
+  .spacer { flex: 1 1 auto; }
+
+  .seg { display: flex; background: var(--panel); border: 1px solid var(--line);
+         border-radius: 9px; padding: 3px; gap: 3px; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--ink2);
+    font-family: var(--mono); font-size: 12px; padding: 6px 11px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap; letter-spacing: .01em;
+  }
+  .seg button[aria-pressed="true"] { background: var(--brass); color: var(--ground); font-weight: 600; }
+  .seg button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .pickers { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+  .pick { display: flex; flex-direction: column; gap: 4px; }
+  .pick .lab { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink3); }
+  .nota {
+    margin: -4px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px;
+    color: var(--ink2); background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+  }
+  .nota b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- riquadri di stato ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 8px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--shadow);
+  }
+  .stat .k { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink3); }
+  .stat .v { font-family: var(--mono); font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .pos { color: var(--up); } .neg { color: var(--down); }
+
+  /* ---------- area grafico ---------- */
+  .main { display: grid; grid-template-columns: 1fr 268px; gap: 12px; align-items: start; }
+  @media (max-width: 940px) { .main { grid-template-columns: 1fr; } }
+
+  .board { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+           overflow: hidden; box-shadow: var(--shadow); }
+  .chart { position: relative; }
+  canvas { display: block; width: 100%; }
+  #chart { height: 430px; }
+  #equity { height: 74px; border-top: 1px solid var(--line); }
+  #vol { height: 58px; border-top: 1px solid var(--line); }
+  #vol.hidden { display: none; }
+  @media (max-width: 640px) { #chart { height: 330px; } }
+
+  .hud {
+    position: absolute; top: 10px; left: 12px; display: flex; flex-wrap: wrap; gap: 6px;
+    pointer-events: none;
+  }
+  .pill {
+    font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink2);
+    display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums;
+  }
+  .pill b { font-weight: 600; color: var(--ink); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink3); }
+  .dot.on { background: var(--up); } .dot.off { background: var(--down); }
+
+  #tip {
+    position: absolute; pointer-events: none; opacity: 0; transition: opacity .12s;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 9px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+    box-shadow: var(--shadow); font-variant-numeric: tabular-nums; white-space: nowrap; z-index: 5;
+  }
+
+  /* ---------- comandi ---------- */
+  .transport {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-top: 1px solid var(--line); flex-wrap: wrap;
+  }
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    font-family: var(--mono); font-size: 12.5px; padding: 7px 13px; border-radius: 8px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--brass); }
+  .btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .btn.primary { background: var(--brass); border-color: var(--brass); color: var(--ground); font-weight: 600; min-width: 92px; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; flex: 1 1 180px; min-width: 140px; height: 22px; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--line); border-radius: 2px; }
+  input[type="range"]::-moz-range-track { height: 4px; background: var(--line); border-radius: 2px; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: var(--brass); border: 0; }
+  input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--brass); border: 0; }
+  input[type="range"]:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+  .clock { font-family: var(--mono); font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- registro operazioni ---------- */
+  .log { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+         box-shadow: var(--shadow); display: flex; flex-direction: column; max-height: 520px; }
+  .log h2 {
+    margin: 0; padding: 11px 13px 9px; font-size: 11px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink3); border-bottom: 1px solid var(--line); font-weight: 600;
+  }
+  .log .rows { overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
+  .row {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 4px 9px; align-items: baseline;
+    padding: 7px 9px; border-radius: 8px; border: 1px solid transparent; font-family: var(--mono);
+    font-size: 11.5px; font-variant-numeric: tabular-nums;
+  }
+  .row.live { border-color: var(--brass); background: color-mix(in srgb, var(--brass) 8%, transparent); }
+  .row .n { color: var(--ink3); }
+  .row .when { color: var(--ink2); }
+  .row .r { font-weight: 600; text-align: right; }
+  .row .det { grid-column: 1 / -1; color: var(--ink3); font-size: 10.5px; }
+  .empty { padding: 22px 13px; color: var(--ink3); font-size: 12.5px; text-align: center; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 9px 13px; border-top: 1px solid var(--line); }
+  .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink2); }
+  .sw { width: 13px; height: 3px; border-radius: 2px; }
+  .sw.box { height: 11px; width: 7px; border-radius: 1.5px; }
+
+  footer { color: var(--ink3); font-size: 11.5px; padding: 2px 2px 8px; max-width: 82ch; }
+  footer b { color: var(--ink2); font-weight: 600; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>XAUUSD <span>·</span> replay della strategia</h1>
+      <p>Continuazione sul VWAP giornaliero: si opera solo con struttura H6 e H2 entrambe rialziste, dopo un impulso di almeno 4&#36; e un ritorno sul VWAP. Stop sotto il minimo del pullback, obiettivo a 3R, chiusura forzata alle 21:00 UTC.</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="pickers">
+      <div class="pick"><span class="lab">sistema</span>
+        <div class="seg" id="systems" role="group" aria-label="Sistema"></div></div>
+      <div class="pick"><span class="lab">periodo</span>
+        <div class="seg" id="periods" role="group" aria-label="Periodo"></div></div>
+    </div>
+  </header>
+  <p class="nota" id="nota"></p>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="main">
+    <div class="board">
+      <div class="chart">
+        <canvas id="chart" aria-label="Grafico a candele con VWAP e operazioni"></canvas>
+        <div class="hud" id="hud"></div>
+        <div id="tip" role="status"></div>
+      </div>
+      <canvas id="equity" aria-label="Andamento cumulato in R"></canvas>
+      <canvas id="vol" aria-label="Volatilità: range mediano della candela da un minuto"></canvas>
+      <div class="transport">
+        <button class="btn primary" id="play" aria-label="Avvia o metti in pausa">Avvia</button>
+        <button class="btn" id="step" aria-label="Avanza di una candela">Passo</button>
+        <button class="btn" id="reset" aria-label="Torna all'inizio">Inizio</button>
+        <input type="range" id="scrub" min="0" value="0" aria-label="Posizione nel tempo">
+        <span class="clock" id="clock">—</span>
+        <div class="seg" id="speeds" role="group" aria-label="Velocità"></div>
+      </div>
+      <div class="legend">
+        <span class="lg"><span class="sw box" style="background:var(--up)"></span>candela al rialzo</span>
+        <span class="lg"><span class="sw box" style="background:var(--down)"></span>al ribasso</span>
+        <span class="lg"><span class="sw" style="background:var(--vwap)"></span>VWAP del giorno</span>
+        <span class="lg"><span class="sw" style="background:var(--up);height:11px;width:11px;border-radius:2px;opacity:.28"></span>zona obiettivo</span>
+        <span class="lg"><span class="sw" style="background:var(--down);height:11px;width:11px;border-radius:2px;opacity:.28"></span>zona di rischio</span>
+      </div>
+    </div>
+
+    <div class="log">
+      <h2>Operazioni</h2>
+      <div class="rows" id="rows"><div class="empty">Avvia il replay: le operazioni compaiono qui nel momento in cui accadono.</div></div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Come leggerlo.</b> Il grafico avanza una candela alla volta, esattamente come le vedeva la strategia: nulla di ciò che appare a schermo era ignoto in quel momento. Quando un'operazione si apre compaiono le due zone — sotto l'ingresso il rischio, sopra l'obiettivo — e la barra sotto il grafico mostra il risultato cumulato in R (1R = il rischio di una singola operazione). Spazio per avviare o fermare, frecce per muoverti di una candela. <b>Tutto lo storico</b> usa candele da 6 ore per il contesto; i due mesi di dettaglio usano candele da 6 minuti, il livello a cui la strategia decide davvero l'ingresso.
+  </footer>
+</div>
+
+<script id="payload" type="application/json">__DATA__</script>
+<script>
+(function () {
+  "use strict";
+  const DATA = JSON.parse(document.getElementById("payload").textContent);
+  const P = DATA.periods;
+
+  const NOMI = { "full:H6": "Tutto lo storico", "2025-10": "Ottobre 2025", "2026-01": "Gennaio 2026" };
+  const SOTTO = { "full:H6": "candele da 6 ore · 2020-2026", "2025-10": "candele da 6 minuti", "2026-01": "candele da 6 minuti" };
+  const SPEEDS = [
+    { k: "lenta", v: 6 }, { k: "media", v: 22 }, { k: "veloce", v: 90 }, { k: "max", v: 400 }
+  ];
+
+  const st = { p: 0, sys: "switch", i: 0, playing: false, speed: 22, hoverX: null, hoverY: null };
+
+  /* ---- decodifica: i prezzi sono interi in centesimi rispetto a una base ---- */
+  function dec(period) {
+    const b = period.base, f = (a) => a.map(x => x === null ? NaN : b + x / 100);
+    return {
+      id: period.id, t0: period.t0, tmin: period.t,
+      o: f(period.o), h: f(period.h), l: f(period.l), c: f(period.c),
+      v: f(period.v), s: period.s, sistemi: period.sistemi, n: period.t.length,
+      vol: period.vol || null,
+      hasState: period.s.some(x => x !== 0),
+      hasVwap: period.v.some(x => x !== null)
+    };
+  }
+  const D = P.map(dec);
+
+  const TR = (d) => (d.sistemi && d.sistemi[st.sys]) || [];
+
+  const el = (id) => document.getElementById(id);
+  const chart = el("chart"), eq = el("equity");
+  const cx = chart.getContext("2d"), ex = eq.getContext("2d");
+
+  /* ---- colori dal tema corrente ---- */
+  let C = {};
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    const g = (n) => s.getPropertyValue(n).trim();
+    C = {
+      ink: g("--ink"), ink2: g("--ink2"), ink3: g("--ink3"),
+      line: g("--line"), line2: g("--line2"), panel: g("--panel"),
+      up: g("--up"), down: g("--down"), vwap: g("--vwap"), brass: g("--brass")
+    };
+  }
+  readColors();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
+  new MutationObserver(() => { readColors(); draw(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  /* ---- dimensionamento canvas ---- */
+  function fit(cv, ctx) {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w: r.width, h: r.height };
+  }
+
+  const fmt = (x, d = 2) => x.toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d });
+  function when(d, i) {
+    const ms = d.t0 + d.tmin[i] * 60000, dt = new Date(ms);
+    const p2 = (n) => String(n).padStart(2, "0");
+    return { day: `${p2(dt.getUTCDate())}/${p2(dt.getUTCMonth() + 1)}`,
+             hm: `${p2(dt.getUTCHours())}:${p2(dt.getUTCMinutes())}`,
+             dayIdx: Math.floor(ms / 86400000) };
+  }
+
+  function visibleCount() {
+    const narrow = chart.getBoundingClientRect().width < 620;
+    // sullo storico completo serve piu' contesto a schermo
+    if (D[st.p].n > 6000) return narrow ? 260 : 520;
+    return narrow ? 80 : 150;
+  }
+
+  /* ---------- disegno del grafico ---------- */
+  function draw() {
+    const d = D[st.p], { w, h } = fit(chart, cx);
+    const padR = 58, padB = 22, padT = 8, padL = 6;
+    const N = Math.min(visibleCount(), d.n);
+    const end = Math.max(0, Math.min(st.i, d.n - 1));
+    const start = Math.max(0, end - N + 1);
+    const plotW = w - padR - padL, plotH = h - padB - padT;
+
+    cx.clearRect(0, 0, w, h);
+
+    let lo = Infinity, hi = -Infinity;
+    for (let k = start; k <= end; k++) {
+      if (d.l[k] < lo) lo = d.l[k];
+      if (d.h[k] > hi) hi = d.h[k];
+      if (!isNaN(d.v[k])) { if (d.v[k] < lo) lo = d.v[k]; if (d.v[k] > hi) hi = d.v[k]; }
+    }
+    // se c'e' un'operazione aperta, i suoi livelli devono restare visibili
+    const live = openTrade(d, end);
+    if (live) { lo = Math.min(lo, live.sl); hi = Math.max(hi, live.tp); }
+    const span = Math.max(hi - lo, 1) * 1.06, mid = (hi + lo) / 2;
+    lo = mid - span / 2; hi = mid + span / 2;
+
+    const cw = plotW / N;
+    const X = (k) => padL + (k - start + 0.5) * cw;
+    const Y = (p) => padT + (hi - p) / (hi - lo) * plotH;
+
+    // griglia orizzontale + scala prezzi
+    cx.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono");
+    cx.textBaseline = "middle";
+    const steps = 5;
+    for (let i = 0; i <= steps; i++) {
+      const p = lo + (hi - lo) * i / steps, y = Math.round(Y(p)) + .5;
+      cx.strokeStyle = C.line2; cx.lineWidth = 1;
+      cx.beginPath(); cx.moveTo(padL, y); cx.lineTo(padL + plotW, y); cx.stroke();
+      cx.fillStyle = C.ink3; cx.textAlign = "left";
+      cx.fillText(fmt(p, 1), padL + plotW + 7, y);
+    }
+
+    // separatori di giornata + etichette
+    cx.textAlign = "center"; cx.textBaseline = "alphabetic";
+    let prevDay = when(d, start).dayIdx, lastLabelX = -1e9;
+    for (let k = start + 1; k <= end; k++) {
+      const wk = when(d, k);
+      if (wk.dayIdx !== prevDay) {
+        prevDay = wk.dayIdx;
+        const x = Math.round(X(k) - cw / 2) + .5;
+        // etichette diradate: mai piu' fitte di 74px, altrimenti si accavallano
+        if (x - lastLabelX < 74) continue;
+        lastLabelX = x;
+        cx.strokeStyle = C.line; cx.lineWidth = 1;
+        cx.beginPath(); cx.moveTo(x, padT); cx.lineTo(x, padT + plotH); cx.stroke();
+        cx.fillStyle = C.ink3; cx.fillText(wk.day, x, h - 7);
+      }
+    }
+
+    // zone rischio/obiettivo dell'operazione in corso
+    if (live) {
+      const x0 = X(Math.max(live.i, start)) - cw / 2, x1 = padL + plotW;
+      cx.fillStyle = C.up; cx.globalAlpha = .13;
+      cx.fillRect(x0, Y(live.tp), x1 - x0, Y(live.entry) - Y(live.tp));
+      cx.fillStyle = C.down;
+      cx.fillRect(x0, Y(live.entry), x1 - x0, Y(live.sl) - Y(live.entry));
+      cx.globalAlpha = 1;
+      [[live.tp, C.up, "obiettivo"], [live.sl, C.down, "stop"], [live.entry, C.brass, "ingresso"]]
+        .forEach(([p, col, lab]) => {
+          const y = Math.round(Y(p)) + .5;
+          cx.strokeStyle = col; cx.lineWidth = 1.5; cx.setLineDash(lab === "ingresso" ? [] : [5, 4]);
+          cx.beginPath(); cx.moveTo(x0, y); cx.lineTo(x1, y); cx.stroke(); cx.setLineDash([]);
+          // etichetta a destra, su pastiglia: non collide con gli indicatori in alto
+          cx.textAlign = "right"; cx.textBaseline = "middle";
+          const tw = cx.measureText(lab).width;
+          cx.fillStyle = C.panel; cx.globalAlpha = .88;
+          cx.fillRect(x1 - tw - 11, y - 8, tw + 9, 16);
+          cx.globalAlpha = 1; cx.fillStyle = col;
+          cx.fillText(lab, x1 - 6, y);
+        });
+    }
+
+    // linea VWAP, spezzata al cambio di giornata
+    cx.strokeStyle = C.vwap; cx.lineWidth = 2; cx.lineJoin = "round";
+    cx.beginPath();
+    let pen = false, pd = -1;
+    for (let k = start; k <= end; k++) {
+      const wk = when(d, k);
+      if (isNaN(d.v[k])) { pen = false; continue; }
+      if (!pen || wk.dayIdx !== pd) { cx.moveTo(X(k), Y(d.v[k])); pen = true; }
+      else cx.lineTo(X(k), Y(d.v[k]));
+      pd = wk.dayIdx;
+    }
+    cx.stroke();
+
+    // candele: rialzo vuote, ribasso piene (leggibili anche senza colore)
+    const bw = Math.max(1.5, Math.min(cw * 0.66, 9));
+    for (let k = start; k <= end; k++) {
+      const up = d.c[k] >= d.o[k], col = up ? C.up : C.down, x = X(k);
+      cx.strokeStyle = col; cx.lineWidth = 1;
+      cx.beginPath(); cx.moveTo(Math.round(x) + .5, Y(d.h[k])); cx.lineTo(Math.round(x) + .5, Y(d.l[k])); cx.stroke();
+      const yo = Y(d.o[k]), yc = Y(d.c[k]);
+      const top = Math.min(yo, yc), hgt = Math.max(Math.abs(yc - yo), 1);
+      if (up) { cx.fillStyle = C.panel; cx.fillRect(x - bw / 2, top, bw, hgt);
+                cx.lineWidth = 1.2; cx.strokeRect(x - bw / 2, top, bw, hgt); }
+      else { cx.fillStyle = col; cx.fillRect(x - bw / 2, top, bw, hgt); }
+    }
+
+    // segnaposto delle operazioni concluse visibili
+    TR(d).forEach((tr) => {
+      if (tr.xi > end || tr.xi < start) return;
+      const x = X(tr.xi), y = Y(tr.exit), col = tr.r > 0 ? C.up : C.down;
+      cx.fillStyle = col; cx.strokeStyle = C.panel; cx.lineWidth = 2;
+      cx.beginPath(); cx.arc(x, y, 4.5, 0, Math.PI * 2); cx.fill(); cx.stroke();
+    });
+    TR(d).forEach((tr) => {
+      if (tr.i > end || tr.i < start) return;
+      const x = X(tr.i), y = Y(tr.entry);
+      cx.fillStyle = C.brass; cx.strokeStyle = C.panel; cx.lineWidth = 2;
+      cx.beginPath(); cx.moveTo(x, y + 9); cx.lineTo(x - 5, y + 17); cx.lineTo(x + 5, y + 17);
+      cx.closePath(); cx.fill(); cx.stroke();
+    });
+
+    // linea del presente
+    const xNow = Math.round(X(end) + cw / 2) + .5;
+    cx.strokeStyle = C.brass; cx.globalAlpha = .5; cx.lineWidth = 1;
+    cx.beginPath(); cx.moveTo(xNow, padT); cx.lineTo(xNow, padT + plotH); cx.stroke();
+    cx.globalAlpha = 1;
+
+    drawEquity(d, end);
+    drawVol(d, end);
+    drawHud(d, end, live);
+    drawTip(d, start, end, X, Y, cw);
+    const wnow = when(d, end);
+    el("clock").textContent = `${wnow.day} ${wnow.hm} · candela ${end + 1}/${d.n}`;
+  }
+
+  function openTrade(d, i) {
+    for (const tr of TR(d)) if (tr.i <= i && tr.xi > i) return tr;
+    return null;
+  }
+  function doneTrades(d, i) { return TR(d).filter(t => t.xi <= i); }
+
+  /* ---------- barra del risultato cumulato ---------- */
+  function drawEquity(d, i) {
+    const { w, h } = fit(eq, ex);
+    ex.clearRect(0, 0, w, h);
+    const padR = 58, padL = 6, padV = 11, plotW = w - padR - padL, plotH = h - padV * 2;
+
+    const pts = [{ x: 0, r: 0 }];
+    let acc = 0;
+    TR(d).forEach(tr => { if (tr.xi <= i) { acc += tr.r; pts.push({ x: tr.xi, r: acc }); } });
+    const all = TR(d).reduce((s, t) => s + Math.abs(t.r), 0);
+    const lim = Math.max(4, Math.ceil(Math.max(Math.abs(acc), all * 0.35)));
+    const X = (k) => padL + (k / Math.max(d.n - 1, 1)) * plotW;
+    const Y = (r) => padV + (lim - r) / (lim * 2) * plotH;
+
+    const yz = Math.round(Y(0)) + .5;
+    ex.strokeStyle = C.line; ex.lineWidth = 1;
+    ex.beginPath(); ex.moveTo(padL, yz); ex.lineTo(padL + plotW, yz); ex.stroke();
+
+    ex.strokeStyle = acc >= 0 ? C.up : C.down; ex.lineWidth = 2;
+    ex.lineJoin = "round"; ex.beginPath();
+    pts.forEach((p, k) => k ? ex.lineTo(X(p.x), Y(p.r)) : ex.moveTo(X(p.x), Y(p.r)));
+    ex.lineTo(X(i), Y(acc)); ex.stroke();
+
+    ex.fillStyle = acc >= 0 ? C.up : C.down;
+    ex.beginPath(); ex.arc(X(i), Y(acc), 3.5, 0, Math.PI * 2); ex.fill();
+
+    ex.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono");
+    ex.textBaseline = "middle"; ex.textAlign = "left";
+    ex.fillStyle = C.ink3; ex.fillText("0 R", padL + plotW + 7, yz);
+    ex.fillStyle = acc >= 0 ? C.up : C.down;
+    ex.fillText((acc >= 0 ? "+" : "") + fmt(acc, 1) + " R", padL + plotW + 7, Y(acc) > yz - 11 && Y(acc) < yz + 11 ? yz - 14 : Y(acc));
+  }
+
+  /* ---------- fascia di volatilita' (solo storico completo) ---------- */
+  const vol = el("vol"), vcx = vol.getContext("2d");
+  function drawVol(d, i) {
+    if (!d.vol) { vol.classList.add("hidden"); return; }
+    vol.classList.remove("hidden");
+    const { w, h } = fit(vol, vcx);
+    vcx.clearRect(0, 0, w, h);
+    const padR = 58, padL = 6, padT = 15, plotW = w - padR - padL, plotH = h - padT - 8;
+    // scala robusta: un singolo giorno estremo schiaccerebbe tutto il resto
+    const vals = d.vol.filter(x => x !== null).slice().sort((a, b) => a - b);
+    const top = Math.max(vals[Math.floor(vals.length * 0.97)] * 1.12, 0.5);
+    const X = (k) => padL + (k / Math.max(d.n - 1, 1)) * plotW;
+    const Y = (v) => padT + (1 - Math.min(v, top) / top) * plotH;
+
+    // area fino al punto corrente: si vede l'espansione della volatilita'
+    vcx.beginPath(); vcx.moveTo(X(0), padT + plotH);
+    let started = false;
+    for (let k = 0; k <= i; k++) {
+      if (d.vol[k] === null) continue;
+      if (!started) { vcx.lineTo(X(k), Y(d.vol[k])); started = true; }
+      else vcx.lineTo(X(k), Y(d.vol[k]));
+    }
+    vcx.lineTo(X(i), padT + plotH); vcx.closePath();
+    vcx.fillStyle = C.brass; vcx.globalAlpha = .17; vcx.fill(); vcx.globalAlpha = 1;
+
+    vcx.beginPath(); started = false;
+    for (let k = 0; k <= i; k++) {
+      if (d.vol[k] === null) continue;
+      started ? vcx.lineTo(X(k), Y(d.vol[k])) : (vcx.moveTo(X(k), Y(d.vol[k])), started = true);
+    }
+    vcx.strokeStyle = C.brass; vcx.lineWidth = 1.6; vcx.stroke();
+
+    vcx.font = "10.5px " + getComputedStyle(document.body).getPropertyValue("--mono");
+    vcx.fillStyle = C.ink3; vcx.textAlign = "left"; vcx.textBaseline = "top";
+    vcx.fillText("volatilità · ampiezza tipica di una candela da 1 minuto", padL + 2, 3);
+    const cur = d.vol[i];
+    vcx.textBaseline = "middle";
+    // il valore di scala si nasconde se collide con quello corrente
+    if (cur === null || cur === undefined || Math.abs(Y(cur) - (padT + 4)) > 13)
+      vcx.fillText(fmt(top, 1) + " $", padL + plotW + 7, padT + 4);
+    if (cur !== null && cur !== undefined) {
+      vcx.fillStyle = C.brass;
+      vcx.fillText(fmt(cur, 2) + " $", padL + plotW + 7, Y(cur));
+      vcx.beginPath(); vcx.arc(X(i), Y(cur), 3, 0, Math.PI * 2); vcx.fill();
+    }
+  }
+
+  /* ---------- riquadri e indicatori ---------- */
+  function drawHud(d, i, live) {
+    const wk = when(d, i);
+    // stato compresso: s = h6*3 + h2, con h6 e h2 in {-1,0,1}
+    const s = d.s[i], sh6 = Math.round(s / 3), sh2 = s - sh6 * 3;
+    const lab = (v) => v === 1 ? ["on", "rialzista"] : v === -1 ? ["off", "ribassista"] : ["", "neutra"];
+    const [c6, t6] = lab(sh6), [c2, t2] = lab(sh2);
+    el("hud").innerHTML =
+      `<span class="pill"><b>${wk.day}</b> ${wk.hm} UTC</span>` +
+      `<span class="pill">prezzo <b>${fmt(d.c[i])}</b></span>` +
+      (d.hasState
+        ? `<span class="pill"><span class="dot ${c6}"></span>H6 ${t6}</span>` +
+          `<span class="pill"><span class="dot ${c2}"></span>H2 ${t2}</span>`
+        : `<span class="pill">${SOTTO[d.id] || ""}</span>`) +
+      (live ? `<span class="pill" style="border-color:var(--brass)">operazione aperta · rischio <b>${fmt(live.entry - live.sl)}&#36;</b></span>` : "");
+
+    const done = doneTrades(d, i);
+    const tot = done.reduce((s, t) => s + t.r, 0);
+    const win = done.filter(t => t.r > 0).length;
+    const cls = (v) => v > 0 ? "pos" : v < 0 ? "neg" : "";
+    el("stats").innerHTML = [
+      ["operazioni", `${done.length}<span style="color:var(--ink3);font-size:13px"> / ${TR(d).length}</span>`, ""],
+      ["risultato", (tot >= 0 ? "+" : "") + fmt(tot, 2) + " R", cls(tot)],
+      ["a obiettivo", done.length ? Math.round(win / done.length * 100) + "%" : "—", ""],
+      ["media per trade", done.length ? (tot / done.length >= 0 ? "+" : "") + fmt(tot / done.length, 2) + " R" : "—", cls(tot)],
+      ["periodo", NOMI[d.id] || d.id, ""]
+    ].map(([k, v, c]) => `<div class="stat"><span class="k">${k}</span><span class="v ${c}">${v}</span></div>`).join("");
+
+    renderLog(d, i, live);
+  }
+
+  let lastLog = -1;
+  function renderLog(d, i, live) {
+    const done = doneTrades(d, i);
+    const key = done.length * 1000 + (live ? live.i : 0);
+    if (key === lastLog) return;
+    lastLog = key;
+    const rows = el("rows");
+    if (!done.length && !live) {
+      rows.innerHTML = `<div class="empty">Nessuna operazione ancora. Il replay procede: le condizioni si presentano poche volte al mese.</div>`;
+      return;
+    }
+    const item = (tr, k, isLive) => {
+      const wk = when(d, tr.i);
+      const r = isLive ? null : tr.r;
+      const col = isLive ? "" : (tr.r > 0 ? "pos" : "neg");
+      const esito = isLive ? "in corso" : (tr.why === "target" ? "obiettivo" : tr.why === "stop" ? "stop" : "chiusa a fine giornata");
+      return `<div class="row ${isLive ? "live" : ""}">
+        <span class="n">${k + 1}</span>
+        <span class="when">${wk.day} ${wk.hm}</span>
+        <span class="r ${col}">${r === null ? "—" : (r > 0 ? "+" : "") + fmt(r, 2) + " R"}</span>
+        <span class="det">${esito} · ingresso ${fmt(tr.entry)} · stop ${fmt(tr.sl)} · obiettivo ${fmt(tr.tp)}</span>
+      </div>`;
+    };
+    let html = "";
+    if (live) html += item(live, TR(d).indexOf(live), true);
+    const MAX = 40;                                  // registro: solo le piu' recenti
+    for (let k = done.length - 1; k >= Math.max(0, done.length - MAX); k--)
+      html += item(done[k], TR(d).indexOf(done[k]), false);
+    if (done.length > MAX)
+      html += `<div class="empty">…e altre ${done.length - MAX} operazioni precedenti</div>`;
+    rows.innerHTML = html;
+  }
+
+  /* ---------- tooltip ---------- */
+  function drawTip(d, start, end, X, Y, cw) {
+    const tip = el("tip");
+    if (st.hoverX === null) { tip.style.opacity = 0; return; }
+    const k = Math.round(start + (st.hoverX - 6) / cw - 0.5);
+    if (k < start || k > end) { tip.style.opacity = 0; return; }
+    const wk = when(d, k);
+    tip.innerHTML = `<b>${wk.day} ${wk.hm}</b><br>ap ${fmt(d.o[k])} · ch ${fmt(d.c[k])}<br>max ${fmt(d.h[k])} · min ${fmt(d.l[k])}` +
+      (isNaN(d.v[k]) ? "" : `<br><span style="color:var(--vwap)">vwap ${fmt(d.v[k])}</span>`);
+    const r = chart.getBoundingClientRect();
+    tip.style.opacity = 1;
+    tip.style.left = Math.min(Math.max(X(k) + 12, 6), r.width - 170) + "px";
+    tip.style.top = Math.min(Math.max(Y(d.h[k]) - 12, 6), r.height - 84) + "px";
+    cx.strokeStyle = C.ink3; cx.globalAlpha = .35; cx.lineWidth = 1;
+    cx.beginPath(); cx.moveTo(Math.round(X(k)) + .5, 8); cx.lineTo(Math.round(X(k)) + .5, chart.getBoundingClientRect().height - 22); cx.stroke();
+    cx.globalAlpha = 1;
+  }
+
+  /* ---------- riproduzione ---------- */
+  let raf = null, prev = 0, carry = 0;
+  function tick(ts) {
+    if (!st.playing) return;
+    if (!prev) prev = ts;
+    const dt = Math.min((ts - prev) / 1000, 0.25); prev = ts;
+    carry += dt * st.speed;
+    const adv = Math.floor(carry);
+    if (adv > 0) {
+      carry -= adv;
+      st.i = Math.min(st.i + adv, D[st.p].n - 1);
+      el("scrub").value = st.i;
+      draw();
+      if (st.i >= D[st.p].n - 1) { setPlaying(false); return; }
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  function setPlaying(on) {
+    st.playing = on; prev = 0; carry = 0;
+    el("play").textContent = on ? "Pausa" : (st.i >= D[st.p].n - 1 ? "Rivedi" : "Avvia");
+    if (on) raf = requestAnimationFrame(tick); else if (raf) cancelAnimationFrame(raf);
+  }
+
+  function loadPeriod(k) {
+    st.p = k; st.i = 0; lastLog = -1;
+    el("scrub").max = D[k].n - 1; el("scrub").value = 0;
+    [...el("periods").children].forEach((b, j) => b.setAttribute("aria-pressed", j === k));
+    setPlaying(false); draw();
+  }
+
+  /* ---------- controlli ---------- */
+  const SISTEMI = [
+    { k: "dollari", n: "soglie in dollari",
+      d: "La versione storica: impulso ≥ 4&#36;, rischio 1-10&#36;, stop a 0,3&#36; sotto il minimo. Soglie fisse, tarate sul mercato 2020-2024." },
+    { k: "switch", n: "switch su volatilità",
+      d: "<b>Il sistema attuale.</b> Usa le soglie in dollari quando il mercato è calmo e le stesse soglie riscalate sull'ATR quando la volatilità recente supera di 1,5 volte la sua mediana storica. La decisione usa solo dati passati: nel 2025 ha riconosciuto il cambio di regime da sola." },
+    { k: "oracolo", n: "oracolo",
+      d: "<b>Non è una strategia.</b> Sceglie ogni anno la variante migliore sapendo già come è andata: serve solo come tetto massimo di riferimento. Che lo switch lo eguagli è il dato interessante." },
+  ];
+  el("systems").innerHTML = SISTEMI.map(s =>
+    `<button type="button" aria-pressed="${s.k === st.sys}">${s.n}</button>`).join("");
+  [...el("systems").children].forEach((b, k) => b.addEventListener("click", () => {
+    st.sys = SISTEMI[k].k; lastLog = -1;
+    [...el("systems").children].forEach((x, j) => x.setAttribute("aria-pressed", j === k));
+    el("nota").innerHTML = SISTEMI[k].d;
+    draw();
+  }));
+  el("nota").innerHTML = SISTEMI.find(s => s.k === st.sys).d;
+
+  el("periods").innerHTML = D.map((d, k) =>
+    `<button type="button" aria-pressed="${k === 0}">${NOMI[d.id] || d.id}</button>`).join("");
+  [...el("periods").children].forEach((b, k) => b.addEventListener("click", () => loadPeriod(k)));
+
+  el("speeds").innerHTML = SPEEDS.map((s, k) =>
+    `<button type="button" aria-pressed="${k === 1}">${s.k}</button>`).join("");
+  [...el("speeds").children].forEach((b, k) => b.addEventListener("click", () => {
+    st.speed = SPEEDS[k].v;
+    [...el("speeds").children].forEach((x, j) => x.setAttribute("aria-pressed", j === k));
+  }));
+
+  el("play").addEventListener("click", () => {
+    if (st.i >= D[st.p].n - 1) { st.i = 0; el("scrub").value = 0; }
+    setPlaying(!st.playing);
+  });
+  el("step").addEventListener("click", () => {
+    setPlaying(false); st.i = Math.min(st.i + 1, D[st.p].n - 1);
+    el("scrub").value = st.i; draw();
+  });
+  el("reset").addEventListener("click", () => { st.i = 0; el("scrub").value = 0; setPlaying(false); draw(); });
+  el("scrub").addEventListener("input", (e) => {
+    setPlaying(false); st.i = +e.target.value; draw();
+  });
+
+  chart.addEventListener("mousemove", (e) => {
+    const r = chart.getBoundingClientRect();
+    st.hoverX = e.clientX - r.left; st.hoverY = e.clientY - r.top; draw();
+  });
+  chart.addEventListener("mouseleave", () => { st.hoverX = null; draw(); });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") {
+      if (e.code !== "Space") return;
+    }
+    if (e.code === "Space") { e.preventDefault(); el("play").click(); }
+    else if (e.code === "ArrowRight") { e.preventDefault(); el("step").click(); }
+    else if (e.code === "ArrowLeft") {
+      e.preventDefault(); setPlaying(false);
+      st.i = Math.max(st.i - 1, 0); el("scrub").value = st.i; draw();
+    }
+  });
+
+  let rt = null;
+  window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 120); });
+
+  loadPeriod(0);
+})();
+</script>

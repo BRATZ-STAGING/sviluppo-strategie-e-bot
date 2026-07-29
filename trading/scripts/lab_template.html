@@ -1,0 +1,567 @@
+<title>XAUUSD — Laboratorio strategia</title>
+<style>
+  :root {
+    --ground:#F7F5F1; --panel:#FFFFFF; --ink:#23202A; --ink2:#5C5650; --ink3:#8E877E;
+    --line:#E3DFD8; --line2:#EFECE6;
+    --up:#00916B; --down:#BC4127; --vwap:#5F4FC0; --brass:#A87A22;
+    --shadow:0 1px 2px rgba(35,32,42,.06), 0 8px 24px rgba(35,32,42,.05);
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --ground:#151318; --panel:#1C1A20; --ink:#E9E4DB; --ink2:#A39C91; --ink3:#6E675F;
+    --line:#2C2932; --line2:#232028;
+    --up:#4EA57F; --down:#C25A46; --vwap:#8E7BD0; --brass:#C99A3E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3); } }
+  :root[data-theme="dark"] {
+    --ground:#151318; --panel:#1C1A20; --ink:#E9E4DB; --ink2:#A39C91; --ink3:#6E675F;
+    --line:#2C2932; --line2:#232028;
+    --up:#4EA57F; --down:#C25A46; --vwap:#8E7BD0; --brass:#C99A3E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3); }
+  :root[data-theme="light"] {
+    --ground:#F7F5F1; --panel:#FFFFFF; --ink:#23202A; --ink2:#5C5650; --ink3:#8E877E;
+    --line:#E3DFD8; --line2:#EFECE6;
+    --up:#00916B; --down:#BC4127; --vwap:#5F4FC0; --brass:#A87A22;
+    --shadow:0 1px 2px rgba(35,32,42,.06), 0 8px 24px rgba(35,32,42,.05); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans);
+         font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .app { display:flex; flex-direction:column; gap:12px; padding:14px; max-width:1560px; margin:0 auto; }
+
+  header h1 { margin:0 0 3px; font-family:var(--mono); font-size:17px; font-weight:600; letter-spacing:-.01em; }
+  header h1 span { color:var(--brass); }
+  header p { margin:0; color:var(--ink3); font-size:12.5px; max-width:80ch; }
+
+  /* ---- pannello dei comandi ---- */
+  .lab { display:flex; flex-wrap:wrap; gap:14px 22px; padding:12px 14px; background:var(--panel);
+         border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+  .grp { display:flex; flex-direction:column; gap:5px; }
+  .grp .lab-t { font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3); }
+  .seg { display:flex; background:var(--ground); border:1px solid var(--line); border-radius:9px; padding:3px; gap:3px; }
+  .seg button { appearance:none; border:0; background:transparent; color:var(--ink2); font-family:var(--mono);
+                font-size:12px; padding:6px 11px; border-radius:6px; cursor:pointer; white-space:nowrap; }
+  .seg button[aria-pressed="true"] { background:var(--brass); color:var(--ground); font-weight:600; }
+  .seg button:focus-visible { outline:2px solid var(--brass); outline-offset:2px; }
+
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:8px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:9px 11px;
+          display:flex; flex-direction:column; gap:2px; box-shadow:var(--shadow); }
+  .stat .k { font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3); }
+  .stat .v { font-family:var(--mono); font-size:18px; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .pos { color:var(--up); } .neg { color:var(--down); }
+
+  .main { display:grid; grid-template-columns:1fr 300px; gap:12px; align-items:start; }
+  @media (max-width:1000px) { .main { grid-template-columns:1fr; } }
+  .board { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+           overflow:hidden; box-shadow:var(--shadow); }
+  .chart { position:relative; }
+  canvas { display:block; width:100%; }
+  #chart { height:400px; } #equity { height:70px; border-top:1px solid var(--line); }
+  #vol { height:54px; border-top:1px solid var(--line); } #vol.hidden { display:none; }
+  @media (max-width:640px){ #chart{height:320px;} }
+
+  .hud { position:absolute; top:9px; left:11px; display:flex; flex-wrap:wrap; gap:6px; pointer-events:none; }
+  .pill { font-family:var(--mono); font-size:11px; padding:3px 8px; border-radius:999px; border:1px solid var(--line);
+          background:var(--panel); color:var(--ink2); display:inline-flex; align-items:center; gap:5px;
+          font-variant-numeric:tabular-nums; }
+  .pill b { font-weight:600; color:var(--ink); }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--ink3); }
+  .dot.on{background:var(--up);} .dot.off{background:var(--down);}
+
+  .transport { display:flex; align-items:center; gap:11px; padding:10px 12px; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .btn { appearance:none; border:1px solid var(--line); background:var(--panel); color:var(--ink);
+         font-family:var(--mono); font-size:12.5px; padding:7px 13px; border-radius:8px; cursor:pointer; }
+  .btn:hover{border-color:var(--brass);} .btn:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+  .btn.primary{background:var(--brass); border-color:var(--brass); color:var(--ground); font-weight:600; min-width:88px;}
+  input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;flex:1 1 160px;min-width:120px;height:22px;cursor:pointer;}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px;}
+  input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:2px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--brass);border:0;}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--brass);border:0;}
+  .clock{font-family:var(--mono);font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+  .side { display:flex; flex-direction:column; gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+  .card h2 { margin:0; padding:11px 13px 9px; font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+             color:var(--ink3); border-bottom:1px solid var(--line); font-weight:600; }
+  #anni { height:172px; }
+  #conto { height:186px; }
+  .rows { overflow-y:auto; max-height:330px; padding:5px; display:flex; flex-direction:column; gap:4px; }
+  .row { display:grid; grid-template-columns:auto 1fr auto; gap:3px 9px; align-items:baseline; padding:7px 9px;
+         border-radius:8px; border:1px solid transparent; font-family:var(--mono); font-size:11.5px;
+         font-variant-numeric:tabular-nums; }
+  .row.live { border-color:var(--brass); background:color-mix(in srgb,var(--brass) 8%,transparent); }
+  .row .n{color:var(--ink3);} .row .when{color:var(--ink2);} .row .r{font-weight:600;text-align:right;}
+  .row .det{grid-column:1/-1; color:var(--ink3); font-size:10.5px;}
+  .empty{padding:20px 13px;color:var(--ink3);font-size:12.5px;text-align:center;}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 15px;padding:9px 13px;border-top:1px solid var(--line);}
+  .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2);}
+  .sw{width:13px;height:3px;border-radius:2px;} .sw.box{height:11px;width:7px;border-radius:1.5px;}
+  footer{color:var(--ink3);font-size:11.5px;padding:2px 2px 8px;max-width:96ch;}
+  footer b{color:var(--ink2);font-weight:600;}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;}}
+</style>
+
+<div class="app">
+  <header>
+    <h1>XAUUSD <span>·</span> laboratorio della strategia</h1>
+    <p>Muovi le variabili e guarda l'effetto sullo stesso storico 2020-2026. Ogni combinazione è ricalcolata sulle operazioni reali: nessuna stima, nessuna interpolazione. La parametrizzazione delle soglie usa sempre lo switch su volatilità già validato.</p>
+  </header>
+
+  <div class="lab">
+    <div class="grp"><span class="lab-t">direzione</span><div class="seg" id="dir" role="group" aria-label="Direzione"></div></div>
+    <div class="grp"><span class="lab-t">filtro di fondo (media 50 giorni)</span><div class="seg" id="mac" role="group" aria-label="Filtro macro"></div></div>
+    <div class="grp"><span class="lab-t">conferme strutturali</span><div class="seg" id="conf" role="group" aria-label="Conferme"></div></div>
+    <div class="grp"><span class="lab-t">obiettivo</span><div class="seg" id="rr" role="group" aria-label="Obiettivo"></div></div>
+    <div class="grp"><span class="lab-t">stop a pareggio</span><div class="seg" id="be" role="group" aria-label="Stop a pareggio"></div></div>
+    <div class="grp"><span class="lab-t">rischio per operazione</span><div class="seg" id="risk" role="group" aria-label="Rischio"></div></div>
+    <div class="grp"><span class="lab-t">periodo</span><div class="seg" id="periods" role="group" aria-label="Periodo"></div></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="main">
+    <div class="board">
+      <div class="chart">
+        <canvas id="chart" aria-label="Grafico a candele con le operazioni"></canvas>
+        <div class="hud" id="hud"></div>
+      </div>
+      <canvas id="equity" aria-label="Risultato cumulato"></canvas>
+      <canvas id="vol" aria-label="Volatilità"></canvas>
+      <div class="transport">
+        <button class="btn primary" id="play">Avvia</button>
+        <button class="btn" id="step">Passo</button>
+        <button class="btn" id="reset">Inizio</button>
+        <input type="range" id="scrub" min="0" value="0" aria-label="Posizione nel tempo">
+        <span class="clock" id="clock">—</span>
+        <div class="seg" id="speeds" role="group" aria-label="Velocità"></div>
+      </div>
+      <div class="legend">
+        <span class="lg"><span class="sw box" style="background:var(--up)"></span>candela al rialzo</span>
+        <span class="lg"><span class="sw box" style="background:var(--down)"></span>al ribasso</span>
+        <span class="lg"><span class="sw" style="background:var(--vwap)"></span>VWAP</span>
+        <span class="lg"><span class="sw" style="background:var(--up);height:11px;width:11px;border-radius:2px;opacity:.3"></span>zona obiettivo</span>
+        <span class="lg"><span class="sw" style="background:var(--down);height:11px;width:11px;border-radius:2px;opacity:.3"></span>zona di rischio</span>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card"><h2>Crescita del conto · 10.000 €</h2><canvas id="conto" aria-label="Crescita del conto"></canvas></div>
+      <div class="card"><h2>Risultato per anno</h2><canvas id="anni" aria-label="Risultato per anno"></canvas></div>
+      <div class="card"><h2>Operazioni</h2><div class="rows" id="rows"><div class="empty">Avvia il replay.</div></div></div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Come leggerlo.</b> Il grafico avanza una candela alla volta, come le vedeva la strategia: nulla a schermo era ignoto in quel momento. Le statistiche e il grafico per anno si riferiscono all'<b>intero periodo</b> con le impostazioni scelte, non solo alla parte già scorsa. Il rendimento in percentuale è composto (ogni operazione rischia la percentuale scelta del capitale corrente); scegliendo un anno singolo il conto riparte da 10.000 € a inizio anno. <b>1R</b> = il rischio di una singola operazione. <b>Stop a pareggio</b>: quando il prezzo arriva al guadagno indicato, lo stop viene spostato sul prezzo d'ingresso, cosi' l'operazione non puo' piu' perdere. Spazio per avviare o fermare, frecce per muoverti di una candela.
+  </footer>
+</div>
+
+<script id="payload" type="application/json">__DATA__</script>
+<script>
+(function () {
+  "use strict";
+  const DATA = JSON.parse(document.getElementById("payload").textContent);
+  const P = DATA.periods, RRS = DATA.rr, BES = DATA.be;
+  const NOMI = { "full:H6": "tutto lo storico" };
+
+  const DIR = [{k:"both",n:"long + short"},{k:"long",n:"solo long"},{k:"short",n:"solo short"}];
+  const MAC = [{k:1,n:"attivo"},{k:0,n:"spento"}];
+  const RISK = [0.005,0.01,0.02,0.03,0.04,0.05];
+  const SPEEDS = [{k:"lenta",v:6},{k:"media",v:22},{k:"veloce",v:90},{k:"max",v:400}];
+
+  // st.anno = null (tutto) oppure l'anno scelto; a0/a1 delimitano le candele
+  const st = { p:0, i:0, dir:"both", mac:1, rr:4, q:3, auto:false, be:3, risk:1,
+               anno:null, a0:0, a1:0, playing:false, speed:22, hover:null };
+
+  const D = P.map(p => {
+    const b = p.base, f = a => a.map(x => x === null ? NaN : b + x/100);
+    return { id:p.id, t0:p.t0, tmin:p.t, o:f(p.o), h:f(p.h), l:f(p.l), c:f(p.c),
+             v:f(p.v), s:p.s, trades:p.trades, n:p.t.length, vol:p.vol||null,
+             hasState:p.s.some(x=>x!==0) };
+  });
+
+  // intervallo di candele di ciascun anno, calcolato una volta sola
+  const FIN = (() => {
+    const d=D[0], out={};
+    for(let k=0;k<d.n;k++){
+      const y=new Date(d.t0+d.tmin[k]*60000).getUTCFullYear();
+      if(!(y in out)) out[y]=[k,k]; else out[y][1]=k;
+    }
+    return out;
+  })();
+  const ANNI = Object.keys(FIN).map(Number).sort((a,b)=>a-b);
+
+  const el = id => document.getElementById(id);
+  const chart=el("chart"), eq=el("equity"), vol=el("vol"), anni=el("anni"), conto=el("conto");
+  const cx=chart.getContext("2d"), ex=eq.getContext("2d"), vcx=vol.getContext("2d"),
+        acx=anni.getContext("2d"), ccx=conto.getContext("2d");
+  const CAPITALE = 10000;
+
+  let C={};
+  function readColors(){ const s=getComputedStyle(document.documentElement), g=n=>s.getPropertyValue(n).trim();
+    C={ink:g("--ink"),ink2:g("--ink2"),ink3:g("--ink3"),line:g("--line"),line2:g("--line2"),
+       panel:g("--panel"),up:g("--up"),down:g("--down"),vwap:g("--vwap"),brass:g("--brass")}; }
+  readColors();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{readColors();draw();});
+  new MutationObserver(()=>{readColors();draw();}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+  function fit(cv,ctx){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
+    cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0); return {w:r.width,h:r.height}; }
+  const fmt=(x,d=2)=>x.toLocaleString("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d});
+  function when(d,i){ const dt=new Date(d.t0+d.tmin[i]*60000), p2=n=>String(n).padStart(2,"0");
+    return {day:`${p2(dt.getUTCDate())}/${p2(dt.getUTCMonth()+1)}`,
+            hm:`${p2(dt.getUTCHours())}:${p2(dt.getUTCMinutes())}`,
+            dayIdx:Math.floor((d.t0+d.tmin[i]*60000)/86400000)}; }
+
+  /* ---- il cuore: quali operazioni e con che esito, secondo le impostazioni ---- */
+  function attivi(d) {
+    const out=[];
+    for (const t of d.trades) {
+      if (st.anno !== null && t.y !== st.anno) continue;
+      if (st.dir==="long" && t.L!==1) continue;
+      if (st.dir==="short" && t.L!==0) continue;
+      if (st.mac===1 && (t.L===1) !== (t.M===1)) continue;   // long sopra, short sotto
+      const F = t.f || [0,0,0,0];                            // [M33, H12, M66, M12]
+      if (st.q===1 && !F[0]) continue;                       // M33
+      if (st.q===2 && !(F[0]&&F[1])) continue;               // M33 + H12
+      if (st.q===3 && !(F[0]&&F[1]&&F[3]===0)) continue;     // + M12 in ritracciamento
+      // "auto": l'obiettivo lo sceglie la qualità del setup, non l'utente
+      const j = st.auto ? (t.q>=2 ? 4 : t.q===1 ? 3 : 1) : st.rr;
+      const [xi, rl, mo] = t.x[st.be][j];
+      out.push({ ...t, xi, r: rl - t.c, tp: t.L===1 ? t.e + RRS[j]*t.k : t.e - RRS[j]*t.k,
+                 rrUsato: RRS[j], motivo: mo, vinta: rl > 0 });
+    }
+    return out;
+  }
+  const chiuse=(ts,i)=>ts.filter(t=>t.xi<=i);
+  function aperta(ts,i){ for(const t of ts) if(t.i<=i && t.xi>i) return t; return null; }
+
+  function metriche(ts) {
+    const tot=ts.reduce((s,t)=>s+t.r,0), win=ts.filter(t=>t.r>0).length;
+    let eqv=1, peak=1, dd=0;
+    const perAnno={};
+    for (const t of ts) {
+      eqv*=(1+RISK[st.risk]*t.r); peak=Math.max(peak,eqv); dd=Math.max(dd,(peak-eqv)/peak);
+      perAnno[t.y]=(perAnno[t.y]||0)+t.r;
+    }
+    let r=0,pk=0,ddR=0; for(const t of ts){ r+=t.r; pk=Math.max(pk,r); ddR=Math.max(ddR,pk-r); }
+    const mot=[0,0,0,0]; for(const t of ts) mot[t.motivo]++;
+    return { n:ts.length, tot, expR:ts.length?tot/ts.length:0, win:ts.length?win/ts.length:0,
+             stop:ts.length?mot[0]/ts.length:0, pari:ts.length?mot[3]/ts.length:0,
+             rend:eqv-1, ddPct:dd, ddR, perAnno,
+             anniPos:Object.values(perAnno).filter(x=>x>0).length,
+             anniTot:Object.keys(perAnno).length };
+  }
+
+  const ampiezza = () => st.a1 - st.a0 + 1;
+  function visibleCount(){ const nar=chart.getBoundingClientRect().width<620;
+    return ampiezza()>6000 ? (nar?260:520) : ampiezza()>1500 ? (nar?150:300) : (nar?80:150); }
+
+  /* ---------- grafico principale ---------- */
+  function draw() {
+    const d=D[st.p], ts=attivi(d), {w,h}=fit(chart,cx);
+    const padR=56,padB=21,padT=7,padL=6;
+    const N=Math.min(visibleCount(),ampiezza()), end=Math.max(st.a0,Math.min(st.i,st.a1)),
+          start=Math.max(st.a0,end-N+1);
+    const plotW=w-padR-padL, plotH=h-padB-padT;
+    cx.clearRect(0,0,w,h);
+
+    let lo=Infinity,hi=-Infinity;
+    for(let k=start;k<=end;k++){ if(d.l[k]<lo)lo=d.l[k]; if(d.h[k]>hi)hi=d.h[k];
+      if(!isNaN(d.v[k])){ if(d.v[k]<lo)lo=d.v[k]; if(d.v[k]>hi)hi=d.v[k]; } }
+    const live=aperta(ts,end);
+    if(live){ lo=Math.min(lo,live.s,live.tp); hi=Math.max(hi,live.s,live.tp); }
+    const span=Math.max(hi-lo,1)*1.06, mid=(hi+lo)/2; lo=mid-span/2; hi=mid+span/2;
+    const cw=plotW/N, X=k=>padL+(k-start+0.5)*cw, Y=p=>padT+(hi-p)/(hi-lo)*plotH;
+
+    cx.font="11px "+getComputedStyle(document.body).getPropertyValue("--mono");
+    cx.textBaseline="middle";
+    for(let i=0;i<=5;i++){ const p=lo+(hi-lo)*i/5, y=Math.round(Y(p))+.5;
+      cx.strokeStyle=C.line2; cx.lineWidth=1; cx.beginPath(); cx.moveTo(padL,y); cx.lineTo(padL+plotW,y); cx.stroke();
+      cx.fillStyle=C.ink3; cx.textAlign="left"; cx.fillText(fmt(p,1),padL+plotW+7,y); }
+
+    cx.textAlign="center"; cx.textBaseline="alphabetic";
+    let pd=when(d,start).dayIdx, lastX=-1e9;
+    for(let k=start+1;k<=end;k++){ const wk=when(d,k);
+      if(wk.dayIdx!==pd){ pd=wk.dayIdx; const x=Math.round(X(k)-cw/2)+.5;
+        if(x-lastX<74) continue; lastX=x;
+        cx.strokeStyle=C.line; cx.lineWidth=1; cx.beginPath(); cx.moveTo(x,padT); cx.lineTo(x,padT+plotH); cx.stroke();
+        cx.fillStyle=C.ink3; cx.fillText(wk.day,x,h-6); } }
+
+    if(live){ const long=live.L===1, x0=X(Math.max(live.i,start))-cw/2, x1=padL+plotW;
+      cx.fillStyle=C.up; cx.globalAlpha=.13;
+      cx.fillRect(x0,Y(Math.max(live.tp,live.e)),x1-x0,Math.abs(Y(live.tp)-Y(live.e)));
+      cx.fillStyle=C.down;
+      cx.fillRect(x0,Y(Math.max(live.s,live.e)),x1-x0,Math.abs(Y(live.s)-Y(live.e)));
+      cx.globalAlpha=1;
+      [[live.tp,C.up,"obiettivo"],[live.s,C.down,"stop"],[live.e,C.brass,long?"ingresso long":"ingresso short"]]
+        .forEach(([p,col,lab])=>{ const y=Math.round(Y(p))+.5;
+          cx.strokeStyle=col; cx.lineWidth=1.5; cx.setLineDash(lab.startsWith("ingresso")?[]:[5,4]);
+          cx.beginPath(); cx.moveTo(x0,y); cx.lineTo(x1,y); cx.stroke(); cx.setLineDash([]);
+          cx.textAlign="right"; cx.textBaseline="middle";
+          const tw=cx.measureText(lab).width;
+          cx.fillStyle=C.panel; cx.globalAlpha=.88; cx.fillRect(x1-tw-11,y-8,tw+9,16);
+          cx.globalAlpha=1; cx.fillStyle=col; cx.fillText(lab,x1-6,y); }); }
+
+    cx.strokeStyle=C.vwap; cx.lineWidth=2; cx.lineJoin="round"; cx.beginPath();
+    let pen=false, pdd=-1;
+    for(let k=start;k<=end;k++){ const wk=when(d,k);
+      if(isNaN(d.v[k])){pen=false;continue;}
+      if(!pen||wk.dayIdx!==pdd){cx.moveTo(X(k),Y(d.v[k]));pen=true;} else cx.lineTo(X(k),Y(d.v[k]));
+      pdd=wk.dayIdx; }
+    cx.stroke();
+
+    const bw=Math.max(1.5,Math.min(cw*.66,9));
+    for(let k=start;k<=end;k++){ const up=d.c[k]>=d.o[k], col=up?C.up:C.down, x=X(k);
+      cx.strokeStyle=col; cx.lineWidth=1;
+      cx.beginPath(); cx.moveTo(Math.round(x)+.5,Y(d.h[k])); cx.lineTo(Math.round(x)+.5,Y(d.l[k])); cx.stroke();
+      const yo=Y(d.o[k]),yc=Y(d.c[k]), top=Math.min(yo,yc), hg=Math.max(Math.abs(yc-yo),1);
+      if(up){ cx.fillStyle=C.panel; cx.fillRect(x-bw/2,top,bw,hg); cx.lineWidth=1.2; cx.strokeRect(x-bw/2,top,bw,hg); }
+      else { cx.fillStyle=col; cx.fillRect(x-bw/2,top,bw,hg); } }
+
+    ts.forEach(t=>{ if(t.xi>end||t.xi<start)return;
+      cx.fillStyle=t.r>0?C.up:C.down; cx.strokeStyle=C.panel; cx.lineWidth=2;
+      cx.beginPath(); cx.arc(X(t.xi),Y(t.L===1?t.tp:t.tp),0,0,0);
+      const yy=Y(t.r>0?t.tp:t.s);
+      cx.beginPath(); cx.arc(X(t.xi),yy,4.5,0,Math.PI*2); cx.fill(); cx.stroke(); });
+    ts.forEach(t=>{ if(t.i>end||t.i<start)return; const x=X(t.i), y=Y(t.e), long=t.L===1;
+      cx.fillStyle=C.brass; cx.strokeStyle=C.panel; cx.lineWidth=2; cx.beginPath();
+      if(long){ cx.moveTo(x,y+9); cx.lineTo(x-5,y+17); cx.lineTo(x+5,y+17); }
+      else { cx.moveTo(x,y-9); cx.lineTo(x-5,y-17); cx.lineTo(x+5,y-17); }
+      cx.closePath(); cx.fill(); cx.stroke(); });
+
+    const xn=Math.round(X(end)+cw/2)+.5;
+    cx.strokeStyle=C.brass; cx.globalAlpha=.5; cx.lineWidth=1;
+    cx.beginPath(); cx.moveTo(xn,padT); cx.lineTo(xn,padT+plotH); cx.stroke(); cx.globalAlpha=1;
+
+    drawEquity(d,ts,end); drawVol(d,end); drawAnni(ts); drawConto(d,ts,end); hud(d,ts,end,live); log(d,ts,end,live);
+    const wn=when(d,end);
+    el("clock").textContent=`${wn.day} ${wn.hm} · candela ${end-st.a0+1}/${ampiezza()}`;
+  }
+
+  function drawEquity(d,ts,i){
+    const {w,h}=fit(eq,ex); ex.clearRect(0,0,w,h);
+    const padR=56,padL=6,padV=10,plotW=w-padR-padL,plotH=h-padV*2;
+    const pts=[{x:st.a0,r:0}]; let acc=0;
+    ts.forEach(t=>{ if(t.xi<=i){acc+=t.r; pts.push({x:t.xi,r:acc});} });
+    const tot=ts.reduce((s,t)=>s+Math.abs(t.r),0);
+    const lim=Math.max(4,Math.ceil(Math.max(Math.abs(acc),tot*.3)));
+    const X=k=>padL+((k-st.a0)/Math.max(ampiezza()-1,1))*plotW,
+          Y=r=>padV+(lim-r)/(lim*2)*plotH;
+    const yz=Math.round(Y(0))+.5;
+    ex.strokeStyle=C.line; ex.lineWidth=1; ex.beginPath(); ex.moveTo(padL,yz); ex.lineTo(padL+plotW,yz); ex.stroke();
+    ex.strokeStyle=acc>=0?C.up:C.down; ex.lineWidth=2; ex.lineJoin="round"; ex.beginPath();
+    pts.forEach((p,k)=>k?ex.lineTo(X(p.x),Y(p.r)):ex.moveTo(X(p.x),Y(p.r)));
+    ex.lineTo(X(i),Y(acc)); ex.stroke();
+    ex.fillStyle=acc>=0?C.up:C.down; ex.beginPath(); ex.arc(X(i),Y(acc),3.5,0,Math.PI*2); ex.fill();
+    ex.font="11px "+getComputedStyle(document.body).getPropertyValue("--mono");
+    ex.textBaseline="middle"; ex.textAlign="left"; ex.fillStyle=C.ink3;
+    ex.fillText("0 R",padL+plotW+7,yz);
+    ex.fillStyle=acc>=0?C.up:C.down;
+    ex.fillText((acc>=0?"+":"")+fmt(acc,1)+" R",padL+plotW+7,
+                Math.abs(Y(acc)-yz)<11?yz-14:Y(acc));
+  }
+
+  function drawVol(d,i){
+    if(!d.vol){vol.classList.add("hidden");return;} vol.classList.remove("hidden");
+    const {w,h}=fit(vol,vcx); vcx.clearRect(0,0,w,h);
+    const padR=56,padL=6,padT=14,plotW=w-padR-padL,plotH=h-padT-7;
+    const vals=d.vol.slice(st.a0,st.a1+1).filter(x=>x!==null).slice().sort((a,b)=>a-b);
+    const top=Math.max(vals[Math.floor(vals.length*.97)]*1.12,.5);
+    const X=k=>padL+((k-st.a0)/Math.max(ampiezza()-1,1))*plotW,
+          Y=v=>padT+(1-Math.min(v,top)/top)*plotH;
+    vcx.beginPath(); vcx.moveTo(X(st.a0),padT+plotH); let started=false;
+    for(let k=st.a0;k<=i;k++){ if(d.vol[k]===null)continue; vcx.lineTo(X(k),Y(d.vol[k])); started=true; }
+    vcx.lineTo(X(i),padT+plotH); vcx.closePath();
+    vcx.fillStyle=C.brass; vcx.globalAlpha=.17; vcx.fill(); vcx.globalAlpha=1;
+    vcx.beginPath(); started=false;
+    for(let k=st.a0;k<=i;k++){ if(d.vol[k]===null)continue;
+      started?vcx.lineTo(X(k),Y(d.vol[k])):(vcx.moveTo(X(k),Y(d.vol[k])),started=true); }
+    vcx.strokeStyle=C.brass; vcx.lineWidth=1.6; vcx.stroke();
+    vcx.font="10.5px "+getComputedStyle(document.body).getPropertyValue("--mono");
+    vcx.fillStyle=C.ink3; vcx.textAlign="left"; vcx.textBaseline="top";
+    vcx.fillText("volatilità · ampiezza tipica di una candela da 1 minuto",padL+2,3);
+    const cur=d.vol[i]; vcx.textBaseline="middle";
+    if(cur!==null&&cur!==undefined){ vcx.fillStyle=C.brass;
+      vcx.fillText(fmt(cur,2)+" $",padL+plotW+7,Y(cur));
+      vcx.beginPath(); vcx.arc(X(i),Y(cur),3,0,Math.PI*2); vcx.fill(); }
+  }
+
+  /* ---------- risultato per anno: la vista che conta ---------- */
+  function drawAnni(ts){
+    const {w,h}=fit(anni,acx); acx.clearRect(0,0,w,h);
+    const m=metriche(ts), years=Object.keys(m.perAnno).sort();
+    if(!years.length) return;
+    const padL=10,padR=10,padT=12,padB=20, plotW=w-padL-padR, plotH=h-padT-padB;
+    const vals=years.map(y=>m.perAnno[y]);
+    const lim=Math.max(...vals.map(Math.abs),4)*1.15;
+    const bw=Math.min(plotW/years.length*.62,34);
+    const X=k=>padL+(k+.5)*(plotW/years.length), Y=v=>padT+(lim-v)/(lim*2)*plotH;
+    const yz=Math.round(Y(0))+.5;
+    acx.strokeStyle=C.line; acx.lineWidth=1; acx.beginPath();
+    acx.moveTo(padL,yz); acx.lineTo(padL+plotW,yz); acx.stroke();
+    acx.font="10.5px "+getComputedStyle(document.body).getPropertyValue("--mono");
+    years.forEach((y,k)=>{ const v=m.perAnno[y], x=X(k), yv=Y(v);
+      acx.fillStyle=v>=0?C.up:C.down;
+      acx.fillRect(x-bw/2,Math.min(yv,yz),bw,Math.max(Math.abs(yv-yz),1.5));
+      acx.textAlign="center"; acx.fillStyle=C.ink3;
+      acx.textBaseline="top"; acx.fillText(y.slice(2),x,h-15);
+      acx.fillStyle=v>=0?C.up:C.down;
+      acx.textBaseline=v>=0?"bottom":"top";
+      acx.fillText((v>=0?"+":"")+v.toFixed(0),x,v>=0?yv-3:yv+3); });
+  }
+
+  /* ---------- crescita del conto: capitalizzazione composta ---------- */
+  function drawConto(d,ts,i){
+    const {w,h}=fit(conto,ccx); ccx.clearRect(0,0,w,h);
+    if(!ts.length) return;
+    const padL=8,padR=62,padT=16,padB=18, plotW=w-padL-padR, plotH=h-padT-padB;
+    // ogni operazione rischia la percentuale scelta del capitale corrente
+    const pts=[{x:st.a0,v:CAPITALE}]; let v=CAPITALE, peak=CAPITALE, ddMax=0, vAdesso=CAPITALE;
+    for(const t of ts){
+      v*=(1+RISK[st.risk]*t.r);
+      peak=Math.max(peak,v); ddMax=Math.max(ddMax,(peak-v)/peak);
+      pts.push({x:t.xi,v});
+      if(t.xi<=i) vAdesso=v;
+    }
+    const vals=pts.map(p=>p.v), lo=Math.min(...vals,CAPITALE), hi=Math.max(...vals,CAPITALE);
+    const span=Math.max(hi-lo,1)*1.08, mid=(hi+lo)/2;
+    const y0=mid-span/2, y1=mid+span/2;
+    const X=k=>padL+((k-st.a0)/Math.max(ampiezza()-1,1))*plotW,
+          Y=val=>padT+(y1-val)/(y1-y0)*plotH;
+
+    // riga del capitale iniziale
+    const yc=Math.round(Y(CAPITALE))+.5;
+    ccx.strokeStyle=C.line; ccx.lineWidth=1; ccx.setLineDash([3,3]);
+    ccx.beginPath(); ccx.moveTo(padL,yc); ccx.lineTo(padL+plotW,yc); ccx.stroke(); ccx.setLineDash([]);
+
+    const su=v>=CAPITALE, col=su?C.up:C.down;
+    // area sotto la curva
+    ccx.beginPath(); ccx.moveTo(X(pts[0].x),yc);
+    pts.forEach(p=>ccx.lineTo(X(p.x),Y(p.v)));
+    ccx.lineTo(X(pts[pts.length-1].x),yc); ccx.closePath();
+    ccx.fillStyle=col; ccx.globalAlpha=.13; ccx.fill(); ccx.globalAlpha=1;
+    // curva
+    ccx.beginPath(); pts.forEach((p,k)=>k?ccx.lineTo(X(p.x),Y(p.v)):ccx.moveTo(X(p.x),Y(p.v)));
+    ccx.strokeStyle=col; ccx.lineWidth=1.8; ccx.lineJoin="round"; ccx.stroke();
+    // dove siamo adesso nel replay
+    ccx.strokeStyle=C.brass; ccx.globalAlpha=.55; ccx.lineWidth=1;
+    ccx.beginPath(); ccx.moveTo(Math.round(X(i))+.5,padT); ccx.lineTo(Math.round(X(i))+.5,padT+plotH);
+    ccx.stroke(); ccx.globalAlpha=1;
+    ccx.fillStyle=C.brass; ccx.beginPath(); ccx.arc(X(i),Y(vAdesso),3.2,0,Math.PI*2); ccx.fill();
+
+    const euro=x=>Math.round(x).toLocaleString("it-IT");
+    ccx.font="11px "+getComputedStyle(document.body).getPropertyValue("--mono");
+    ccx.textBaseline="middle"; ccx.textAlign="left";
+    ccx.fillStyle=C.ink3; ccx.fillText(euro(CAPITALE)+" €",padL+plotW+6,yc);
+    ccx.fillStyle=col;
+    const yf=Y(v), yfin=Math.abs(yf-yc)<12?(v>=CAPITALE?yc-13:yc+13):yf;
+    ccx.fillText(euro(v)+" €",padL+plotW+6,yfin);
+    ccx.textAlign="left"; ccx.textBaseline="top"; ccx.fillStyle=C.ink3;
+    ccx.fillText(`perdita max ${(ddMax*100).toFixed(0)}% · rischio ${(RISK[st.risk]*100).toString().replace(".",",")}%`,padL,3);
+  }
+
+  function hud(d,ts,i,live){
+    const wk=when(d,i), s=d.s[i], h6=Math.round(s/3), h2=s-h6*3;
+    const lab=v=>v===1?["on","rialzista"]:v===-1?["off","ribassista"]:["","neutra"];
+    const [c6,t6]=lab(h6),[c2,t2]=lab(h2);
+    el("hud").innerHTML=`<span class="pill"><b>${wk.day}</b> ${wk.hm} UTC</span>`+
+      `<span class="pill">prezzo <b>${fmt(d.c[i])}</b></span>`+
+      (d.hasState?`<span class="pill"><span class="dot ${c6}"></span>H6 ${t6}</span><span class="pill"><span class="dot ${c2}"></span>H2 ${t2}</span>`
+                 :`<span class="pill">candele da 6 ore · 2020-2026</span>`)+
+      (live?`<span class="pill" style="border-color:var(--brass)">${live.L===1?"long":"short"} aperto · rischio <b>${fmt(live.k)}&#36;</b></span>`:"");
+
+    const m=metriche(ts), cls=v=>v>0?"pos":v<0?"neg":"";
+    el("stats").innerHTML=[
+      ["operazioni", m.n.toLocaleString("it-IT"), ""],
+      ["risultato", (m.tot>=0?"+":"")+fmt(m.tot,1)+" R", cls(m.tot)],
+      ["per operazione", (m.expR>=0?"+":"")+fmt(m.expR,3)+" R", cls(m.expR)],
+      ["a obiettivo", (m.win*100).toFixed(0)+"%", ""],
+      ["stop presi", (m.stop*100).toFixed(0)+"%", "neg"],
+      ["conto finale", Math.round(10000*(1+m.rend)).toLocaleString("it-IT")+" €", cls(m.rend)],
+      ["rendimento", (m.rend>=0?"+":"")+(m.rend*100).toFixed(0)+"%", cls(m.rend)],
+      ["perdita max", (m.ddPct*100).toFixed(0)+"%", "neg"],
+      ["a pareggio", st.be ? (m.pari*100).toFixed(0)+"%" : "—", ""],
+      ["anni positivi", `${m.anniPos}<span style="color:var(--ink3);font-size:13px"> / ${m.anniTot}</span>`,
+        m.anniPos*2>m.anniTot?"pos":"neg"],
+    ].map(([k,v,c])=>`<div class="stat"><span class="k">${k}</span><span class="v ${c}">${v}</span></div>`).join("");
+  }
+
+  let lastLog=-1;
+  function log(d,ts,i,live){
+    const done=chiuse(ts,i), key=done.length*1000+(live?live.i:0)+st.rr*7+st.mac*3+st.be*29+
+      (st.dir==="long"?1:st.dir==="short"?2:0)*11;
+    if(key===lastLog)return; lastLog=key;
+    const rows=el("rows");
+    if(!done.length&&!live){ rows.innerHTML=`<div class="empty">Nessuna operazione ancora con queste impostazioni.</div>`; return; }
+    const item=(t,k,isLive)=>{ const wk=when(d,t.i);
+      const rrU=t.rrUsato||RRS[st.rr]; const F=t.f||[0,0,0,0];
+      const MOT=["stop","obiettivo","chiusa a fine giornata","uscita a pareggio"];
+      const esito=isLive?"in corso":MOT[t.motivo];
+      return `<div class="row ${isLive?"live":""}"><span class="n">${k+1}</span>
+        <span class="when">${wk.day} ${wk.hm} ${t.L===1?"↑":"↓"}</span>
+        <span class="r ${isLive?"":(t.r>0?"pos":"neg")}">${isLive?"—":(t.r>0?"+":"")+fmt(t.r,2)+" R"}</span>
+        <span class="det">${esito} · 1:${rrU} · ${F[0]?"M33 ":""}${F[1]?"H12 ":""}${F[2]?"M66 ":""}${(F[0]||F[1])?"":"nessuna conferma "}· ingresso ${fmt(t.e)}</span></div>`; };
+    let html=""; if(live) html+=item(live,ts.indexOf(live),true);
+    const MAX=40;
+    for(let k=done.length-1;k>=Math.max(0,done.length-MAX);k--) html+=item(done[k],ts.indexOf(done[k]),false);
+    if(done.length>MAX) html+=`<div class="empty">…e altre ${done.length-MAX} precedenti</div>`;
+    rows.innerHTML=html;
+  }
+
+  /* ---------- riproduzione ---------- */
+  let raf=null, prev=0, carry=0;
+  function tick(ts){ if(!st.playing)return; if(!prev)prev=ts;
+    const dt=Math.min((ts-prev)/1000,.25); prev=ts; carry+=dt*st.speed;
+    const adv=Math.floor(carry);
+    if(adv>0){ carry-=adv; st.i=Math.min(st.i+adv,st.a1); el("scrub").value=st.i; draw();
+      if(st.i>=st.a1){ setPlaying(false); return; } }
+    raf=requestAnimationFrame(tick); }
+  function setPlaying(on){ st.playing=on; prev=0; carry=0;
+    el("play").textContent=on?"Pausa":(st.i>=st.a1?"Rivedi":"Avvia");
+    if(on)raf=requestAnimationFrame(tick); else if(raf)cancelAnimationFrame(raf); }
+
+  function scegliAnno(anno){
+    st.anno=anno; lastLog=-1;
+    [st.a0,st.a1] = anno===null ? [0,D[0].n-1] : FIN[anno];
+    st.i=anno===null ? st.a0 : st.a1;   // l'anno si apre gia' completo
+    const sc=el("scrub"); sc.min=st.a0; sc.max=st.a1; sc.value=st.i;
+    setPlaying(false); draw(); }
+
+  function segmento(host, items, attivo, onPick){
+    el(host).innerHTML=items.map((it,k)=>
+      `<button type="button" aria-pressed="${k===attivo}">${it.n}</button>`).join("");
+    [...el(host).children].forEach((b,k)=>b.addEventListener("click",()=>{
+      [...el(host).children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));
+      onPick(k); lastLog=-1; draw(); }));
+  }
+  segmento("dir", DIR, 0, k=>st.dir=DIR[k].k);
+  segmento("mac", MAC, 0, k=>st.mac=MAC[k].k);
+  const CONF=[{n:"nessuna",v:0},{n:"M33",v:1},{n:"M33 + H12",v:2},{n:"M33+H12, M12 in pullback",v:3}];
+  segmento("conf", CONF, 3, k=>st.q=CONF[k].v);
+  segmento("rr", RRS.map(r=>({n:"1:"+r})).concat([{n:"auto"}]), 4,
+           k=>{ st.auto = (k===RRS.length); if(!st.auto) st.rr=k; });
+  segmento("be", BES.map(b=>({n: b===null ? "nessuno" : "+"+String(b).replace(".",",")+"R"})),
+           3, k=>st.be=k);
+  segmento("risk", RISK.map(r=>({n:(r*100).toString().replace(".",",")+"%"})), 1, k=>st.risk=k);
+  const PERIODI=[{n:"tutto",v:null}].concat(ANNI.map(y=>({n:String(y),v:y})));
+  segmento("periods", PERIODI, 0, k=>scegliAnno(PERIODI[k].v));
+  segmento("speeds", SPEEDS.map(s=>({n:s.k})), 1, k=>st.speed=SPEEDS[k].v);
+
+  el("play").addEventListener("click",()=>{ if(st.i>=st.a1){st.i=st.a0;el("scrub").value=st.a0;} setPlaying(!st.playing); });
+  el("step").addEventListener("click",()=>{ setPlaying(false); st.i=Math.min(st.i+1,st.a1); el("scrub").value=st.i; draw(); });
+  el("reset").addEventListener("click",()=>{ st.i=st.a0; el("scrub").value=st.a0; setPlaying(false); draw(); });
+  el("scrub").addEventListener("input",e=>{ setPlaying(false); st.i=+e.target.value; draw(); });
+  document.addEventListener("keydown",e=>{
+    if(e.code==="Space"){e.preventDefault(); el("play").click();}
+    else if(e.code==="ArrowRight"){e.preventDefault(); el("step").click();}
+    else if(e.code==="ArrowLeft"){e.preventDefault(); setPlaying(false);
+      st.i=Math.max(st.i-1,st.a0); el("scrub").value=st.i; draw();} });
+  let rt=null; addEventListener("resize",()=>{clearTimeout(rt); rt=setTimeout(draw,120);});
+
+  scegliAnno(null);
+})();
+</script>
