@@ -10,6 +10,18 @@
 - Dati M1 2020→2026 in `data/XAUUSD_M1/*.parquet` (BID, UTC, un file/anno).
 - Dipendenze: `pip install pandas pyarrow pytest tabulate` (non in repo).
 
+## Bot in esercizio (`bots/`)
+
+Il codice che opera davvero, separato dalla ricerca in `trading/`: Expert
+Advisor MT5 in `bots/mt5/`, cBot cTrader in `bots/ctrader/`. Convenzioni e
+scheda richiesta per ogni bot in `bots/README.md`. Mai committare eseguibili
+compilati ne' credenziali o numeri di conto.
+
+Un backtest fatto dentro MT5 o cTrader NON e' confrontabile con i numeri di
+`docs/studies/`: convenzioni diverse su fill, spread e ordine fra stop e
+obiettivo. Per confrontare, il bot va rigirato con il motore di questo
+repository.
+
 ## Regole per NON sprecare token nelle analisi
 
 1. **Mai stampare dati grezzi in chat**: gli script salvano il dettaglio in
