@@ -49,6 +49,13 @@ altrimenti restano impossibili:
    la misura fatta dal collaboratore dava 47% di operazioni vincenti su M1
    contro 31% su tick.
 
+## Leggere prima di usarli
+
+`DISCREPANZE.md` elenca i punti in cui i sorgenti non corrispondono alla
+documentazione: i default dell'EA MT5 non sono i parametri del forward, la
+versione MT5 e quella cTrader non sono equivalenti a default (ATR smoothing
+diverso), e il bug OrderDelete tocca tre punti, non uno.
+
 ## I bot presenti
 
 | cartella | stato | vantaggio dimostrato? |
