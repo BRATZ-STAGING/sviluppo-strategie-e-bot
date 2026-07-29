@@ -1,0 +1,99 @@
+# Riprendi qui — stato al 30/07/2026
+
+Passaggio di consegne da una sessione precedente. Chi apre questo repository
+per la prima volta legge questo file, poi `CLAUDE.md`.
+
+## Cosa esiste e a che punto e'
+
+### La strategia di ricerca: tarata e validata
+
+`trading/framework/taratura.py` contiene la configurazione ufficiale. Reclaim
+del VWAP giornaliero su M6, contesto H6+H2, conferme M33 e H12 allineati con
+M12 in ritracciamento, obiettivo 1:10, stop a pareggio a +3R, rischio 1%.
+
+| | |
+|---|---|
+| periodo | gen 2020 - lug 2026 |
+| operazioni | 348 |
+| risultato | **+171,1 R** (+0,492 per operazione) |
+| anni positivi | **7 su 7** |
+| perdita massima | 16,3% |
+| conto da 10.000 € | 49.321 € |
+| con lo spread reale (da nov 2022) | -4%, cinque anni positivi su cinque |
+
+**Non cambiare questi parametri senza una verifica fuori campione.** Il test
+`trading/tests/test_taratura.py` li blocca proprio per costringere a passare da
+una verifica esplicita.
+
+### I bot in esercizio: nessun vantaggio dimostrato
+
+Quattro bot Keltner in `bots/`, con sorgenti, schede e discrepanze. Il migliore
+(`mt5/keltner-impulse`) e' in forward demo da 21 operazioni con +5,13R, ma i
+backtest su tick reali sono **negativi** (2024-26: 42,4% vincenti, -49,8R).
+Leggere `bots/DISCREPANZE.md` prima di toccarli: i default dei sorgenti non
+sono i parametri in esercizio, e c'e' un bug che puo' portare a due ordini
+pendenti contemporanei.
+
+### I dati
+
+`docs/dati-disponibili.md` dice esattamente cosa copre cosa. In sintesi:
+
+- **candele M1** nel repository, 2020-2026, complete
+- **tick bid+ask** sul PC dell'utente (non nel repository, 1,2 GB): nov 2022 -
+  lug 2026, 222 milioni di tick, zero ore mancanti
+- backfill tick gen 2020 - ott 2022 in corso sul PC
+- cache tick del broker FP dentro MT5: **non verificata**
+
+## Cosa e' aperto
+
+1. **Misura dello spread all'ingresso.** `trading/scripts/misura_spread.py` +
+   `docs/operazioni-taratura-ufficiale.csv` girano sul PC dell'utente e
+   producono un CSV di poche decine di KB con lo spread esatto di ogni
+   operazione. Lo script c'e', va solo eseguito e riportato il risultato. Serve
+   a sostituire l'approssimazione attuale (spread mediano del mese) con il
+   valore dell'istante.
+
+2. **Order block.** Il bot dell'utente li usa ma **non sono mai stati definiti
+   operativamente**. Serve deciderlo con lui: quale candela li genera, quando si
+   considerano consumati, quanto restano validi. Finche' non e' definito non si
+   possono testare.
+
+3. **Campagna backtest storico sui Keltner.** Protocollo concordato: split
+   train 2022→2024 / validation 2025→26, baseline TP80/RR1.2 su M10, una
+   dimensione alla volta (RR, poi timeframe, poi indicatore), tutto in R netto
+   di spread reale e commissione. **Prima** di partire: accertare quale storico
+   si usa e validare il motore contro un run MT5 su tick reali noto (stessa
+   finestra, stessi input, stessi trade). Senza quella taratura i numeri non
+   valgono. Attenzione: lo spread e' triplicato fra 2023 e 2026, quindi il
+   validation cade nel periodo di spread alto — una variante puo' fallire per lo
+   spread, non perche' non funziona.
+
+4. **Correzioni ai bot**: il bug OrderDelete (tre punti, vedi DISCREPANZE), il
+   preset del forward da salvare come `.set`, e l'equity guard mancante sul
+   MidReversion.
+
+5. Verificare che la chiusura di fine giornata non scatti di venerdi'
+   (posizioni portate sul weekend). Controllo mai fatto.
+
+## Come si lavora qui
+
+Le regole stanno in `CLAUDE.md` e non sono decorative: sono state pagate.
+
+- **Mai stampare dati grezzi in chat.** Gli script salvano su Parquet e stampano
+  aggregati compatti.
+- **Ipotesi pre-registrate**, verifica per anno, selezione su un periodo e
+  conferma su un periodo mai usato per scegliere. Il grid-mining di filtri
+  produce configurazioni che crollano fuori campione: misurato, la migliore in
+  campione faceva +0,63 R/op e fuori campione +0,03.
+- **Confronti a parita' di perdita massima**, non di percentuale rischiata.
+- **Le strade respinte sono elencate in `CLAUDE.md`**: non ripercorrerle, i
+  numeri ci sono.
+- **Push frequenti.** I container sono effimeri: durante la sessione precedente
+  se ne sono ricreati cinque, e ogni volta il lavoro non pushato e' sparito.
+
+## Un dato di contesto sull'utente
+
+Lavora da PowerShell su Windows, e i passaggi tecnici vanno dati **un comando
+alla volta**, aspettando l'esito prima del successivo. Gli script destinati al
+suo PC vanno provati qui prima di consegnarli: e' gia' capitato due volte di
+mandargli codice che non girava, e costa tempo reale.

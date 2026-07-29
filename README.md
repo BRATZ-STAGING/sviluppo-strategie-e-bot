@@ -9,6 +9,7 @@ scegliere i parametri.
 
 | dove | cosa c'e' |
 |---|---|
+| `docs/RIPRENDI-QUI.md` | **stato attuale, cosa e' aperto, come si lavora. Leggere per primo.** |
 | `CLAUDE.md` | stato del progetto, convenzioni, strade gia' respinte. **Leggere per primo.** |
 | `docs/studies/rr-intraday-study.md` | tutte le misure fatte, appendici A-N. I numeri stanno qui, non in chat. |
 | `docs/master-spec.md` | architettura e fasi |
