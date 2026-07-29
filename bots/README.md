@@ -48,3 +48,16 @@ altrimenti restano impossibili:
    ordini limite e stop piu' piccoli di una candela M1 la differenza e' grossa:
    la misura fatta dal collaboratore dava 47% di operazioni vincenti su M1
    contro 31% su tick.
+
+## I bot presenti
+
+| cartella | stato | vantaggio dimostrato? |
+|---|---|---|
+| `mt5/keltner-impulse` | forward demo dal 05/07/2026, 21 operazioni | **no** — backtest su tick reali negativi |
+| `mt5/keltner-dd-archiviato` | archiviato | no, idea bocciata (-21,6 R contro +1,3 R) |
+| `ctrader/keltner-impulse` | solo backtest, l'originale della logica | no, il +164,6% e' in campione e su fill ottimistici |
+| `ctrader/keltner-mid-reversion` | mai backtestato | mai misurato |
+
+Nessuno dei bot in esercizio ha un vantaggio dimostrato. La strategia in
+`trading/` invece si', su sette anni e fuori campione: il confronto sta in
+`docs/studies/rr-intraday-study.md`.
