@@ -42,6 +42,52 @@ Sono cinque righe, e comprano tre cose:
 
 Da fare per prima cosa, prima di aggiungere qualunque funzione nuova.
 
+## C'e' un VPS attivo 24 ore su 24: cambia dove gira l'applicazione
+
+I bot girano su un VPS, non sul PC. Questo sposta il disegno, e in meglio.
+
+**Conseguenza diretta**: i CSV che i bot scrivono stanno **sul VPS**. Un server
+locale sul PC non li vede. Sincronizzarli sarebbe lavoro inutile: conviene far
+girare il monitor **dove stanno i dati**, cioe' sul VPS.
+
+E allora l'obiettivo "applicazione desktop" va riletto. Quello che serve
+davvero non e' un programma installato sul PC, e' **una pagina raggiungibile dal
+browser** — dal PC, e anche dal telefono. Per guardare come vanno i bot mentre
+si e' fuori, una pagina web batte un'applicazione desktop.
+
+L'applicazione desktop resta sensata per il **laboratorio** (ricerca, gira sui
+dati storici, non ha bisogno di essere raggiungibile). Sono due cose diverse e
+possono stare separate, con lo stesso front-end.
+
+### Il problema da non sottovalutare: chi puo' vedere la pagina
+
+Una pagina che mostra lo stato di un conto di trading **non va esposta su
+internet senza protezione**. Tre strade, in ordine di semplicita':
+
+1. **Solo dentro il VPS**: il server ascolta su `localhost`, la pagina si guarda
+   dalla sessione remota con cui si accede al VPS. Zero configurazione, zero
+   rischio. Ma niente telefono.
+2. **Tunnel**: il server resta su `localhost` e si raggiunge attraverso il
+   canale di accesso al VPS. Sicuro, un po' scomodo.
+3. **Esposta con autenticazione e HTTPS**: comoda, raggiungibile dal telefono,
+   ma va fatta per bene (password, certificato, firewall che accetta solo gli
+   indirizzi noti).
+
+Si parte dalla 1, che e' gratis. Alla 3 si passa solo quando c'e' un motivo, e
+sapendo che va fatta con attenzione.
+
+### Il VPS serve anche a un'altra cosa
+
+La campagna di backtest sui Keltner e' fatta di sweep lunghi e ripetitivi. Un
+VPS acceso sempre e' il posto giusto per farli girare mentre si fa altro,
+scrivendo i risultati su file. Non serve nessun server web per questo, basta
+lanciare gli script.
+
+**Cosa il VPS NON puo' fare**: scaricare i tick da Dukascopy. Il feed filtra gli
+indirizzi dei datacenter, ed e' esattamente il motivo per cui il download e'
+fallito dal cloud e ha funzionato dal PC di casa. I tick continuano a passare
+dal PC.
+
 ## Perche' non Electron subito
 
 Un'applicazione desktop "vera" con Electron o Tauri richiede una catena di
@@ -102,8 +148,15 @@ contro un run MT5 noto (vedi `docs/RIPRENDI-QUI.md`, punto 3).
 
 ### Tappa 4 — l'applicazione
 
-Server locale Python, `.bat` di avvio, tre viste: **laboratorio** (ricerca),
-**monitor** (i bot adesso), **confronto** (bot contro strategia).
+Due pezzi, non uno:
+
+- **monitor**, sul VPS dove stanno i bot e i loro CSV: server Python, in ascolto
+  su `localhost`, guardato dalla sessione remota. Se poi si vuole dal telefono,
+  si aggiunge autenticazione e HTTPS.
+- **laboratorio**, sul PC: ricerca sui dati storici, avvio da `.bat`.
+
+Stesso front-end, tre viste: **laboratorio** (ricerca), **monitor** (i bot
+adesso), **confronto** (bot contro strategia).
 
 ## Una domanda da chiudere prima della tappa 4
 
@@ -116,3 +169,13 @@ diventa un ordine sbagliato sul conto — e vuole conferme, un registro delle
 azioni e limiti espliciti su cosa puo' fare.
 
 Si puo' decidere alla tappa 4, ma va deciso **prima** di costruirla, non dopo.
+
+## Da accertare sul VPS, prima di scrivere codice
+
+1. **Sistema operativo**: Windows (probabile, se ci gira MT5) o Linux.
+   Determina come si avvia il server e come si legge la cartella dei CSV.
+2. **Come ci si accede**: sessione remota grafica, oppure riga di comando.
+   Determina quale delle tre strade di accesso alla pagina e' praticabile.
+3. **Cosa ci gira davvero adesso**: quali dei quattro bot, con quali parametri,
+   e dove finiscono i loro CSV.
+4. **Se c'e' Python**, e quale versione.
