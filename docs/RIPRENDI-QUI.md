@@ -44,6 +44,34 @@ pendenti contemporanei.
 - backfill tick gen 2020 - ott 2022 in corso sul PC
 - cache tick del broker FP dentro MT5: **non verificata**
 
+## Il laboratorio pubblicato
+
+La pagina interattiva del laboratorio e' pubblicata qui:
+
+    https://claude.ai/code/artifact/b107a757-b34e-446e-95e1-70932ea9de46
+
+Si apre con la taratura ufficiale gia' impostata. Per aggiornarla: rigenerare
+con `build_lab.py` e ripubblicare **passando quell'indirizzo**, altrimenti si
+crea una pagina nuova e il link vecchio resta indietro.
+
+## Prompt di apertura per una sessione nuova
+
+Da incollare come primo messaggio:
+
+> Leggi `docs/RIPRENDI-QUI.md`, poi `CLAUDE.md`. Se il compito e' la campagna
+> backtest sui Keltner, leggi anche `docs/campagna-keltner-registrazione.md` e
+> seguila: e' un protocollo registrato prima dei test, non una proposta.
+>
+> Tre vincoli che non vanno violati: non cambiare `framework/taratura.py` senza
+> verifica fuori campione; non ripercorrere le strade elencate come respinte in
+> `CLAUDE.md`; pushare spesso, perche' i container vengono ricreati e il lavoro
+> non pushato sparisce.
+>
+> Dimmi da dove parti prima di iniziare.
+
+L'ultima riga serve a verificare che abbia letto: se riassume male lo stato,
+conviene correggerlo subito invece di scoprirlo tre ore dopo.
+
 ## Cosa e' aperto
 
 1. **Misura dello spread all'ingresso.** `trading/scripts/misura_spread.py` +
