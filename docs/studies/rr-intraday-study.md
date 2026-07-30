@@ -1179,3 +1179,75 @@ dicono la stessa cosa e sono la prova.
 
 Il punto 3 e' il rischio piu' serio: se le due condizioni selezionano le stesse
 operazioni, l'order block non aggiunge nulla, misura solo di nuovo l'impulso.
+
+## Appendice Q: stop fissi piccoli su timeframe bassi — la direzione e' sbagliata
+
+Specifica dell'utente: 0,01 lotti su XAU, dove un punto vale un dollaro, quindi
+stop di **2 / 3 / 5 dollari** con obiettivi **1:3 e 1:5**, su ingressi M3 e M6.
+Lo stop non e' strutturale ma un valore fisso: meccanica diversa da quella della
+taratura, e va misurata a parte.
+
+Costi con lo spread reale misurato (0,63 $):
+
+| stop | costo in R | pareggio a 1:3 | a 1:5 |
+|---|---|---|---|
+| 2 $ | **0,315** | 32,9% | 21,9% |
+| 3 $ | 0,210 | 30,3% | 20,2% |
+| 5 $ | 0,126 | 28,2% | 18,8% |
+
+72 celle provate (2 timeframe x 3 stop x 2 obiettivi x 4 filtri). Le celle
+singole non contano — contano le **regolarita'**, che sono quattro e valgono su
+tutte e 72.
+
+### 1. Lo stop piu' largo vince sempre
+
+R/op con conferme e order block:
+
+| ingresso | 2 $ | 3 $ | 5 $ |
+|---|---|---|---|
+| M6, 1:3 | -0,061 | +0,273 | **+0,443** |
+| M6, 1:5 | +0,090 | +0,270 | +0,292 |
+| M3, 1:3 | -0,235 | +0,104 | **+0,299** |
+| M3, 1:5 | -0,099 | +0,204 | +0,170 |
+
+Monotono in **ogni** filtro e su entrambi i timeframe. Il tasso di stop passa dal
+72% con 2 $ al 42-48% con 5 $.
+
+**A 2 $ il risultato e' negativo quasi ovunque**, e su M3 in tutte e otto le
+celle. "Tante piccole operazioni" non compensa: il costo si paga per operazione,
+quindi piu' se ne fanno piu' se ne paga, e con lo stop stretto il rumore tira
+fuori piu' spesso.
+
+### 2. M6 batte M3 in ogni cella comparabile
+
+Con conferme e order block, stop 5 $ e obiettivo 1:3: **+0,443** su M6 contro
+**+0,299** su M3. Terza misura indipendente che dice la stessa cosa
+(appendici M e O sono le altre due).
+
+### 3. Senza filtri perde in ogni combinazione
+
+Tutti i segnali, nessun filtro: da -0,058 a -0,323 R/op. Ventiquattro celle su
+ventiquattro negative, su entrambi i timeframe.
+
+### 4. L'order block migliora quasi tutte le celle
+
+Coerente con l'appendice P, e su un campione diverso da quello in cui era stato
+trovato.
+
+### Il confronto che chiude la questione
+
+| sistema | n | R/op | anni+ | drawdown |
+|---|---|---|---|---|
+| miglior cella qui (M6, conferme+OB, 5 $, 1:3) | 127 | +0,443 | 5/7 | non misurato |
+| **taratura ufficiale** (M6 strutturale, 1:10, pareggio +3R) | **348** | **+0,492** | **7/7** | **16,3%** |
+
+La cella migliore di 72 e' **peggiore** della taratura in vigore, su un terzo
+delle operazioni e con due anni negativi. E quel +0,443 e' scelto a posteriori
+fra 72: il suo valore vero e' piu' basso.
+
+**Conclusione: la direzione e' sbagliata.** Tutte le regolarita' misurate
+puntano verso stop piu' larghi e timeframe piu' alti, cioe' verso dove la
+taratura ufficiale si trova gia'. Lo stop strutturale (minimo delle ultime
+candele piu' un buffer, banda 1-10 $, mediana 3,4-16 $ a seconda dell'anno) sta
+nella zona buona, e ci sta arrivando da una regola invece che da un numero
+fisso.

@@ -91,6 +91,12 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   doppio in R. La migliore delle varianti piccole rende +0,20 R/op contro
   +0,49, guadagna solo dal 2022 in poi, e affiancata all'ufficiale DIMEZZA il
   conto a parita' di drawdown (correlazione mensile +0,776). Vedi appendice M.
+- **Stop fissi piccoli (2/3/5 $) su ingressi M3-M6 con obiettivi 1:3-1:5**:
+  respinti su 72 celle. Tutte le regolarita' puntano nella direzione opposta a
+  quella proposta: lo stop largo vince sempre (a 2 $ negativo quasi ovunque,
+  su M3 in tutte le celle), M6 batte M3 in ogni cella, senza filtri perde in
+  tutte e 24. La cella migliore (+0,443 R/op) e' peggiore della taratura in
+  vigore (+0,492 su tre volte le operazioni e 7 anni su 7). Appendice Q.
 - **Ritracciamenti di Fibonacci come livelli** (e lo scalping su di essi):
   respinti col placebo su due timeframe. I livelli finti alla stessa profondita'
   reagiscono uguale (4 confronti a 4 su M12; su M6 la differenza e' un
