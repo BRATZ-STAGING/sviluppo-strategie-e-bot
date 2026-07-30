@@ -60,6 +60,21 @@ significare qualcosa.
 | 8 mesi 2022-23 | 40,9% (pareggio a 45,5%) | sotto il break-even |
 | 2 anni 2024-26 | 42,4% | **-49,8 R** |
 
+## Analisi dei CSV del forward
+
+`forward/ANALISI.md` legge i CSV che l'EA scrive da solo. Tre risultati:
+
+- il pareggio (misurato, non dai parametri) e' a **46,1%** di operazioni
+  vincenti; osservato 57,1% ma con intervallo di confidenza **36,5% - 75,5%**.
+  L'intervallo contiene il pareggio: un bot senza vantaggio fa cosi' o meglio
+  **una volta su cinque**.
+- lo spread del broker all'esecuzione e' **0,230 $** mediano, contro 0,70 $
+  misurati sui tick Dukascopy nello stesso mese. Tre volte di differenza, da
+  spiegare: e' la demo che mente o la mediana mensile che e' fuorviante?
+- delle 91 righe di scarti, 77 sono `REPLACED` e **non sono occasioni perse**.
+  Le altre contano: 8 ordini scaduti e **4 segnali persi il 7 luglio perche' il
+  trading automatico era disattivato nel terminale**.
+
 ## Cosa NON e' verificato
 
 - **Il vantaggio.** Backtest negativi su tick reali, forward positivo ma troppo
