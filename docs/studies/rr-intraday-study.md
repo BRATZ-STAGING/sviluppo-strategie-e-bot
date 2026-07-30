@@ -1020,3 +1020,80 @@ E' la conferma indipendente di quanto misurato nell'appendice M sulla variante
 sui timeframe piccoli: sotto una certa ampiezza di stop il costo fisso diventa
 decisivo. Qui succede a taratura invariata, sulle poche operazioni in cui lo
 stop e' minimo.
+
+## Appendice O: i ritracciamenti di Fibonacci — RESPINTI col placebo
+
+Domanda deliberatamente piu' piccola di "lo scalping su Fibonacci funziona":
+**i livelli di Fibonacci reagiscono?** Si misura la reazione al tocco, senza
+stop, senza obiettivo, senza costi. Se i livelli veri non battono livelli finti
+alla stessa profondita', qualunque strategia costruita sopra e' morta prima di
+pagare lo spread.
+
+Disegno (`trading/scripts/run_fibo_placebo.py`): gambe fra swing frattali
+confermati k barre dopo l'estremo, utilizzabili solo da quando il secondo
+estremo e' confermato; primo tocco del livello dopo l'attivazione; reazione =
+massima escursione favorevole nei 60 minuti successivi, in ATR.
+**Placebo**: livelli a percentuali NON di Fibonacci (23 · 34 · 44 · 56 · 67 · 84)
+misurati in modo identico.
+
+### Fibonacci contro placebo
+
+| timeframe | tocchi fibo | tocchi finti | reazione fibo | reazione finta | differenza | probabilita' che sia caso |
+|---|---|---|---|---|---|---|
+| M12 | 9.662 | 11.913 | 0,1185 | 0,1134 | +0,0031 | **16,9%** |
+| M6 | 7.479 | 9.240 | 0,1326 | 0,1296 | +0,0001 | **49,2%** |
+
+Su M6 la differenza e' **un decimillesimo di ATR** con probabilita' del 49% di
+essere caso: una moneta.
+
+### Accoppiando ogni livello di Fibonacci con un finto alla stessa profondita' (M12)
+
+| Fibonacci | finto | reazione fibo | reazione finta | vince |
+|---|---|---|---|---|
+| 38,2 | 34,0 | 0,1083 | 0,1064 | fibo |
+| 38,2 | 44,0 | 0,1083 | 0,1158 | finto |
+| 50,0 | 44,0 | 0,1177 | 0,1158 | fibo |
+| 50,0 | 56,0 | 0,1177 | 0,1185 | finto |
+| 61,8 | 56,0 | 0,1194 | 0,1185 | fibo |
+| 61,8 | 67,0 | 0,1194 | 0,1201 | finto |
+| 70,5 | 67,0 | 0,1207 | 0,1201 | fibo |
+| 78,6 | 84,0 | 0,1293 | 0,1300 | finto |
+
+**Quattro a quattro.** Su M12 il livello che reagisce meglio di tutti e' il
+finto **84%**, non il 78,6.
+
+### L'effetto profondita' NON e' stabile
+
+Su M12 la reazione cresce in modo perfettamente monotono con la profondita' del
+ritracciamento (correlazione **+0,965**), veri e finti mescolati: sembrava un
+effetto meccanico utilizzabile — piu' profondo il livello, piu' spazio per
+rimbalzare.
+
+Su M6 quella regolarita' **non c'e'**: correlazione **+0,341**, con un massimo
+intorno al 56% e reazioni che calano oltre il 67%. Il livello migliore su M6 e'
+il finto 56.
+
+Due timeframe, due forme diverse: **non e' una regolarita' su cui costruire.**
+
+### Il numero che chiude anche lo scalping
+
+| timeframe | reazione | penetrazione | rapporto |
+|---|---|---|---|
+| M12 | 0,1155 ATR | 0,1093 ATR | **1,057** |
+| M6 | 0,1326 ATR | 0,1207 ATR | **1,098** |
+
+Il rimbalzo supera il movimento contrario del 6-10%: praticamente una moneta.
+E lo scalping su XAUUSD, con lo spread reale misurato di 0,63 $, richiede:
+
+| stop | costo in R | pareggio a RR 1:1 | a RR 1:2 |
+|---|---|---|---|
+| 2 $ | 0,315 | **65,8%** | 43,8% |
+| 3 $ | 0,210 | 60,5% | 40,3% |
+| 5 $ | 0,126 | 56,3% | 37,5% |
+
+Formula: `pareggio = (1 + costo) / (1 + RR)`. Con un rapporto reazione/
+penetrazione di 1,06 non si arriva da nessuna parte vicino al 66%.
+
+**Conclusione: strada respinta.** Non e' un problema di taratura, e' che il
+segnale non c'e'. Non riprovare Fibonacci come generatore di livelli, ne' su
+timeframe piu' piccoli: e' misurato, con placebo, su due timeframe.

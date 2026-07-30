@@ -91,6 +91,12 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   doppio in R. La migliore delle varianti piccole rende +0,20 R/op contro
   +0,49, guadagna solo dal 2022 in poi, e affiancata all'ufficiale DIMEZZA il
   conto a parita' di drawdown (correlazione mensile +0,776). Vedi appendice M.
+- **Ritracciamenti di Fibonacci come livelli** (e lo scalping su di essi):
+  respinti col placebo su due timeframe. I livelli finti alla stessa profondita'
+  reagiscono uguale (4 confronti a 4 su M12; su M6 la differenza e' un
+  decimillesimo di ATR con il 49% di probabilita' di essere caso). Il rapporto
+  reazione/penetrazione e' 1,06-1,10, mentre lo scalping con stop da 2 $
+  richiede il 66% di operazioni vinte solo per coprire lo spread. Appendice O.
 - **Obiettivo variabile col regime di volatilita'**: inutile, 1:10 e' il
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
