@@ -6,7 +6,7 @@
   `docs/master-spec.md` (architettura e fasi), `docs/studies/` (risultati:
   NON rifare studi già fatti, i numeri sono lì).
 - Codice in `trading/framework/`, script in `trading/scripts/`, test:
-  `cd trading && python3 -m pytest tests/ -q` (134 test al 2026-07-07).
+  `cd trading && python3 -m pytest tests/ -q` (203 test al 2026-07-30).
 - Dati M1 2020→2026 in `data/XAUUSD_M1/*.parquet` (BID, UTC, un file/anno).
 - Dipendenze: `pip install pandas pyarrow pytest tabulate` (non in repo).
 
@@ -59,8 +59,38 @@ repository.
   fill dei market all'apertura della candela successiva.
 - Timeframe canonici in `data.TIMEFRAMES` (inclusi M33/M66 non nativi MT5).
 
+## L'ambiente dell'utente: PowerShell, e gli script vanno provati PRIMA
+
+L'utente lavora da **PowerShell su Windows**. I comandi vanno dati **uno alla
+volta**, aspettando l'esito prima del successivo: non blocchi da incollare.
+Niente sintassi bash (`export`, `&&`, `$(...)`, virgolette singole, percorsi
+con `/`): in PowerShell si scrive `$env:NOME = "valore"`, i percorsi sono
+`C:\...` e nelle stringhe Python vanno raddoppiati i backslash.
+
+Alcuni script girano **sul suo PC** e non qui: i tick pesano 1,2 GB e restano
+là. Sono `misura_spread.py`, `build_tick_parquet.py`, `build_tick_csv.py`,
+`verifica_cache_tick.py`, `download_ticks.py`. Vivono fuori dal repository,
+quindi non possono importare `framework` e devono dichiarare nel docstring uso
+e librerie da installare.
+
+**Uno script destinato al suo PC non si consegna se non è stato eseguito qui**,
+su dati finti costruiti apposta. È già costato due volte: la prima un file che
+non partiva, la seconda — peggio — `misura_spread.py` che partiva e stampava
+0,700 $ per tutte e 21 le operazioni. Erano istanti oltre l'ultimo tick del
+file: `searchsorted` restituiva l'ultima posizione e la misura era lo spread
+dell'ultimo tick disponibile. Un numero plausibile, uguale per tutti, che è
+sopravvissuto proprio perché sembrava una misura.
+
+Da qui la regola: **"gira" non è una prova, il numero va falsificato**. Ogni
+script per il PC ha in `trading/tests/test_script_pc.py` almeno un caso
+normale, un caso in cui i dati NON bastano, e la verifica che nel secondo taccia
+invece di inventare. Se modifichi uno di quegli script, il caso nuovo va lì.
+
 ## Cosa NON fare
 
+- Non consegnare all'utente script mai eseguiti, e non riportargli un numero
+  prodotto da un percorso di codice che non è stato messo alla prova coi dati
+  mancanti.
 - Non committare CSV/tick nel repo (solo Parquet M1 annuali + codice + docs).
 - Non fidarsi di risultati "troppo belli": cercare lookahead (è già successo
   con la confluenza asia, vedi `docs/studies/rr-intraday-study.md` §2).

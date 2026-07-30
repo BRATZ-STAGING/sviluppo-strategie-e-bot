@@ -123,5 +123,10 @@ Le regole stanno in `CLAUDE.md` e non sono decorative: sono state pagate.
 
 Lavora da PowerShell su Windows, e i passaggi tecnici vanno dati **un comando
 alla volta**, aspettando l'esito prima del successivo. Gli script destinati al
-suo PC vanno provati qui prima di consegnarli: e' gia' capitato due volte di
-mandargli codice che non girava, e costa tempo reale.
+suo PC vanno provati qui prima di consegnarli: e' gia' capitato due volte, e la
+seconda lo script girava benissimo e produceva un numero falso che sembrava
+vero (lo spread di 0,700 $ su 21 operazioni, in realta' l'ultimo tick del file
+ripetuto). La regola completa e' in `CLAUDE.md`, sezione "L'ambiente
+dell'utente"; le prove stanno in `trading/tests/test_script_pc.py` ed
+eseguono davvero quegli script su dati finti, compreso il caso in cui i dati
+non bastano.
