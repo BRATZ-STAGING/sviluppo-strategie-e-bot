@@ -1319,3 +1319,75 @@ campioni annuali da 13 a 36 operazioni non si distingue nulla.
 **Conclusione**: la variante non si adotta. Quello che resta di valore da questo
 studio e' l'order block (appendice P), che qui si e' confermato su un campione
 diverso da quello in cui era stato trovato.
+
+## Appendice S: win rate al 70% e dieci operazioni al giorno — due specifiche impossibili
+
+Due richieste dell'utente, misurate sulle stesse operazioni della taratura
+ufficiale. Entrambe sono specifiche su **variabili che non si possono scegliere**.
+
+### Il 70% di operazioni vinte si ottiene, ed e' dove si perde di piu'
+
+Stesse 348 operazioni, cambia solo l'obiettivo:
+
+| obiettivo | % vinte | R/op | R totale | anni positivi |
+|---|---|---|---|---|
+| 1:0,25 | **70,4%** | **-0,14** | -48,0 | **0/7** |
+| 1:0,4 | **71,6%** | **-0,13** | -45,1 | **0/7** |
+| 1:0,5 | 67,5% | -0,12 | -42,5 | 1/7 |
+| 1:0,75 | 62,4% | -0,06 | -19,6 | 3/7 |
+| 1:1 | 56,6% | -0,02 | -8,3 | 3/7 |
+| 1:2 | 46,8% | +0,14 | +47,7 | 6/7 |
+| 1:3 | 42,0% | +0,23 | +81,0 | 6/7 |
+| **1:10** | **36,2%** | **+0,37** | **+128,1** | 6/7 |
+
+La relazione e' **monotona**: piu' sale il win rate, piu' scende il guadagno.
+
+Perche' non e' aggirabile. Perche' il 70% sia profittevole serve un obiettivo
+sopra 0,6 (con stop da 5 $ e spread reale: `0,70 x RR - 0,30 - 0,126 > 0`).
+Ma sui dati, mettendo l'obiettivo a 0,75 il win rate **scende al 62,4%**, e a
+1,0 scende al 56,6%. **Le due grandezze non sono indipendenti**: il mercato da'
+la coppia, non i due numeri separatamente, e su questi dati non esiste nessuna
+coppia con vinte >= 70% e attesa positiva.
+
+**Il win rate non e' una specifica, e' una conseguenza dell'obiettivo.** Le
+specifiche sensate sono la perdita massima e la regolarita', e la taratura in
+vigore le ha buone (16,3% e 7 anni su 7) proprio grazie al 36% di vinte.
+
+### Dieci operazioni al giorno non esistono, e a otto il vantaggio non copre i costi
+
+Allentando progressivamente ogni condizione (impulso, filtro macro, limite
+giornaliero, attesa fra segnali), obiettivo 1:3, spread reale 0,63 $:
+
+| ingresso | op/giorno | lordo | netto 3 $ | netto 5 $ | netto 15 $ |
+|---|---|---|---|---|---|
+| M6 impulso 4 (taratura) | 2,15 | +0,026 | -0,184 | -0,085 | +0,000 |
+| M6 impulso 1, no macro | 3,35 | -0,009 | -0,219 | -0,071 | +0,029 |
+| M3 impulso 1, no macro | 4,72 | +0,022 | -0,188 | -0,066 | +0,029 |
+| M1 impulso 1, no macro | 7,02 | -0,022 | -0,232 | -0,120 | +0,007 |
+| **M1 impulso 0,5** | **7,98** | -0,015 | -0,225 | -0,119 | **+0,011** |
+
+1. **Il massimo raggiungibile e' 7,98 al giorno**, non 10: oltre non c'e' piu'
+   niente da allentare.
+2. **Il vantaggio lordo senza filtri va da +0,006 a +0,071 R**, mentre il costo
+   di uno stop da 5 $ e' 0,126. Sedici celle su sedici in perdita con stop da 3
+   e 5 dollari.
+3. Diventa positivo **solo con stop da 15 $**, e di un filo: +0,011 R/op a otto
+   operazioni al giorno.
+
+Quel +0,011 su 8 al giorno per 250 giorni fa **+22 R l'anno**. La taratura
+ufficiale ne fa **26 con 54 operazioni**: stessi soldi, quaranta volte le
+operazioni. E il margine e' un filo di lama — con spread 0,70 invece di 0,63
+(il livello del 2026) il costo a 15 $ sale a 0,047 e il netto diventa negativo.
+
+### La regolarita' che lega tutte le appendici da M a S
+
+Il vantaggio viene dai **filtri**, e i filtri tagliano la frequenza. Aumentare
+la frequenza non moltiplica il vantaggio: lo diluisce e moltiplica i costi, che
+si pagano per operazione. Cinque studi indipendenti (M, O, P, Q, S) misurano
+sempre la stessa cosa.
+
+Il vincolo di fondo: l'informazione che si estrae dalle candele (struttura,
+VWAP, order block) e' a **bassa frequenza**. Dice qualcosa sulle prossime ore,
+non sui prossimi minuti. I sistemi che fanno decine di operazioni al giorno e
+guadagnano vivono di costi quasi nulli (rebate, market making) e di informazione
+sul flusso degli ordini, che nei dati a candele non c'e'.
