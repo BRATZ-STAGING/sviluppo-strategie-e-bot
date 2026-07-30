@@ -1097,3 +1097,85 @@ penetrazione di 1,06 non si arriva da nessuna parte vicino al 66%.
 **Conclusione: strada respinta.** Non e' un problema di taratura, e' che il
 segnale non c'e'. Non riprovare Fibonacci come generatore di livelli, ne' su
 timeframe piu' piccoli: e' misurato, con placebo, su due timeframe.
+
+## Appendice P: gli order block funzionano (primo risultato positivo su un'idea nuova)
+
+Definizione data dall'utente, il suo bot li usa cosi':
+
+- **rialzista**: l'ultima candela con chiusura sotto l'apertura prima del
+  movimento che rompe uno swing high. Zona **dal minimo dell'ombra
+  all'apertura**, cioe' al bordo superiore del corpo: l'ombra in alto non fa
+  parte della zona.
+- **ribassista**: simmetrico. Zona dall'apertura (bordo inferiore del corpo) al
+  massimo dell'ombra.
+- **causale**: la zona esiste solo dalla chiusura della candela che rompe. Prima
+  non si sapeva che ci sarebbe stata una rottura: usarla prima e' lookahead.
+- **invalidata** alla prima chiusura oltre il lato lontano; **scade** dopo 30
+  candele.
+
+Ipotesi pre-registrata: gli ingressi che cadono dentro un order block attivo e
+concorde rendono di piu', perche' e' dove stanno gli ordini in attesa.
+
+### Il risultato, su tutte le 1.344 operazioni
+
+| timeframe della zona | n dentro | R/op dentro | R/op fuori | delta | probabilita' per caso | anni meglio |
+|---|---|---|---|---|---|---|
+| **M33** | 160 | **+0,640** | +0,087 | **+0,553** | **0,3%** | **6/7** |
+| H2 | 99 | +0,146 | +0,153 | -0,007 | 50,0% | 3/7 |
+
+Su M33 l'effetto e' forte e regge per anno. Su H2 non c'e' niente: le zone dei
+timeframe alti sono troppo poche e troppo larghe.
+
+### Regge fuori campione, e migliora
+
+| periodo | dentro | fuori | delta |
+|---|---|---|---|
+| selezione 2020-2023 | +0,436 (n=92) | +0,100 (n=726) | +0,336 |
+| **verifica 2024-2026** | **+0,916** (n=68) | +0,066 (n=458) | **+0,850** |
+
+E' il contrario della firma da sovradattamento, dove il fuori campione crolla.
+
+### E' robusto al parametro che ho scelto io
+
+Il margine (quanto vicino alla zona basta essere) e' l'unico numero arbitrario:
+
+| margine | n dentro | R/op dentro | R/op fuori | delta | probabilita' per caso |
+|---|---|---|---|---|---|
+| 0,00 (dentro esatto) | 42 | +0,833 | +0,131 | **+0,702** | 3,1% |
+| 0,25 x rischio | 86 | +0,779 | +0,110 | +0,669 | 0,7% |
+| 0,50 x rischio | 160 | +0,640 | +0,087 | +0,553 | 0,3% |
+| 0,75 x rischio | 249 | +0,489 | +0,076 | +0,412 | 0,6% |
+| 1,00 x rischio | 337 | +0,421 | +0,063 | +0,359 | 0,7% |
+| 1,50 x rischio | 459 | +0,393 | +0,028 | +0,365 | 0,4% |
+
+**Monotono**: piu' si e' vicini alla zona, piu' grande l'effetto. E' un
+altopiano, non un picco: significativo a ogni margine. E' la forma che ha un
+effetto vero, non un parametro fittato.
+
+### E' indipendente dalle conferme
+
+| campione | n dentro | delta | probabilita' per caso | anni meglio |
+|---|---|---|---|---|
+| tutte le operazioni | 160 | +0,553 | 0,3% | 6/7 |
+| solo la regola completa | 69 | +0,378 | 14,1% | 4/7 |
+| **solo le operazioni che la regola SCARTA** | 91 | **+0,537** | **1,6%** | **6/7** |
+
+La terza riga e' la piu' informativa: l'effetto c'e' anche sulle operazioni che
+le conferme M33+H12+M12 rifiutano. **Gli order block non sono un altro modo di
+dire la stessa cosa delle conferme**: aggiungono informazione loro.
+
+Sul solo sottoinsieme della regola completa il test non passa (14,1%), ma con 69
+operazioni la potenza non basta: il campione grande e il sottoinsieme scartato
+dicono la stessa cosa e sono la prova.
+
+### Cosa resta da fare prima di adottarli
+
+1. **misurarli come filtro sul risultato complessivo**, non solo come differenza
+   fra due gruppi: quante operazioni si perdono, come cambiano drawdown e conto
+2. **provare altri timeframe fra M33 e H2** (M66) e altre durate di validita'
+3. **verificare che non sia un travestimento dell'impulso minimo**: entrambi
+   chiedono che il prezzo si sia mosso prima di tornare
+4. **rifarlo con lo spread reale** dai tick
+
+Il punto 3 e' il rischio piu' serio: se le due condizioni selezionano le stesse
+operazioni, l'order block non aggiunge nulla, misura solo di nuovo l'impulso.

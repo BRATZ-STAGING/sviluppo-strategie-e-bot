@@ -102,6 +102,20 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
   (appendice L).
 
+## Order block: primo risultato positivo (appendice P)
+
+Definiti come l'utente li usa: zona dal minimo dell'ombra all'apertura per le
+rialziste, simmetrica per le ribassiste; causali dalla chiusura della candela
+che rompe. Su **M33** gli ingressi dentro una zona attiva e concorde rendono
+**+0,640 R/op contro +0,087** (probabilita' 0,3% che sia caso, meglio in 6 anni
+su 7, e migliora fuori campione). Robusto a ogni margine provato, e presente
+**anche sulle operazioni che le conferme scartano**, quindi aggiunge
+informazione invece di ripetere quella esistente.
+
+**Non ancora adottato**: va misurato come filtro sul risultato complessivo, e va
+escluso che sia un travestimento dell'impulso minimo. Codice in
+`trading/scripts/run_order_block.py`.
+
 ## Aperti / da fare (non perdere)
 
 - **Order block e altri livelli**: il bot target non usa solo il VWAP ma anche
