@@ -957,3 +957,66 @@ non e' plausibile.
 risultato e' robusto a qualunque spread verosimile. Restano utili per altro
 (fill infra-minuto su tutta la storia, e il bot con ordini limite del
 collaboratore), quindi vanno scaricati con calma, non con urgenza.
+
+### Appendice N-bis: la misura esatta, istante per istante
+
+La stima dell'appendice N usava lo spread **mediano del mese**. Ora c'e' la
+misura al minuto d'ingresso di ognuna delle 218 operazioni coperte dai tick
+(`docs/spread-misurato-taratura.csv`, prodotto da `misura_spread.py`).
+
+| anno | 0,30 $ fissi | spread esatto | spread peggiore del minuto | differenza |
+|---|---|---|---|---|
+| 2022 (nov-dic) | +20,52 | +20,20 | +19,98 | -0,32 |
+| 2023 | +27,69 | +27,26 | +26,46 | -0,42 |
+| 2024 | +38,36 | +37,42 | +36,77 | -0,93 |
+| 2025 | +44,12 | +40,70 | +39,17 | **-3,41** |
+| 2026 | +6,99 | +6,43 | +5,90 | -0,57 |
+| **totale** | **+137,67** | **+132,02** | **+128,29** | **-5,65** |
+
+**La stima era buona**: -5,65 R misurati contro -5,9 R stimati dalla mediana
+mensile. La conclusione dell'appendice N resta valida senza correzioni.
+
+| | R/op | R tot | anni+ | conto | DD |
+|---|---|---|---|---|---|
+| 0,30 $ fissi | +0,631 | +137,7 | 5/5 | 36.326 € | 17,6R |
+| **spread esatto** | **+0,606** | **+132,0** | **5/5** | **34.338 €** | 18,3R |
+| spread peggiore del minuto | +0,588 | +128,3 | 5/5 | 33.089 € | 18,8R |
+
+La terza riga e' un caso pessimo deliberato: come se ogni ingresso fosse
+avvenuto nel momento **peggiore** del minuto precedente. Costa altri 3,7 R, e
+resta positivo in tutti gli anni. Il risultato non dipende dalla fortuna
+sull'esecuzione.
+
+### Il costo cresce, ma il rischio cresce di piu'
+
+| anno | n | rischio mediano | spread mediano | costo assunto | costo vero | in piu' |
+|---|---|---|---|---|---|---|
+| 2022 | 9 | 3,11 $ | 0,415 $ | 0,098 | 0,133 | +36% |
+| 2023 | 48 | 3,43 $ | 0,330 $ | 0,093 | 0,102 | +9% |
+| 2024 | 54 | 4,38 $ | 0,380 $ | 0,079 | 0,096 | +22% |
+| 2025 | 82 | 7,26 $ | 0,555 $ | 0,047 | 0,089 | **+88%** |
+| 2026 | 25 | 15,99 $ | 0,600 $ | 0,022 | 0,045 | **+102%** |
+
+Nel 2026 il costo vero e' il **doppio** di quello assunto, e nonostante questo
+in R **scende** (0,045 contro 0,102 del 2023): il rischio mediano per operazione
+e' quintuplicato nello stesso periodo. E' il meccanismo che rende la strategia
+robusta all'allargarsi dello spread, ora misurato e non ipotizzato.
+
+### Dove lo spread morde davvero
+
+Le operazioni piu' colpite non sono quelle nei mesi peggiori, sono quelle con lo
+**stop piu' stretto**:
+
+| anno | rischio | spread | costo in R |
+|---|---|---|---|
+| 2025 | 1,90 $ | 0,674 $ | **0,356** |
+| 2025 | 2,15 $ | 0,550 $ | 0,256 |
+| 2025 | 2,33 $ | 0,587 $ | 0,252 |
+| 2025 | 2,59 $ | 0,610 $ | 0,235 |
+| 2023 | 1,51 $ | 0,340 $ | 0,225 |
+
+Su un'operazione con 1,90 $ di rischio lo spread si mangia **un terzo di R**.
+E' la conferma indipendente di quanto misurato nell'appendice M sulla variante
+sui timeframe piccoli: sotto una certa ampiezza di stop il costo fisso diventa
+decisivo. Qui succede a taratura invariata, sulle poche operazioni in cui lo
+stop e' minimo.
