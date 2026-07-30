@@ -74,12 +74,22 @@ conviene correggerlo subito invece di scoprirlo tre ore dopo.
 
 ## Cosa e' aperto
 
-1. **Misura dello spread all'ingresso.** `trading/scripts/misura_spread.py` +
-   `docs/operazioni-taratura-ufficiale.csv` girano sul PC dell'utente e
-   producono un CSV di poche decine di KB con lo spread esatto di ogni
-   operazione. Lo script c'e', va solo eseguito e riportato il risultato. Serve
-   a sostituire l'approssimazione attuale (spread mediano del mese) con il
-   valore dell'istante.
+1. **Spread misurato: fatto per 218 operazioni su 348, mancano le prime 130.**
+   `docs/spread-misurato-taratura.csv` copre da novembre 2022 (i tick iniziano
+   li'): tutti gli anni dal 2023 in poi sono verificati, il 2020, il 2021 e il
+   2022 fino a ottobre **no**. Il forward del bot e' invece completo
+   (`bots/mt5/keltner-impulse/forward/spread-dukascopy.csv`, 21 su 21).
+
+   | anni | operazioni | con spread misurato |
+   |---|---|---|
+   | 2020 - ott 2022 | 130 | **0** |
+   | nov 2022 - 2026 | 218 | 218 |
+
+   Chiuderlo dipende dal backfill tick 2020 - ott 2022 sul PC dell'utente. Ordine
+   dei comandi, uno alla volta: `copertura_cache.py` (cosa c'e'),
+   `verifica_cache_tick.py` (e' leggibile), `build_tick_parquet.py` sui mesi
+   nuovi, `misura_spread.py` con `docs/operazioni-taratura-ufficiale.csv`.
+   Torna indietro un CSV di poche decine di KB: i tick restano sul suo PC.
 
 2. **Order block.** Il bot dell'utente li usa ma **non sono mai stati definiti
    operativamente**. Serve deciderlo con lui: quale candela li genera, quando si

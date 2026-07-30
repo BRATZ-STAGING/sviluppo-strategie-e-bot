@@ -33,7 +33,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
 # Script che l'utente esegue sul proprio PC, fuori dal repository.
 SCRIPT_PC = ["misura_spread.py", "build_tick_parquet.py", "build_tick_csv.py",
-             "verifica_cache_tick.py", "download_ticks.py"]
+             "verifica_cache_tick.py", "download_ticks.py", "copertura_cache.py"]
 
 MESE = "2026-07"
 PRIMO_TICK = pd.Timestamp("2026-07-01 00:00:00", tz="UTC")
@@ -224,6 +224,68 @@ class TestVerificaCacheTick:
         r = esegui("verifica_cache_tick.py", env={"TICKS_CACHE": str(vuota)})
         assert r.returncode == 1
         assert "nessun .bi5" in r.stdout
+
+
+class TestCoperturaCache:
+    """Il riepilogo di cosa c'e' nella cache, prima di convertirla."""
+
+    def _cache(self, tmp_path, ore=("2026-07-01", 9), vuote=()):
+        cache = tmp_path / "cache"
+        cache.mkdir()
+        giorno, n = ore
+        for h in range(n):
+            bi5(cache, giorno, h, [(0, 2000.0, 2000.3)])
+        for g, h in vuote:
+            (cache / f"{g}_{h:02d}.empty").write_bytes(b"")
+        return cache
+
+    def test_riepiloga_per_anno(self, tmp_path):
+        cache = self._cache(tmp_path, ore=("2026-07-01", 24))
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(cache)})
+        assert r.returncode == 0, r.stderr
+        assert "24 ore in cache" in r.stdout
+        assert "2026" in r.stdout and "2026-07-01" in r.stdout
+        # un solo giorno interamente scaricato: nessun buco
+        assert "nessuna ora mai scaricata" in r.stdout
+
+    def test_le_ore_vuote_contano_come_scaricate(self, tmp_path):
+        """.empty = ora tentata e senza scambi: non e' un buco da riscaricare."""
+        giorno = "2026-07-01"
+        cache = self._cache(tmp_path, ore=(giorno, 20),
+                            vuote=[(giorno, h) for h in range(20, 24)])
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(cache)})
+        assert r.returncode == 0, r.stderr
+        assert "nessuna ora mai scaricata" in r.stdout
+
+    def test_elenca_i_mesi_con_buchi(self, tmp_path):
+        cache = self._cache(tmp_path, ore=("2026-07-01", 20))   # mancano 4 ore
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(cache)})
+        assert r.returncode == 0, r.stderr
+        assert "2026-07  4 ore" in r.stdout
+
+    def test_non_conta_come_buco_cio_che_e_fuori_dal_periodo_scaricato(self, tmp_path):
+        """Un anno scaricato a meta' non deve risultare pieno di buchi."""
+        cache = self._cache(tmp_path, ore=("2026-07-01", 24))
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(cache)})
+        # nel 2026 mancherebbero migliaia di ore se contasse tutto l'anno
+        assert "nessuna ora mai scaricata" in r.stdout
+
+    def test_cache_vuota_o_assente_e_un_errore(self, tmp_path):
+        vuota = tmp_path / "vuota"
+        vuota.mkdir()
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(vuota)})
+        assert r.returncode == 1 and "niente di scaricato" in r.stdout
+
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(tmp_path / "no")})
+        assert r.returncode == 1 and "cache non trovata" in r.stdout
+
+    def test_ignora_i_file_che_non_sono_ore(self, tmp_path):
+        cache = self._cache(tmp_path, ore=("2026-07-01", 3))
+        (cache / "appunti.bi5").write_bytes(b"x")
+        (cache / "2026-07-01_99.bi5").write_bytes(b"x")
+        r = esegui("copertura_cache.py", env={"TICKS_CACHE": str(cache)})
+        assert r.returncode == 0, r.stderr
+        assert "3 ore in cache" in r.stdout
 
 
 class TestPortabilita:
