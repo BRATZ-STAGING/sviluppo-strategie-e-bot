@@ -51,10 +51,18 @@ def main():
         t = pd.read_parquet(path, columns=["timestamp", "bid", "ask"])
         ts = t.timestamp.values.astype("datetime64[ms]").astype("int64")
         spread = (t.ask.values - t.bid.values).astype("float64")
-        trovate = 0
+        primo, ultimo = int(ts[0]), int(ts[-1])
+        trovate = fuori = 0
         for i, riga in gruppo.iterrows():
             fine = np.int64(riga.time.value // 1_000_000)     # ns -> ms
             inizio = fine - 60_000
+            # L'istante deve stare DENTRO la copertura del file. Senza questo
+            # controllo un istante successivo all'ultimo tick otterrebbe lo
+            # spread dell'ultimo tick disponibile: una misura falsa, e tutta
+            # uguale per ogni operazione fuori copertura.
+            if not (primo <= fine <= ultimo):
+                fuori += 1
+                continue
             b = int(np.searchsorted(ts, fine, side="right"))
             a = int(np.searchsorted(ts, inizio, side="left"))
             if b == 0:
@@ -66,11 +74,20 @@ def main():
                 ops.at[i, "spread_max_60s"] = float(finestra.max())
             ops.at[i, "tick_trovato"] = 1
             trovate += 1
-        print(f"{mese}: {trovate}/{len(gruppo)} operazioni misurate", flush=True)
+        avviso = f"   ({fuori} fuori dalla copertura del file)" if fuori else ""
+        if fuori:
+            da = pd.Timestamp(primo, unit="ms", tz="UTC")
+            al = pd.Timestamp(ultimo, unit="ms", tz="UTC")
+            avviso += f"  [tick da {da:%d/%m %H:%M} a {al:%d/%m %H:%M}]"
+        print(f"{mese}: {trovate}/{len(gruppo)} operazioni misurate{avviso}",
+              flush=True)
 
     ops.drop(columns=["mese"]).to_csv(out, index=False)
     ok = ops[ops.tick_trovato == 1]
     print(f"\n{len(ok)}/{len(ops)} operazioni misurate -> {out}")
+    if len(ok) == 0:
+        print("NESSUNA operazione misurata: i tick non coprono questi istanti.")
+        return
     if mancanti:
         print("mesi senza Parquet: " + ", ".join(mancanti))
     if len(ok):

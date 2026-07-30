@@ -62,8 +62,21 @@ Le spiegazioni possibili sono tre e vanno distinte, non scelte a naso:
    entra a ogni ora ma non uniformemente
 3. Dukascopy e' un'altra fonte di liquidita' e su XAUUSD quota davvero piu' largo
 
-**Come si risolve.** Non a ragionamenti: misurando lo spread Dukascopy **negli
-istanti esatti** dei 21 riempimenti. Gli istanti sono in `istanti-forward.csv`
+**Il confronto NON e' ancora possibile.** I tick Dukascopy scaricati si
+fermano al **6 luglio 2026**; il forward del bot inizia il **7**. Tutti e 21 gli
+istanti cadono fuori dalla copertura.
+
+Il primo tentativo di misura ha prodotto un risultato falso e tutto uguale
+(0,700 $ per tutte e 21 le operazioni): `misura_spread.py` non controllava che
+l'istante richiesto stesse dentro la copertura del file e restituiva lo spread
+dell'ultimo tick disponibile. Corretto: ora gli istanti fuori copertura vengono
+contati a parte e il file dice da quando a quando arrivano i tick.
+
+Per fare il confronto servono i tick dal **7 al 24 luglio 2026**, che si
+scaricano dal PC con `download_ticks.py 2026-07-07 2026-07-24`.
+
+**Come si risolve, quando i tick ci saranno.** Non a ragionamenti: misurando lo
+spread Dukascopy **negli istanti esatti** dei 21 riempimenti. Gli istanti sono in `istanti-forward.csv`
 in questa cartella, insieme allo spread che il broker ha riportato. Basta:
 
     python misura_spread.py <cartella parquet> istanti-forward.csv esito.csv
