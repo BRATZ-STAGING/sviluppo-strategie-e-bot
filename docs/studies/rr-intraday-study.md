@@ -1251,3 +1251,71 @@ taratura ufficiale si trova gia'. Lo stop strutturale (minimo delle ultime
 candele piu' un buffer, banda 1-10 $, mediana 3,4-16 $ a seconda dell'anno) sta
 nella zona buona, e ci sta arrivando da una regola invece che da un numero
 fisso.
+
+## Appendice R: pareggio precoce e prova sui due anni completi
+
+### Il pareggio a +1 punto azzera il vantaggio
+
+Idea dell'utente: portare lo stop a pareggio appena l'operazione va di un punto
+(un dollaro) in vantaggio. Misurato su ingressi M6, spread reale 0,63 $:
+
+| filtro | stop | RR | senza pareggio | **+1 $** | +2 $ | +3 $ | +5 $ |
+|---|---|---|---|---|---|---|---|
+| conferme+OB | 5 $ | 1:3 | **+0,443** | **+0,003** | +0,106 | +0,137 | +0,277 |
+| conferme+OB | 3 $ | 1:3 | +0,273 | +0,003 | +0,108 | +0,135 | +0,135 |
+| conferme+OB | 5 $ | 1:5 | +0,292 | **-0,045** | +0,080 | +0,102 | +0,245 |
+| tutti i segnali | 5 $ | 1:5 | -0,058 | -0,120 | -0,128 | -0,132 | -0,114 |
+
+**A +1 $ il 74% delle operazioni esce a pareggio.** Con uno stop da 5 $ armare a
++1 $ significa armare a +0,2 R: il prezzo torna sull'ingresso in tre casi su
+quattro. E il pareggio non e' zero, costa lo spread (-0,126 R), quindi si
+trasforma il 74% delle operazioni in piccole perdite.
+
+Il pattern e' **monotono**: piu' tardi si arma, meglio va. E' identico a quanto
+misurato nell'appendice L sulla taratura ufficiale, dove +1R era la soglia
+peggiore e +3R la migliore. Due meccaniche diverse, stessa risposta: **il
+pareggio va armato tardi.**
+
+### La cella migliore, anno per anno
+
+M6, conferme e order block, stop 5 $, obiettivo 1:3, nessun pareggio:
+
+| anno | n | R/op | R totale |
+|---|---|---|---|
+| 2020 | 19 | -0,057 | -1,1 |
+| 2021 | 26 | +0,425 | +11,0 |
+| 2022 | 13 | +0,955 | +12,4 |
+| 2023 | 36 | +0,320 | +11,5 |
+| 2024 | 19 | +0,715 | +13,6 |
+| 2025 | 13 | +0,767 | +10,0 |
+| **2026** | **1** | -1,126 | -1,1 |
+
+### I due anni completi piu' recenti
+
+| | n | R/op | R totale | drawdown | conto da 10.000 € |
+|---|---|---|---|---|---|
+| 2024 | 19 | +0,715 | +13,6 | 5,6R | 11.413 € |
+| 2025 | 13 | +0,767 | +10,0 | 3,4R | 11.022 € |
+| 2024+2025 | 32 | +0,736 | +23,6 | 5,6R | 12.579 € |
+
+### Il confronto che conta
+
+| anno | operazioni piccola | R piccola | operazioni ufficiale | R ufficiale |
+|---|---|---|---|---|
+| 2024 | 19 | +13,6 | 54 | **+38,4** |
+| 2025 | 13 | +10,0 | 82 | **+44,1** |
+
+**Per operazione la variante e' pari o meglio** (+0,715 contro +0,710 nel 2024;
++0,767 contro +0,538 nel 2025). **In soldi rende un terzo**, perche' fa 20
+operazioni l'anno contro 54.
+
+E' la lezione che vale piu' del numero: **il R per operazione non e' quello che
+paga, il R totale lo e'.** Un sistema piu' selettivo puo' avere un'ottima media e
+guadagnare meno, perche' non capitalizza.
+
+Il 2026 con **una** operazione chiude il discorso sull'affidabilita': con
+campioni annuali da 13 a 36 operazioni non si distingue nulla.
+
+**Conclusione**: la variante non si adotta. Quello che resta di valore da questo
+studio e' l'order block (appendice P), che qui si e' confermato su un campione
+diverso da quello in cui era stato trovato.
