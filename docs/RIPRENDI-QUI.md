@@ -58,15 +58,15 @@ pendenti contemporanei.
    considerano consumati, quanto restano validi. Finche' non e' definito non si
    possono testare.
 
-3. **Campagna backtest storico sui Keltner.** Protocollo concordato: split
-   train 2022→2024 / validation 2025→26, baseline TP80/RR1.2 su M10, una
-   dimensione alla volta (RR, poi timeframe, poi indicatore), tutto in R netto
-   di spread reale e commissione. **Prima** di partire: accertare quale storico
-   si usa e validare il motore contro un run MT5 su tick reali noto (stessa
-   finestra, stessi input, stessi trade). Senza quella taratura i numeri non
-   valgono. Attenzione: lo spread e' triplicato fra 2023 e 2026, quindi il
-   validation cade nel periodo di spread alto — una variante puo' fallire per lo
-   spread, non perche' non funziona.
+3. **Campagna backtest storico sui Keltner.** Griglia e protocollo sono
+   **registrati preventivamente** in `docs/campagna-keltner-registrazione.md`,
+   con tre previsioni dichiarate prima di eseguire i test. Leggere quel
+   documento e seguirlo: non e' una proposta, e' il piano concordato. In
+   sintesi: validare prima il motore contro un run MT5 noto, poi 15 run una
+   dimensione alla volta, la griglia completa da 150 solo se le singole
+   dimensioni mostrano qualcosa, selezione su 2022-11→2024-12 e verifica su
+   2025-01→2026-07 mai usato per scegliere, spread reale dai tick istante per
+   istante.
 
 4. **Correzioni ai bot**: il bug OrderDelete (tre punti, vedi DISCREPANZE), il
    preset del forward da salvare come `.set`, e l'equity guard mancante sul
