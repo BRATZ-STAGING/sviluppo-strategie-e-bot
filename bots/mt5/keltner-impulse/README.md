@@ -68,9 +68,15 @@ significare qualcosa.
   vincenti; osservato 57,1% ma con intervallo di confidenza **36,5% - 75,5%**.
   L'intervallo contiene il pareggio: un bot senza vantaggio fa cosi' o meglio
   **una volta su cinque**.
-- lo spread del broker all'esecuzione e' **0,230 $** mediano, contro 0,70 $
-  misurati sui tick Dukascopy nello stesso mese. Tre volte di differenza, da
-  spiegare: e' la demo che mente o la mediana mensile che e' fuorviante?
+- **il broker demo quota uno spread finto**: su 21 riempimenti solo tre valori
+  distinti (0,23 · 0,24 · 0,50), diciannove volte esattamente 0,23. Dukascopy
+  negli stessi istanti: da 0,53 a 7,15 $. Col costo vero il forward scende da
+  +5,13 a **+3,77 R** e la probabilita' che sia caso passa dal 21% al **30%**.
+- **le cinque operazioni serali (19-23 UTC) sono in perdita** e pagano quattro
+  volte il costo delle altre: i picchi di spread cadono nell'ora del cambio
+  giornata. Limitando le operazioni alla finestra 7-19 UTC — quella della
+  strategia in `trading/`, fissata prima e validata su sette anni — il forward
+  sale a +4,14 R su 15 operazioni (+0,276 per operazione).
 - delle 91 righe di scarti, 77 sono `REPLACED` e **non sono occasioni perse**.
   Le altre contano: 8 ordini scaduti e **4 segnali persi il 7 luglio perche' il
   trading automatico era disattivato nel terminale**.

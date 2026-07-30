@@ -31,60 +31,71 @@ quanto.
 L'intervallo di confidenza e' calcolato con la formula di Wilson: su 21 casi la
 formula ingenua darebbe un intervallo sbagliato.
 
-## La scoperta: il broker ha lo spread un TERZO di Dukascopy
+## Misurato: il broker demo quota uno spread finto
 
-Lo spread registrato all'esecuzione di ogni operazione:
+Spread negli **stessi 21 istanti** di riempimento, dalle due fonti:
 
-| | valore |
-|---|---|
-| mediano | **0,230 $** |
-| medio | 0,243 $ |
-| massimo | 0,500 $ (15 luglio 08:42) |
+| fonte | mediano | medio | massimo |
+|---|---|---|---|
+| broker FP (demo) | **0,230 $** | 0,243 $ | 0,500 $ |
+| Dukascopy (tick reali) | **0,630 $** | 0,971 $ | **7,150 $** |
 
-Confronto con la misura sui tick Dukascopy dello stesso mese
-(`docs/studies/rr-intraday-study.md`, appendice N):
+Ma il numero che chiude la questione non e' il rapporto fra le mediane. E'
+questo: **su 21 riempimenti il broker ha registrato solo tre valori distinti di
+spread** — 0,23 · 0,24 · 0,50. Diciannove volte su ventuno esattamente 0,23.
 
-| fonte | spread luglio 2026 |
-|---|---|
-| **broker FP (demo)** | **0,23 $** |
-| Dukascopy | 0,70 $ |
-| assunzione usata in tutti i backtest | 0,30 $ |
+Uno spread di mercato non si ferma sullo stesso valore diciannove volte.
+Dukascopy negli stessi istanti va da 0,53 a 7,15. **La demo quota uno spread
+sostanzialmente fisso**: e' sintetico, non e' il costo che si pagherebbe.
 
-**Tre volte di differenza.** Se il valore del broker e' quello vero, la
-conclusione dell'appendice N ("lo spread e' triplicato, il risultato regge con
--4%") e' **pessimista**, non ottimista: l'assunzione di 0,30 $ sarebbe piu'
-larga della realta', non piu' stretta.
+### I 21 esiti ricalcolati col costo vero
 
-Le spiegazioni possibili sono tre e vanno distinte, non scelte a naso:
+| | R totale | R/op | vinte | pareggio a | probabilita' per caso |
+|---|---|---|---|---|---|
+| come registrato dal broker | **+5,13** | +0,244 | 12/21 (57%) | 46,1% | 21% |
+| **con lo spread Dukascopy** | **+3,77** | +0,179 | 12/21 (57%) | 48,9% | **30%** |
 
-1. lo spread di un **conto demo** puo' essere piu' stretto del reale
-2. la mediana Dukascopy e' su **24 ore**, e comprende le ore illiquide; il bot
-   entra a ogni ora ma non uniformemente
-3. Dukascopy e' un'altra fonte di liquidita' e su XAUUSD quota davvero piu' largo
+Il forward perde **1,36 R**, cioe' il **27%** del risultato. Nessuna operazione
+cambia segno — il costo non e' abbastanza grande da ribaltarne una — ma il punto
+di pareggio sale al 48,9% e la probabilita' che un bot senza vantaggio faccia
+altrettanto passa da una volta su cinque a **una volta su tre**.
 
-**Il confronto NON e' ancora possibile.** I tick Dukascopy scaricati si
-fermano al **6 luglio 2026**; il forward del bot inizia il **7**. Tutti e 21 gli
-istanti cadono fuori dalla copertura.
+L'operazione piu' colpita ha pagato 7,15 $ di spread su 11,35 $ di rischio:
+**0,61 R di costo aggiuntivo** su una sola operazione. Era vinta (+1,193) e
+resta vinta (+0,583).
 
-Il primo tentativo di misura ha prodotto un risultato falso e tutto uguale
-(0,700 $ per tutte e 21 le operazioni): `misura_spread.py` non controllava che
-l'istante richiesto stesse dentro la copertura del file e restituiva lo spread
-dell'ultimo tick disponibile. Corretto: ora gli istanti fuori copertura vengono
-contati a parte e il file dice da quando a quando arrivano i tick.
+## Il risultato inatteso: le operazioni serali
 
-Per fare il confronto servono i tick dal **7 al 24 luglio 2026**, che si
-scaricano dal PC con `download_ticks.py 2026-07-07 2026-07-24`.
+Dividendo per fascia oraria si vede una cosa che nessuno cercava:
 
-**Come si risolve, quando i tick ci saranno.** Non a ragionamenti: misurando lo
-spread Dukascopy **negli istanti esatti** dei 21 riempimenti. Gli istanti sono in `istanti-forward.csv`
-in questa cartella, insieme allo spread che il broker ha riportato. Basta:
+| fascia (UTC) | n | spread mediano | spread massimo | R col broker | R col costo vero |
+|---|---|---|---|---|---|
+| notte 0-6 | 1 | 0,870 $ | 0,870 $ | +1,20 | +1,15 |
+| **giorno 7-18** | **15** | **0,590 $** | 0,700 $ | **+4,69** | **+4,14** |
+| **sera 19-23** | **5** | 0,820 $ | **7,150 $** | **-0,75** | **-1,53** |
 
-    python misura_spread.py <cartella parquet> istanti-forward.csv esito.csv
+Le cinque operazioni serali sono **in perdita** e pagano un costo aggiuntivo
+quattro volte piu' alto delle altre (0,155 R contro 0,037). I due picchi di
+spread — 7,15 $ e 1,09 $ — cadono entrambi verso le 22 UTC, nell'ora del
+cambio giornata, e in entrambi i casi nei 60 secondi precedenti **non c'era
+nessun tick**: il mercato era fermo.
 
-e confrontare `spread_ingresso` con `spread_broker`. Se i due valori si
-somigliano, la spiegazione e' la 2 e la mediana mensile e' fuorviante. Se
-Dukascopy resta il triplo, e' la 1 o la 3, e allora **la demo sta mentendo** —
-cosa da sapere prima di credere a qualunque numero del forward.
+Escludendo le ore fuori dalla finestra 7-19:
+
+| | n | R totale | R/op | probabilita' per caso |
+|---|---|---|---|---|
+| tutte le ore, costo vero | 21 | +3,77 | +0,179 | 30% |
+| **solo 7-19, costo vero** | **15** | **+4,14** | **+0,276** | **24%** |
+
+Sei operazioni escluse valgono **-0,37 R**: togliendole il risultato migliora.
+
+**Perche' conta piu' di quanto sembri.** La finestra 7-19 UTC non e' stata
+scelta guardando questi dati: e' la finestra della strategia in `trading/`,
+fissata molto prima e validata fuori campione su sette anni. Trovare che
+funziona anche su un bot diverso, con una logica diversa, misurata con una
+fonte di dati diversa, e' una conferma indipendente — non un ritocco sui
+numeri. Su cinque operazioni serali non e' una prova, ma e' l'unica modifica al
+bot che poggia su qualcosa di gia' verificato altrove.
 
 ## Cosa il bot NON ha fatto (il file degli scarti)
 
