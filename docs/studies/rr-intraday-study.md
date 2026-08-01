@@ -1586,3 +1586,41 @@ tramite OB come trigger" e' chiusa; la strada aperta resta "OB come filtro
 di qualita'" gia' nel laboratorio.
 
 Dati completi (48 celle): `docs/studies/dati/ob-come-ingresso.parquet`.
+
+## Appendice X: proteggersi dai drawdown — cosa regge e cosa no
+
+Domanda dell'utente guardando la curva del conto: "nella fase finale c'e'
+troppa escursione, dobbiamo proteggerci". Tre fatti misurati sulla serie
+ufficiale (348 operazioni, pareggio +3R, spread 0,30).
+
+**1. L'escursione finale e' in gran parte ottica.** Col rendimento composto il
+capitale a fine storico e' piu' che raddoppiato: la stessa oscillazione in R
+appare doppia in euro. In R la fase ottobre 2025 - giugno 2026 e' il DD massimo
+storico (17,6 R in 27 operazioni) ma dello stesso ordine degli altri anni
+(13,4 R nel 2024, 10,3 nel 2025): non un cambio di regime della strategia.
+
+**2. Gli esiti si raggruppano un po', i mesi no.** Autocorrelazione lag-1 del
+segno +0,119 (p 0,03); autocorrelazione dei risultati mensili -0,005 (p 0,97).
+Quindi uno stop mensile ("fermati dopo un mese a -8R") non ha alcuna base — e
+infatti misurato non aggiunge nulla (+0,0% a parita' di DD).
+
+**3. Le regole di riduzione del rischio non superano il controllo di
+permutazione.** Confronto onesto: ogni regola contro la base, A PARITA' di
+drawdown massimo (bisezione sul rischio), vince chi fa piu' capitale. Poi lo
+stesso confronto su 200 serie rimescolate, dove il raggruppamento e' distrutto:
+quel che sopravvive al rimescolamento e' vantaggio meccanico, non segnale.
+
+| regola | vantaggio osservato | parte meccanica (perm.) | p |
+|---|---|---|---|
+| dimezza dopo 2 perdite di fila | +17,5% | +3,9% | 0,15 |
+| dimezza quando il DD supera 8R | +19,4% | +10,3% | 0,32 |
+| stop mensile a -8R | +0,0% | — | — |
+
+"Dimezza dopo 2 perdite" e' la piu' promettente (il grosso del vantaggio non e'
+meccanico) ma p 0,15 non basta — stesso metro dell'appendice V: suggestivo,
+non dimostrato. Da rivedere quando lo storico si allunga.
+
+**Conseguenza operativa**: la protezione dimostrata e' il selettore del
+rischio (0,5% → DD storico ~9%), piu' l'aspettativa giusta: 13 perdite di fila
+e 33 operazioni senza nuovi massimi SONO nel copione. Le regole dinamiche
+restano fuori dalla taratura.
