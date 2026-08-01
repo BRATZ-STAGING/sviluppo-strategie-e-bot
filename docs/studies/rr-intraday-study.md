@@ -1722,3 +1722,44 @@ con un minimo di escursione (il ritorno DOPO l'allontanamento e' il retest
 "vero") - 50/50 che regga la permutazione; (2) D=50 sui TF piccoli lascera'
 pochissime operazioni, stime instabili; (3) se non discrimina, il filtro
 attuale resta com'e'.
+
+## Appendice AA: entrare SUL livello invece che alla chiusura (registrazione)
+
+Critica dell'utente, la piu' fondata ricevuta finora: «non stai usando bene i
+miei livelli, ci sono un sacco di OB su M6/M12/M33/H3/H6; ci sono operazioni
+valide ma non entra bene sui livelli, quindi le apre storpiate, sono meno e
+troppe in perdita».
+
+Ha ragione su un fatto: la strategia entra **a mercato alla chiusura della
+candela M6 del segnale**, cioe' dove il prezzo si trova in quel momento, non
+dove sta il livello. Gli order block finora sono stati usati solo come
+ETICHETTA (l'ingresso cadeva o no dentro una zona), mai come **prezzo di
+ingresso**. Questo studio prova la sua versione.
+
+### Regole registrate PRIMA dei risultati
+
+- Zone `zone_ob` su CINQUE timeframe: M6, M12, M33, H3, H6 (quelli citati).
+- Segnale invariato (reclaim del VWAP con contesto H6+H2), due campioni:
+  (A) regola ufficiale completa, (B) campione largo senza le conferme.
+- Ingresso: NON al prezzo di chiusura. Ordine LIMITE sul bordo vicino della
+  zona concorde piu' vicina dalla parte del ritracciamento (long: zona sotto,
+  limite sul bordo alto). Distanza massima ammessa dal prezzo di segnale:
+  5 / 10 / 20 $. Valido fino a fine giornata: se non riempito, niente
+  operazione.
+- Stop: lato lontano della zona ± 0,30 di margine; rischio accettato 0,5-20 $.
+- Obiettivi 1:3 / 1:5 / 1:10, pareggio nessuno e +3R, spread 0,30 e 0,63.
+- Conservativo: nello stesso minuto lo stop prevale sull'obiettivo.
+
+### Previsioni (scritte prima di misurare)
+
+1. Il rischio medio per operazione SCENDE (stop sulla zona invece che sulla
+   struttura): e' il meccanismo vero che l'utente intuisce, e da solo alza il
+   rendimento in R a parita' di movimento del prezzo.
+2. Il numero di operazioni scende rispetto al campione di partenza: parte dei
+   segnali non trova zona vicina, parte non viene mai riempita.
+3. Contro-effetto: entrando in ritracciamento si PERDONO i vincitori che
+   scappano senza tornare indietro, che nella strategia in vigore sono quelli
+   che pagano tutto (il 3,2% che tocca 1:10 fa il grosso del +171R).
+4. Saldo netto incerto, 50/50. La percentuale di stop presi salira' (stop piu'
+   stretto), quindi la domanda giusta NON e' «quanti stop prendo» ma «quanto
+   rende per operazione».
