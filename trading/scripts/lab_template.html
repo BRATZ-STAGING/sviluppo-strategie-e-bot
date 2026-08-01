@@ -159,7 +159,7 @@
   </div>
 
   <footer>
-    <b>Come leggerlo.</b> Il grafico avanza una candela alla volta, come le vedeva la strategia: nulla a schermo era ignoto in quel momento. Le statistiche e il grafico per anno si riferiscono all'<b>intero periodo</b> con le impostazioni scelte, non solo alla parte già scorsa. Il rendimento in percentuale è composto (ogni operazione rischia la percentuale scelta del capitale corrente); scegliendo un anno singolo il conto riparte da 10.000 € a inizio anno. <b>1R</b> = il rischio di una singola operazione. <b>Stop a pareggio</b>: quando il prezzo arriva al guadagno indicato, lo stop viene spostato sul prezzo d'ingresso, cosi' l'operazione non puo' piu' perdere. Spazio per avviare o fermare, frecce per muoverti di una candela.
+    <b>Come leggerlo.</b> Il grafico avanza una candela alla volta, come le vedeva la strategia: nulla a schermo era ignoto in quel momento. Le statistiche e il grafico per anno si riferiscono all'<b>intero periodo</b> con le impostazioni scelte, non solo alla parte già scorsa. Il rendimento in percentuale è composto (ogni operazione rischia la percentuale scelta del capitale corrente); scegliendo un anno singolo il conto riparte da 10.000 € a inizio anno. <b>1R</b> = il rischio di una singola operazione. <b>Stop a pareggio</b>: quando il prezzo arriva al guadagno indicato, lo stop viene spostato sul prezzo d'ingresso, cosi' l'operazione non puo' piu' perdere. <b>Serie di fila</b>: operazioni vinte o perse consecutive; le uscite a pareggio interrompono la serie senza contarla. <b>Op. senza nuovi massimi</b>: quante operazioni consecutive sono passate, al peggio, prima che il risultato cumulato tornasse sopra il suo massimo precedente. <b>Fattore di profitto</b>: somma delle vincite divisa per la somma delle perdite; sopra 1 la strategia guadagna. Spazio per avviare o fermare, frecce per muoverti di una candela.
   </footer>
 </div>
 
@@ -270,11 +270,26 @@
       eqv*=(1+RISK[st.risk]*t.r); peak=Math.max(peak,eqv); dd=Math.max(dd,(peak-eqv)/peak);
       perAnno[t.y]=(perAnno[t.y]||0)+t.r;
     }
-    let r=0,pk=0,ddR=0; for(const t of ts){ r+=t.r; pk=Math.max(pk,r); ddR=Math.max(ddR,pk-r); }
+    // serie consecutive e durata del recupero: i pareggi (uscita sul prezzo
+    // d'ingresso, motivo 3) non sono ne' vittorie ne' perdite e interrompono
+    // entrambe le serie; il loro piccolo costo resta pero' nel totale.
+    let r=0,pk=0,ddR=0, sotto=0, sottoMax=0;
+    let sv=0,sp=0, svMax=0,spMax=0, gw=0,gl=0,nw=0,nl=0;
+    for(const t of ts){
+      r+=t.r;
+      if(r>=pk){ pk=r; sotto=0; } else { sotto++; sottoMax=Math.max(sottoMax,sotto); }
+      ddR=Math.max(ddR,pk-r);
+      if(t.motivo===3){ sv=0; sp=0; }
+      else if(t.r>0){ sv++; sp=0; svMax=Math.max(svMax,sv); gw+=t.r; nw++; }
+      else if(t.r<0){ sp++; sv=0; spMax=Math.max(spMax,sp); gl-=t.r; nl++; }
+      else { sv=0; sp=0; }
+    }
     const mot=[0,0,0,0]; for(const t of ts) mot[t.motivo]++;
     return { n:ts.length, tot, expR:ts.length?tot/ts.length:0, win:ts.length?win/ts.length:0,
              stop:ts.length?mot[0]/ts.length:0, pari:ts.length?mot[3]/ts.length:0,
              rend:eqv-1, ddPct:dd, ddR, perAnno,
+             svMax, spMax, sottoMax,
+             mediaW:nw?gw/nw:0, mediaL:nl?gl/nl:0, pf:gl>0?gw/gl:(gw>0?Infinity:0),
              anniPos:Object.values(perAnno).filter(x=>x>0).length,
              anniTot:Object.keys(perAnno).length };
   }
@@ -528,6 +543,12 @@
       ["a pareggio", st.be ? (m.pari*100).toFixed(0)+"%" : "—", ""],
       ["anni positivi", `${m.anniPos}<span style="color:var(--ink3);font-size:13px"> / ${m.anniTot}</span>`,
         m.anniPos*2>m.anniTot?"pos":"neg"],
+      ["vittorie di fila max", String(m.svMax), "pos"],
+      ["perdite di fila max", String(m.spMax), "neg"],
+      ["media vittoria", "+"+fmt(m.mediaW,2)+" R", "pos"],
+      ["media perdita", "−"+fmt(m.mediaL,2)+" R", "neg"],
+      ["fattore di profitto", m.pf===Infinity?"∞":fmt(m.pf,2), m.pf>1?"pos":"neg"],
+      ["op. senza nuovi massimi", String(m.sottoMax), ""],
     ].map(([k,v,c])=>`<div class="stat"><span class="k">${k}</span><span class="v ${c}">${v}</span></div>`).join("");
   }
 
