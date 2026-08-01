@@ -53,19 +53,46 @@ def da_mt5(anno: int) -> pd.DataFrame:
     except ImportError:
         raise SystemExit("manca il pacchetto: pip install MetaTrader5")
     import datetime as dt
+    import time
     if not mt5.initialize():
         raise SystemExit(f"MT5 non risponde (il terminale e' aperto?): {mt5.last_error()}")
     try:
+        # il simbolo puo' chiamarsi diversamente da broker a broker
+        nomi = [s.name for s in mt5.symbols_get()
+                if "XAU" in s.name.upper() or "GOLD" in s.name.upper()]
+        if not nomi:
+            raise SystemExit("nessun simbolo XAU/GOLD presso questo broker")
+        simbolo = "XAUUSD" if "XAUUSD" in nomi else nomi[0]
+        mt5.symbol_select(simbolo, True)
+        print(f"simbolo: {simbolo}  (trovati: {', '.join(nomi[:6])})")
+
+        # mese per mese con piu' tentativi: ogni richiesta spinge il terminale
+        # a scaricare lo storico mancante dal server, senza scroll a mano
         utc = dt.timezone.utc
-        barre = mt5.copy_rates_range(
-            "XAUUSD", mt5.TIMEFRAME_M1,
-            dt.datetime(anno, 1, 1, tzinfo=utc), dt.datetime(anno + 1, 1, 1, tzinfo=utc))
+        pezzi = []
+        for mese in range(1, 13):
+            ini = dt.datetime(anno, mese, 1, tzinfo=utc)
+            fine = (dt.datetime(anno + 1, 1, 1, tzinfo=utc) if mese == 12
+                    else dt.datetime(anno, mese + 1, 1, tzinfo=utc))
+            barre = None
+            for _ in range(6):
+                barre = mt5.copy_rates_range(simbolo, mt5.TIMEFRAME_M1, ini, fine)
+                if barre is not None and len(barre) > 0:
+                    break
+                time.sleep(2)
+            n = 0 if barre is None else len(barre)
+            print(f"  {anno}-{mese:02d}: {n:6,} barre".replace(",", "."))
+            if n:
+                pezzi.append(pd.DataFrame(barre))
     finally:
         mt5.shutdown()
-    if barre is None or len(barre) == 0:
-        raise SystemExit("MT5 non ha restituito barre: scarica prima lo storico "
-                         "(grafico XAUUSD M1, tasto Home fino a coprire l'anno)")
-    df = pd.DataFrame(barre)
+    if not pezzi:
+        raise SystemExit(
+            "il broker non ha fornito nessuna barra per questo anno nemmeno "
+            "dopo i tentativi: probabilmente il suo storico M1 non arriva "
+            "cosi' indietro. Riprova con un anno piu' recente (es. 2026), "
+            "oppure alza 'Max barre nel grafico' in Strumenti > Opzioni > Grafici")
+    df = pd.concat(pezzi).drop_duplicates(subset="time")
     # l'orario e' quello del SERVER del broker: lo scostamento vero lo stima
     # stima_scostamento(), qui basta un indice coerente
     df["ts"] = pd.to_datetime(df["time"], unit="s", utc=True)
