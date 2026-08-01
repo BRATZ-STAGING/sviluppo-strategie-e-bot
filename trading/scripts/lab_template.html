@@ -115,7 +115,9 @@
     <div class="grp"><span class="lab-t">filtro di fondo (media 50 giorni)</span><div class="seg" id="mac" role="group" aria-label="Filtro macro"></div></div>
     <div class="grp"><span class="lab-t">conferme strutturali</span><div class="seg" id="conf" role="group" aria-label="Conferme"></div></div>
     <div class="grp"><span class="lab-t">obiettivo</span><div class="seg" id="rr" role="group" aria-label="Obiettivo"></div></div>
+    <div class="grp"><span class="lab-t">stop</span><div class="seg" id="stopm" role="group" aria-label="Tipo di stop"></div></div>
     <div class="grp"><span class="lab-t">stop a pareggio</span><div class="seg" id="be" role="group" aria-label="Stop a pareggio"></div></div>
+    <div class="grp"><span class="lab-t">spread</span><div class="seg" id="spr" role="group" aria-label="Spread"></div></div>
     <div class="grp"><span class="lab-t">rischio per operazione</span><div class="seg" id="risk" role="group" aria-label="Rischio"></div></div>
     <div class="grp"><span class="lab-t">periodo</span><div class="seg" id="periods" role="group" aria-label="Periodo"></div></div>
   </div>
@@ -171,6 +173,7 @@
     ? JSON.parse(grezzo)
     : await (await fetch("/api/dati")).json();
   const P = DATA.periods, RRS = DATA.rr, BES = DATA.be;
+  const STOPM = DATA.stops || ["strutturale"], SPREADS = DATA.spread || [0.30];
   const NOMI = { "full:H6": "tutto lo storico" };
 
   const DIR = [{k:"both",n:"long + short"},{k:"long",n:"solo long"},{k:"short",n:"solo short"}];
@@ -180,6 +183,7 @@
 
   // st.anno = null (tutto) oppure l'anno scelto; a0/a1 delimitano le candele
   const st = { p:0, i:0, dir:"both", mac:1, rr:4, q:3, auto:false, be:3, risk:1,
+               sm:0, spr:0,
                anno:null, a0:0, a1:0, playing:false, speed:22, hover:null };
 
   const D = P.map(p => {
@@ -237,9 +241,14 @@
       if (st.q===3 && !(F[0]&&F[1]&&F[3]===0)) continue;     // + M12 in ritracciamento
       // "auto": l'obiettivo lo sceglie la qualità del setup, non l'utente
       const j = st.auto ? (t.q>=2 ? 4 : t.q===1 ? 3 : 1) : st.rr;
-      const [xi, rl, mo] = t.x[st.be][j];
-      out.push({ ...t, xi, r: rl - t.c, tp: t.L===1 ? t.e + RRS[j]*t.k : t.e - RRS[j]*t.k,
-                 rrUsato: RRS[j], motivo: mo, vinta: rl > 0 });
+      const [xi, rl, mo] = t.x[st.sm][st.be][j];
+      const kR = st.sm===1 ? 5 : t.k;                 // rischio in $ del modo
+      const costo = SPREADS[st.spr] / kR;
+      const netto = rl - costo;
+      out.push({ ...t, xi, r: netto, kUsato: kR,
+                 tp: t.L===1 ? t.e + RRS[j]*kR : t.e - RRS[j]*kR,
+                 sPrice: st.sm===1 ? (t.L===1 ? t.e - 5 : t.e + 5) : t.s,
+                 rrUsato: RRS[j], motivo: mo, vinta: netto > 0 });
     }
     return out;
   }
@@ -280,7 +289,7 @@
     for(let k=start;k<=end;k++){ if(d.l[k]<lo)lo=d.l[k]; if(d.h[k]>hi)hi=d.h[k];
       if(!isNaN(d.v[k])){ if(d.v[k]<lo)lo=d.v[k]; if(d.v[k]>hi)hi=d.v[k]; } }
     const live=aperta(ts,end);
-    if(live){ lo=Math.min(lo,live.s,live.tp); hi=Math.max(hi,live.s,live.tp); }
+    if(live){ lo=Math.min(lo,live.sPrice,live.tp); hi=Math.max(hi,live.sPrice,live.tp); }
     const span=Math.max(hi-lo,1)*1.06, mid=(hi+lo)/2; lo=mid-span/2; hi=mid+span/2;
     const cw=plotW/N, X=k=>padL+(k-start+0.5)*cw, Y=p=>padT+(hi-p)/(hi-lo)*plotH;
 
@@ -302,9 +311,9 @@
       cx.fillStyle=C.up; cx.globalAlpha=.13;
       cx.fillRect(x0,Y(Math.max(live.tp,live.e)),x1-x0,Math.abs(Y(live.tp)-Y(live.e)));
       cx.fillStyle=C.down;
-      cx.fillRect(x0,Y(Math.max(live.s,live.e)),x1-x0,Math.abs(Y(live.s)-Y(live.e)));
+      cx.fillRect(x0,Y(Math.max(live.sPrice,live.e)),x1-x0,Math.abs(Y(live.sPrice)-Y(live.e)));
       cx.globalAlpha=1;
-      [[live.tp,C.up,"obiettivo"],[live.s,C.down,"stop"],[live.e,C.brass,long?"ingresso long":"ingresso short"]]
+      [[live.tp,C.up,"obiettivo"],[live.sPrice,C.down,"stop"],[live.e,C.brass,long?"ingresso long":"ingresso short"]]
         .forEach(([p,col,lab])=>{ const y=Math.round(Y(p))+.5;
           cx.strokeStyle=col; cx.lineWidth=1.5; cx.setLineDash(lab.startsWith("ingresso")?[]:[5,4]);
           cx.beginPath(); cx.moveTo(x0,y); cx.lineTo(x1,y); cx.stroke(); cx.setLineDash([]);
@@ -479,7 +488,7 @@
       `<span class="pill">prezzo <b>${fmt(d.c[i])}</b></span>`+
       (d.hasState?`<span class="pill"><span class="dot ${c6}"></span>H6 ${t6}</span><span class="pill"><span class="dot ${c2}"></span>H2 ${t2}</span>`
                  :`<span class="pill">candele da 6 ore · 2020-2026</span>`)+
-      (live?`<span class="pill" style="border-color:var(--brass)">${live.L===1?"long":"short"} aperto · rischio <b>${fmt(live.k)}&#36;</b></span>`:"");
+      (live?`<span class="pill" style="border-color:var(--brass)">${live.L===1?"long":"short"} aperto · rischio <b>${fmt(live.kUsato)}&#36;</b></span>`:"");
 
     const m=metriche(ts), cls=v=>v>0?"pos":v<0?"neg":"";
     el("stats").innerHTML=[
@@ -499,7 +508,7 @@
 
   let lastLog=-1;
   function log(d,ts,i,live){
-    const done=chiuse(ts,i), key=done.length*1000+(live?live.i:0)+st.rr*7+st.mac*3+st.be*29+
+    const done=chiuse(ts,i), key=done.length*1000+(live?live.i:0)+st.rr*7+st.mac*3+st.be*29+st.sm*61+st.spr*67+
       (st.dir==="long"?1:st.dir==="short"?2:0)*11;
     if(key===lastLog)return; lastLog=key;
     const rows=el("rows");
@@ -553,6 +562,9 @@
            k=>{ st.auto = (k===RRS.length); if(!st.auto) st.rr=k; });
   segmento("be", BES.map(b=>({n: b===null ? "nessuno" : "+"+String(b).replace(".",",")+"R"})),
            3, k=>st.be=k);
+  segmento("stopm", STOPM.map(n=>({n})), 0, k=>st.sm=k);
+  segmento("spr", SPREADS.map((v,i)=>({n:String(v).replace(".",",")+" $"+(i? " (reale)":"")})), 0,
+           k=>st.spr=k);
   segmento("risk", RISK.map(r=>({n:(r*100).toString().replace(".",",")+"%"})), 1, k=>st.risk=k);
   const PERIODI=[{n:"tutto",v:null}].concat(ANNI.map(y=>({n:String(y),v:y})));
   segmento("periods", PERIODI, 0, k=>scegliAnno(PERIODI[k].v));

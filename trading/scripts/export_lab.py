@@ -45,6 +45,8 @@ MIN_RISK, MAX_RISK, MIN_IMPULSE = T.rischio_min, T.rischio_max, T.impulso_min
 CALIB = T.calibrazione
 RR_GRID = [2.0, 3.0, 5.0, 8.0, 10.0]
 BE_GRID = [None, 1.5, 2.0, 3.0, 4.0]   # stop portato a pareggio a +xR
+STOP_MODES = [None, 5.0]     # None = strutturale; 5.0 = stop fisso da 5 punti
+SPREADS = [0.30, 0.63]       # storico assunto / reale misurato sui tick
 MAX_GIORNO, COOLDOWN, SMA = T.max_operazioni_giorno, T.attesa_minuti, T.media_macro
 CONFERME = ["M33", "H12", "M66", "M12"]   # M33 e H12 sono le due che
                                      # discriminano davvero (verificato fuori campione)
@@ -141,18 +143,25 @@ def genera(m1, m6, alto_vol, k, macro):
         costo = SPREAD / risk
         mfe = float(fav.max())
 
-        # per ogni soglia di pareggio e ogni obiettivo: quando esce, con che
-        # risultato e per quale motivo. Il pareggio e' risolto al minuto.
+        # per ogni tipo di stop, soglia di pareggio e obiettivo: quando esce,
+        # con che risultato LORDO e per quale motivo. Risolto al minuto.
+        # Lo spread si sottrae a schermo (non cambia il percorso, solo l'esito
+        # in R), cosi' la pagina puo' mostrare sia 0,30 che 0,63.
         esiti = []
-        for be in BE_GRID:
-            riga = []
-            for rr in RR_GRID:
-                r, motivo, j = esito_indice(fav, sfav, rr, be=be, costo=costo)
-                if r is None:
-                    r = chiusura_fine_giornata(r_eod, be, False, mfe, costo)
-                riga.append([m1_idx[a + j] if j is not None else m1_idx[b - 1],
-                             round(float(r + costo), 3), motivo])
-            esiti.append(riga)
+        for stop_fisso in STOP_MODES:
+            sc = 1.0 if stop_fisso is None else risk / stop_fisso
+            f_, s_, eod_, mfe_ = fav * sc, sfav * sc, r_eod * sc, mfe * sc
+            per_modo = []
+            for be in BE_GRID:
+                riga = []
+                for rr in RR_GRID:
+                    r, motivo, j = esito_indice(f_, s_, rr, be=be, costo=0.0)
+                    if r is None:
+                        r = chiusura_fine_giornata(eod_, be, False, mfe_, 0.0)
+                    riga.append([m1_idx[a + j] if j is not None else m1_idx[b - 1],
+                                 round(float(r), 3), motivo])
+                per_modo.append(riga)
+            esiti.append(per_modo)
 
         segno = 1 if lato == "long" else -1
         out.append({
@@ -191,13 +200,14 @@ def pack(series, trades, vol=None, label=""):
             continue
         # gli esiti sono già risolti al minuto (stop, obiettivo, pareggio,
         # fine giornata): qui si mappano solo sulle barre del grafico
-        esiti = [[[barra(t), r, mo] for t, r, mo in riga] for riga in tr["esiti"]]
+        esiti = [[[[barra(t), r, mo] for t, r, mo in riga] for riga in modo]
+                 for modo in tr["esiti"]]
         per["trades"].append({
             "i": i, "y": tr["anno"], "L": 1 if tr["lato"] == "long" else 0,
             "M": 1 if tr["macro"] else 0, "q": tr["q"],
             "f": [tr["cf"]["M33"], tr["cf"]["H12"], tr["cf"]["M66"], tr["cf"]["M12"]],
             "e": tr["entry"], "s": tr["sl"], "k": tr["risk"], "c": tr["costo"],
-            "x": esiti,   # [soglia pareggio][RR]: [barra uscita, R lordo, motivo]
+            "x": esiti,   # [stop][pareggio][RR]: [barra uscita, R lordo, motivo]
         })
     if vol is not None:
         per["vol"] = [round(float(vol.get(x.normalize(), np.nan)), 3)
@@ -244,8 +254,9 @@ def main():
               flush=True)
 
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump({"periods": periods, "rr": RR_GRID,
-                   "be": BE_GRID}, f, separators=(",", ":"))
+        json.dump({"periods": periods, "rr": RR_GRID, "be": BE_GRID,
+                   "stops": ["strutturale", "5 punti fissi"],
+                   "spread": SPREADS}, f, separators=(",", ":"))
     print(f"\n{out_path}: {os.path.getsize(out_path)/1e6:.2f} MB")
 
 
