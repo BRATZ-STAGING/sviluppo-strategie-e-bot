@@ -1542,3 +1542,47 @@ premessa gia' falsificata: qualunque studio futuro sull'obiettivo adattivo
 deve dichiarare un meccanismo diverso e battere il 1:10 fisso, che ha gia'
 resistito all'obiettivo per regime (appendice K) e per qualita' del setup.
 Avvertenza: volume TICK, non volume scambiato (standard sullo spot, ma va detto).
+
+## Appendice W: l'order block come SEGNALE D'INGRESSO non funziona (48 celle su 48 negative)
+
+Domanda dell'utente: la strategia apre troppo poco; l'OB toccato puo' diventare
+il segnale d'ingresso vero e proprio su M33/M66/H2/H3, con 1-5 operazioni a
+settimana? Regole pre-registrate, identiche per i quattro timeframe:
+
+- zone OB con `zone_ob` di `export_lab` (candela contraria + rottura, causale,
+  scadenza 30 barre, invalidazione oltre il lato lontano);
+- primo tocco M1 della zona attiva = fill limite sul bordo della zona;
+- stop sul lato lontano + 0,30 $ di margine (rischio accettato 0,5-20 $);
+- RR 2/3/5/10; filtri: nessuno / contesto H6+H2 allineato / contesto+macro;
+- spread 0,63 $ (quello reale attuale), finestra 7-19 UTC, max 3/giorno,
+  chiusura forzata alle 21.
+
+### Risultato: la frequenza c'e', il vantaggio no
+
+La frequenza chiesta e' raggiungibile (M33 filtrato 1,7-2,5/settimana, M66
+1,1-3,4, H2/H3 0,5-1,8). Ma **tutte le 48 celle perdono**, da -0,11 a -0,30 R
+per operazione. La migliore per timeframe:
+
+| tf | zone | tocchi | miglior cella | n | op/sett | R/op | anni pos su 7 |
+|---|---|---|---|---|---|---|---|
+| M33 | 5.017 | 2.037 | contesto+macro, 1:10 | 579 | 1,7 | **-0,112** | 3 |
+| M66 | 2.512 | 1.144 | nessun filtro, 1:5 | 1.144 | 3,4 | **-0,139** | 2 |
+| H3 | 955 | 447 | contesto H6+H2, 1:2 | 265 | 0,8 | **-0,149** | 2 |
+| H2 | 1.369 | 620 | contesto+macro, 1:2 | 259 | 0,8 | **-0,161** | 1 |
+
+Verifica avversariale (reimplementazione da zero, agente indipendente):
+M33 contesto+macro 1:3 → -0,149 contro -0,148 del calcolo principale (n 582
+contro 579, bordo); H2 nessuno 1:5 → -0,224 contro -0,220. Confermato.
+
+### Lettura
+
+Coerente con tutto il resto dello studio: **l'OB e' un filtro, non un
+ingresso**. Il tocco della zona da solo non ha vantaggio (qui: -0,15 R/op
+mediano); e' il tocco della zona SUL segnale gia' validato (reclaim del VWAP
+con conferme) che seleziona le operazioni buone (appendice P: +0,640 contro
++0,087). Ennesima conferma della legge sulla frequenza (appendice S): piu'
+operazioni = vantaggio diluito sotto il costo. La strada "piu' operazioni
+tramite OB come trigger" e' chiusa; la strada aperta resta "OB come filtro
+di qualita'" gia' nel laboratorio.
+
+Dati completi (48 celle): `docs/studies/dati/ob-come-ingresso.parquet`.

@@ -111,6 +111,11 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
   (appendice L).
+- **Order block come segnale d'INGRESSO** (tocco della zona = entry, su
+  M33/M66/H2/H3, RR 2-10, con e senza contesto/macro): 48 celle su 48
+  negative, da -0,11 a -0,30 R/op, verifica avversariale confermata. La
+  frequenza chiesta (1-5/settimana) si ottiene, il vantaggio no. L'OB e' un
+  filtro sul segnale validato, non un ingresso. Appendice W.
 
 ## Order block: primo risultato positivo (appendice P)
 
