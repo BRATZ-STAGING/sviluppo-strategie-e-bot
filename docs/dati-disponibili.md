@@ -57,6 +57,29 @@ repository: copertura, buchi e trattamento dello spread sono da accertare prima
 di usarla per qualcosa. Se una campagna di backtest si appoggia a questa cache,
 il primo passo e' confrontarla con i tick Dukascopy sulla finestra comune.
 
+### Verifica incrociata FP contro Dukascopy sulle candele M1 (01/08/2026)
+
+Fatta con `trading/scripts/confronta_fonti.py mt5 2026` sul PC, 73.896 minuti
+comuni (22/04 - 31/07/2026, il piu' indietro concesso dal terminale):
+
+| | |
+|---|---|
+| scostamento orario server FP | UTC+3, rilevato automaticamente |
+| differenza mediana delle chiusure | 0,205 $ |
+| di cui SISTEMATICA | **+0,195 $** (FP quota sopra il bid Dukascopy) |
+| p95 | 0,415 $ |
+| minuti oltre 0,5 $ | 2,6% |
+| massimo | 21,4 $ (un minuto isolato, maggio) |
+
+Lettura: quasi tutta la differenza e' uno scostamento di LIVELLO costante
+(~20 centesimi, cioe' FP sta dentro lo spread Dukascopy), non rumore. Tolto
+quello, il residuo tipico e' sotto i 10 centesimi: **le due fonti raccontano
+lo stesso mercato**. Uno scostamento costante non tocca la strategia (ingresso,
+stop e obiettivo si spostano insieme); la coda di minuti oltre 0,5 $ sono i
+picchi di news, ed e' un motivo in piu' per cui gli stop da 2-3 punti erano
+fragili. Per confrontare anche 2024-2025 serve alzare "Max barre nel grafico"
+a Unlimited e RIAVVIARE MT5 (il tetto da 100.000 barre tronca anche l'API).
+
 ## Perche' importa quale si usa
 
 Le tre fonti non sono interscambiabili.

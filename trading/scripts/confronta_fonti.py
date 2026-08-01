@@ -84,7 +84,7 @@ def da_mt5(anno: int) -> pd.DataFrame:
             if barre is None or len(barre) == 0:
                 break
             pezzi.append(pd.DataFrame(barre))
-            prima = dt.datetime.utcfromtimestamp(int(barre[0]["time"]))
+            prima = dt.datetime.fromtimestamp(int(barre[0]["time"]), dt.timezone.utc)
             print(f"  ...indietro fino al {prima:%Y-%m-%d} "
                   f"({sum(len(x) for x in pezzi):,} barre)".replace(",", "."))
             if prima < limite or len(barre) < PASSO:
