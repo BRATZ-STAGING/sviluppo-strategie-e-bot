@@ -1391,3 +1391,51 @@ VWAP, order block) e' a **bassa frequenza**. Dice qualcosa sulle prossime ore,
 non sui prossimi minuti. I sistemi che fanno decine di operazioni al giorno e
 guadagnano vivono di costi quasi nulli (rebate, market making) e di informazione
 sul flusso degli ordini, che nei dati a candele non c'e'.
+
+## Appendice T: stop fissi in punti con pareggio — griglia completa degli esiti
+
+155 celle: stop 3/5/10/15/20 punti x obiettivi 1:1,5-1:20 x pareggio
+(nessuno, +1R, +2R, +3R, +5R), sui 348 segnali con le conferme, spread reale
+0,63 $. Pipeline verificata ricalcolando tre celle gia' misurate (coincidono).
+Dettaglio completo in `docs/studies/dati/griglia-stop-fissi-pareggio.parquet`.
+
+### Correzione all'appendice Q
+
+A parita' di perdita massima (16,3%) la miglior cella a stop fisso NON e'
+5 pt 1:20 ma **5 pt 1:5 senza pareggio**: drawdown 14 R (il piu' basso della
+griglia), quindi rischio ammesso 1,20% e conto **30.057 €**. Il divario con la
+taratura in vigore e' **-16%**, non -35% come scritto in Q (dove il confronto a
+parita' copriva solo gli obiettivi da 1:10 in su).
+
+| sistema | % vinte | R tot | conto (DD 16,3%) | anni+ |
+|---|---|---|---|---|
+| strutturale 1:10 pareggio +3R | 35,1% | +143,7 | **35.816 €** | **7/7** |
+| **5 pt 1:5 senza pareggio** | 37,1% | +100,7 | **30.057 €** | 6/7 |
+| 5 pt 1:20 pareggio +5R | 35,1% | +138,6 | 26.038 € | 6/7 |
+| 10 pt 1:2 senza | 53,4% | +69,7 | 23.488 € | 4/7 |
+
+La strutturale resta davanti e resta l'unica 7/7.
+
+### Il pareggio sugli stop fissi: al massimo neutro
+
+Esiti su stop 5 pt (SL / TP / pareggio / fine giornata):
+
+| RR | pareggio | % vinte | %SL | %TP | %BE | %fine gg | R tot | conto |
+|---|---|---|---|---|---|---|---|---|
+| 1:5 | nessuno | 37,1 | 58,3 | 11,8 | — | 29,9 | +100,7 | 30.057 |
+| 1:5 | +1R | 21,8 | 42,5 | 6,6 | **32,2** | 18,7 | +18,5 | 11.184 |
+| 1:5 | +3R | 34,8 | 57,5 | 10,9 | 3,2 | 28,4 | +81,5 | 20.916 |
+| 1:10 | nessuno | 35,6 | 59,8 | 1,7 | — | 38,5 | +106,8 | 24.307 |
+| 1:10 | +1R | 21,3 | 42,5 | 0,6 | **32,8** | 24,1 | +28,9 | 11.651 |
+| 1:10 | +5R | 35,3 | 58,3 | 1,7 | 1,7 | 38,2 | +106,9 | 22.071 |
+
+La meccanica: il pareggio a +1R toglie 17 punti di %SL ma li trasforma in un
+33% di uscite a pareggio, che pagano lo spread e rubano le operazioni che
+sarebbero finite in guadagno a fine giornata (a 1:10 solo l'1,7% tocca il TP:
+il profitto sta nel 38,5% di chiusure EOD, ed e' esattamente cio' che il
+pareggio precoce ammazza). Le vinte crollano dal 36% al 21%.
+
+**Terza conferma indipendente della stessa legge** (dopo le appendici L e R):
++1R distruttivo, +2/+3R toglie il 20-30%, +5R neutro. Sulla strutturale il
++3R aggiungeva il 10%; sugli stop fissi al massimo non toglie. Il pareggio si
+arma tardi o non si arma.
