@@ -1439,3 +1439,41 @@ pareggio precoce ammazza). Le vinte crollano dal 36% al 21%.
 +1R distruttivo, +2/+3R toglie il 20-30%, +5R neutro. Sulla strutturale il
 +3R aggiungeva il 10%; sugli stop fissi al massimo non toglie. Il pareggio si
 arma tardi o non si arma.
+
+## Appendice U: scalp su M1 (stop 1-3 punti, TP 5-10) — le tre previsioni confermate
+
+Registrate PRIMA della misura: (1) stop da 1 punto in perdita pesante ovunque,
+perche' il costo e' 0,63 R a operazione e la probabilita' casuale di fare +5
+prima di -1 e' ~17% contro il 27% che servirebbe; (2) le celle meno peggio a
+stop 3 / TP 10 con i filtri; (3) nessuna cella batte la variante 5 pt 1:5.
+
+Due contesti (M6+M3 proposta dell'utente; H6+H2 classico), ingresso M1,
+impulso 2 $, filtro macro, spread reale 0,63. Verifica indipendente: 4 celle
+su 4 coincidono.
+
+### Esito (R/op; 48 celle totali)
+
+| | M6+M3 (3.481 segnali, 3,3/gg) | H6+H2 (5.114 segnali, 6,8/gg) |
+|---|---|---|
+| stop 1, senza filtri | **-0,635** (vinte 17,3% = caso) | -0,619 (vinte 17,4% = caso) |
+| stop 2, senza filtri | -0,300 | -0,333 |
+| stop 3, senza filtri | -0,235 | -0,242 |
+| stop 3 TP 10, conferme | -0,091 | -0,078 |
+| stop 3 TP 10, conferme+OB | -0,163 | **+0,059** |
+
+1. **Con stop da 1 punto il segnale sparisce**: la percentuale di vinte
+   coincide con il caso puro (random walk ~1/6). La perdita e' esattamente il
+   costo dello spread. Confermata la previsione 1.
+2. **47 celle su 48 negative.** L'unica positiva (H6+H2, stop 3, TP 10,
+   conferme+OB: +0,059 su 358 op, 4/7 anni) e' 1 su 48 con test multipli:
+   compatibile con il rumore, e comunque un QUINTO della variante 5 pt 1:5
+   (+0,289) e un settimo della strutturale. Previsioni 2 e 3 confermate.
+3. **Il contesto M6+M3 e' PEGGIORE di H6+H2** in quasi ogni cella: quarta
+   conferma indipendente che il contesto va tenuto sui timeframe alti.
+
+Avvertenza sui dati: candele BID, spread applicato come costo; con stop da 1-2
+punti il percorso reale sull'ask e' peggiore di quello misurato. Questi numeri
+sono un TETTO, e sono gia' negativi.
+
+**Strada chiusa: scalp su M1 con stop 1-3 punti.** Con lo spread di XAU la
+matematica non lascia spazio: e' la quarta misura (M, Q, S, U) che converge.

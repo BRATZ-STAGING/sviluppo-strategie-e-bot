@@ -91,6 +91,10 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   doppio in R. La migliore delle varianti piccole rende +0,20 R/op contro
   +0,49, guadagna solo dal 2022 in poi, e affiancata all'ufficiale DIMEZZA il
   conto a parita' di drawdown (correlazione mensile +0,776). Vedi appendice M.
+- **Scalp su M1 con stop 1-3 punti e TP 5-10** (anche con contesto M6+M3):
+  47 celle su 48 negative, con stop da 1 punto la percentuale di vinte coincide
+  con il caso puro e la perdita e' il costo dello spread. Il contesto M6+M3 e'
+  peggiore di H6+H2. Appendice U.
 - **Stop fissi piccoli (2/3/5 $) su ingressi M3-M6 con obiettivi 1:3-1:5**:
   respinti su 72 celle. Tutte le regolarita' puntano nella direzione opposta a
   quella proposta: lo stop largo vince sempre (a 2 $ negativo quasi ovunque,
