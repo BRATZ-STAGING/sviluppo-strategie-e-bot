@@ -1662,3 +1662,36 @@ valutare le confluenze.
 3. Il rischio principale e' che il placebo sopravviva: "vicino a un AVWAP"
    potrebbe essere solo "prezzo in equilibrio", comunque ancorato.
 4. Confluenza non monotona (le code hanno campioni minuscoli).
+
+### Risultati (misurati dopo la registrazione qui sopra)
+
+Campione largo full:H6, 1897 operazioni, esito ufficiale, margine 0,5 x rischio.
+Sette agenti (uno per TF + verifica avversariale H2 reimplementata da zero:
+coperture identiche alla seconda cifra, delta -0,193 riprodotto).
+
+| tf | copertura | delta dentro/fuori | p | placebo | p |
+|---|---|---|---|---|---|
+| M33 | 78% | **+0,255** | 0,034 | **+0,261** | 0,030 |
+| M66 | 84% | +0,095 | 0,48 | -0,254 | 0,046 |
+| H2 | 69% | **-0,193** | 0,08 | **-0,216** | 0,033 |
+| H3 | 51% | -0,170 | 0,08 | -0,111 | 0,28 |
+| H6 | 28% | +0,046 | 0,69 | +0,039 | 0,77 |
+| H12 | 12% | -0,179 | 0,25 | -0,010 | 0,95 |
+
+- Dove il delta reale sembra dire qualcosa (M33 positivo, H2 negativo), il
+  PLACEBO fa esattamente lo stesso: l'informazione non sta nell'ancora agli
+  estremi non rotti, sta nell'essere vicini a una media ancorata qualunque
+  (proxy di "prezzo in equilibrio"). Stessa fine di Fibonacci (appendice O).
+- Confluenza NON monotona, come previsto: 0 serie -0,218; 1-2 serie +0,211;
+  3-4 +0,067; 5+ +0,077.
+- ">=1 serie su 12" copre il 93,7% degli ingressi (placebo 95,1%): inutile
+  come filtro per costruzione.
+- Sottoinsieme ufficiale (348): segni instabili fra TF (M33 +0,50 dentro vs
+  +0,43 fuori; H2 invertito +0,28 vs +0,83). Nessun filtro adottabile.
+
+**Conclusione**: previsioni 3 e 4 della registrazione confermate; la copertura
+reale (fino al 94%) e' persino sopra la previsione 1. L'AVWAP ancorato agli
+estremi non rotti NON discrimina oltre il placebo su nessun timeframe: non
+entra ne' nella strategia ne' nel laboratorio come criterio. Dati per
+operazione in `avwapf_<TF>.parquet` (scratchpad di sessione, ricalcolabili
+con le regole registrate).

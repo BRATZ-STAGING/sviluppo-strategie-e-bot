@@ -111,6 +111,11 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
   (appendice L).
+- **VWAP ancorato agli estremi non rotti (6 TF, con confluenze)**: dove un
+  delta appare, il placebo con ancore a caso lo riproduce esattamente
+  (M33 +0,255 vs +0,261; H2 -0,193 vs -0,216): proxy di "prezzo in
+  equilibrio", nessuna informazione nell'ancora. Confluenza non monotona.
+  Appendice Y.
 - **Order block come segnale d'INGRESSO** (tocco della zona = entry, su
   M33/M66/H2/H3, RR 2-10, con e senza contesto/macro): 48 celle su 48
   negative, da -0,11 a -0,30 R/op, verifica avversariale confermata. La
