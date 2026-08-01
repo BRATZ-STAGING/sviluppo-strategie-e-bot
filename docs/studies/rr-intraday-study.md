@@ -1904,3 +1904,35 @@ taratura NON cambia in base a questo audit, qualunque cosa esca: una cella
 migliore del base qui non e' una scoperta, e' rumore di vicinato finche' non
 passa la procedura fuori campione. Lo scopo e' sapere se il bot poggia su un
 altopiano o su una punta.
+
+### Risultati: ALTOPIANO, zero parametri fragili su 26 varianti
+
+Base riprodotta al decimale (348 op, +171,1R, 7/7, conto 49.321). Tutte le 26
+varianti restano positive, fra +121 e +186 R totali; nessuna taglia oltre il
+40% ne' scende sotto 6 anni positivi su 7. Perdita massima sempre fra il 12 e
+il 19,6%.
+
+I parametri piu' sensibili (e comunque dentro l'altopiano):
+
+| variante | n | R tot | delta | anni+ |
+|---|---|---|---|---|
+| frattale_k 3→4 | 360 | +121,1 | -29% | 6/7 |
+| impulso_min 4→5 | 290 | +125,5 | -27% | 6/7 |
+| ora_inizio 7→8 | 316 | +143,7 | -16% | 7/7 |
+| buffer 0,30→0,60 | 347 | +149,0 | -13% | 6/7 |
+
+Lettura: le due leve vere della strategia sono la DEFINIZIONE della struttura
+(k dei frattali) e la SOGLIA di impulso — sensato, sono il cuore del segnale.
+Orari, macro, cooldown, limiti di rischio, barre dello stop e fattore di
+volatilita' spostano poco o nulla (il fattore alta volatilita' quasi zero:
+1,3/1,5/1,7 danno lo stesso risultato).
+
+Cinque varianti escono sopra il base (massimo +9%: frattale_k=2, attesa 0,
+impulso 3, macro 100, ora_fine 18). Come registrato: rumore di vicinato, la
+taratura NON cambia. Se mai, sono candidati per una futura verifica fuori
+campione — non adesso, non su questi dati.
+
+**Conclusione per il bot**: la strategia poggia su un altopiano largo. Un EA
+che sbagliasse di poco un orario, una soglia o un parametro strutturale
+resterebbe profittevole: il rischio di implementazione e' basso. Dati in
+`sensibilita.parquet`.
