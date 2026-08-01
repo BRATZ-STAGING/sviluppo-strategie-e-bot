@@ -19,7 +19,10 @@ l'altro" non si attivano quasi mai (1.897 operazioni su ~1.700 giornate),
 quindi filtrare a schermo per lato dà gli stessi identici numeri che
 rigenerare la strategia con quel solo lato.
 
-Uso: python3 export_lab.py <out.json> full:H6 2025-10 2026-01
+Uso: python3 export_lab.py <out.json> full:H1 2025-10 2026-01
+
+La base «full» va esportata in H1: la pagina aggrega da sola a 2h/3h/6h/12h/1g
+col selettore del timeframe del grafico.
 """
 import json
 import os
@@ -270,9 +273,7 @@ def pack(series, trades, vol=None, label=""):
     base = float(np.floor(series.low.min()))
     cent = lambda s: [int(round((float(v) - base) * 100)) for v in s]
     idx = series.index
-    barra = lambda t: (-1 if t is None
-                       else int(np.clip(idx.searchsorted(t, side="right") - 1,
-                                        0, len(idx) - 1)))
+    minuto = lambda t: int((t - idx[0]).total_seconds() // 60)
     per = {
         "id": label, "t0": int(idx[0].timestamp() * 1000), "base": base,
         "t": [int((x - idx[0]).total_seconds() // 60) for x in idx],
@@ -286,20 +287,21 @@ def pack(series, trades, vol=None, label=""):
         "trades": [],
     }
     for tr in trades:
-        i = barra(tr["t_in"])
-        if i < 0 or not (idx[0] <= tr["t_in"] <= idx[-1] + pd.Timedelta(days=1)):
+        if not (idx[0] <= tr["t_in"] <= idx[-1] + pd.Timedelta(days=1)):
             continue
-        # gli esiti sono già risolti al minuto (stop, obiettivo, pareggio,
-        # fine giornata): qui si mappano solo sulle barre del grafico
-        esiti = [[[[barra(t), r, mo] for t, r, mo in riga] for riga in modo]
+        # gli esiti sono risolti al minuto (stop, obiettivo, pareggio, fine
+        # giornata): si esporta il MINUTO, la pagina lo mappa sulla candela
+        # del timeframe scelto a schermo
+        esiti = [[[[minuto(t), r, mo] for t, r, mo in riga] for riga in modo]
                  for modo in tr["esiti"]]
         per["trades"].append({
-            "i": i, "y": tr["anno"], "L": 1 if tr["lato"] == "long" else 0,
+            "m": minuto(tr["t_in"]), "y": tr["anno"],
+            "L": 1 if tr["lato"] == "long" else 0,
             "M": 1 if tr["macro"] else 0, "q": tr["q"],
             "f": [tr["cf"]["M33"], tr["cf"]["H12"], tr["cf"]["M66"], tr["cf"]["M12"]],
             "e": tr["entry"], "s": tr["sl"], "k": tr["risk"], "c": tr["costo"],
             "b": [tr["ob"], tr["obr"]],
-            "x": esiti,   # [stop][pareggio][RR]: [barra uscita, R lordo, motivo]
+            "x": esiti,   # [stop][pareggio][RR]: [minuto uscita, R lordo, motivo]
         })
     if vol is not None:
         per["vol"] = [round(float(vol.get(x.normalize(), np.nan)), 3)
@@ -310,7 +312,7 @@ def pack(series, trades, vol=None, label=""):
 
 def main():
     out_path = sys.argv[1]
-    specs = sys.argv[2:] or ["full:H6"]
+    specs = sys.argv[2:] or ["full:H1"]
     m1 = load_m1(os.path.join(ROOT, "data", "XAUUSD_M1"))
     m6, atr = prepara(m1)
     mask = (atr.index.year >= CALIB[0]) & (atr.index.year <= CALIB[1])

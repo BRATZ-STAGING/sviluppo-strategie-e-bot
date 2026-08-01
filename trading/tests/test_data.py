@@ -85,7 +85,7 @@ class TestTimeframes:
     def test_registro_completo(self):
         # tutti i TF operativi del progetto, inclusi i non-nativi MT5
         assert {"M1", "M3", "M6", "M10", "M12", "M33", "M66",
-                "H2", "H3", "H6", "H12", "D1"} == set(data.TIMEFRAMES)
+                "H1", "H2", "H3", "H6", "H12", "D1"} == set(data.TIMEFRAMES)
 
     def test_resample_m33(self):
         df = flat_bars("2024-01-02 00:00", 66)
