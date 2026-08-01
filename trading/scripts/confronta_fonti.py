@@ -66,33 +66,45 @@ def da_mt5(anno: int) -> pd.DataFrame:
         mt5.symbol_select(simbolo, True)
         print(f"simbolo: {simbolo}  (trovati: {', '.join(nomi[:6])})")
 
-        # mese per mese con piu' tentativi: ogni richiesta spinge il terminale
-        # a scaricare lo storico mancante dal server, senza scroll a mano
-        utc = dt.timezone.utc
+        # per POSIZIONE, non per data: copy_rates_range soffre di conversioni
+        # di fuso sballate su alcune versioni (restituiva 1 barra a chiamata);
+        # chiedere "le N barre prima della posizione P" non passa da nessuna
+        # data e spinge comunque il terminale a scaricare lo storico dal server
+        PASSO = 50_000
         pezzi = []
-        for mese in range(1, 13):
-            ini = dt.datetime(anno, mese, 1, tzinfo=utc)
-            fine = (dt.datetime(anno + 1, 1, 1, tzinfo=utc) if mese == 12
-                    else dt.datetime(anno, mese + 1, 1, tzinfo=utc))
+        pos = 0
+        limite = dt.datetime(anno, 1, 1) - dt.timedelta(days=2)
+        while True:
             barre = None
             for _ in range(6):
-                barre = mt5.copy_rates_range(simbolo, mt5.TIMEFRAME_M1, ini, fine)
+                barre = mt5.copy_rates_from_pos(simbolo, mt5.TIMEFRAME_M1, pos, PASSO)
                 if barre is not None and len(barre) > 0:
                     break
                 time.sleep(2)
-            n = 0 if barre is None else len(barre)
-            print(f"  {anno}-{mese:02d}: {n:6,} barre".replace(",", "."))
-            if n:
-                pezzi.append(pd.DataFrame(barre))
+            if barre is None or len(barre) == 0:
+                break
+            pezzi.append(pd.DataFrame(barre))
+            prima = dt.datetime.utcfromtimestamp(int(barre[0]["time"]))
+            print(f"  ...indietro fino al {prima:%Y-%m-%d} "
+                  f"({sum(len(x) for x in pezzi):,} barre)".replace(",", "."))
+            if prima < limite or len(barre) < PASSO:
+                break
+            pos += len(barre)
     finally:
         mt5.shutdown()
     if not pezzi:
-        raise SystemExit(
-            "il broker non ha fornito nessuna barra per questo anno nemmeno "
-            "dopo i tentativi: probabilmente il suo storico M1 non arriva "
-            "cosi' indietro. Riprova con un anno piu' recente (es. 2026), "
-            "oppure alza 'Max barre nel grafico' in Strumenti > Opzioni > Grafici")
+        raise SystemExit("il broker non ha fornito nessuna barra M1")
     df = pd.concat(pezzi).drop_duplicates(subset="time")
+    epoca = df["time"].astype("int64")
+    ini = int(dt.datetime(anno, 1, 1).timestamp()) - 86400 * 2
+    fine = int(dt.datetime(anno + 1, 1, 1).timestamp()) + 86400 * 2
+    df = df[(epoca >= ini) & (epoca <= fine)]
+    if len(df) < 1000:
+        raise SystemExit(
+            f"solo {len(df)} barre nel {anno}: lo storico M1 del broker non "
+            "arriva cosi' indietro. Riprova con un anno piu' recente (es. 2026) "
+            "e, se serve, alza 'Max barre nel grafico' in "
+            "Strumenti > Opzioni > Grafici e riavvia MT5")
     # l'orario e' quello del SERVER del broker: lo scostamento vero lo stima
     # stima_scostamento(), qui basta un indice coerente
     df["ts"] = pd.to_datetime(df["time"], unit="s", utc=True)
