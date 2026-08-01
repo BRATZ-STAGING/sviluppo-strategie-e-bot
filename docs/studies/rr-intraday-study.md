@@ -1964,3 +1964,43 @@ segnali anticipati sono rumore strutturale che nessun livello ripulisce.
 
 **Conclusione**: taratura invariata (k=3). La strada "recuperare segnali in
 piu' con un cancello di qualita'" e' misurata e chiusa anche in questa forma.
+
+## Appendice AE: obiettivo sui livelli strutturali (registrazione)
+
+Richiesta dell'utente: tenere la taratura ufficiale e cercare livelli
+(resistenze/supporti, OB, ecc.) su cui appoggiare l'obiettivo, per aumentare
+i TP presi (oggi 11 su 348) ed essere piu' precisi.
+
+Meccanismo dichiarato (vincolo dell'appendice V): il prezzo rigetta sui
+livelli strutturali VISIBILI; obiettivo appena prima del livello = incassare
+la corsa prima del rigetto. Diverso dalla mappa di liquidita' (falsificata).
+Asticella: battere il 1:10 fisso, +171,1R sulle stesse 348 operazioni.
+
+### Regole registrate PRIMA dei risultati
+
+- Operazioni: le 348 ufficiali, stop e pareggio +3R invariati, spread 0,30.
+- Famiglie di livelli (tutte causali al momento dell'ingresso), per i long il
+  livello sta SOPRA l'entry, speculare per gli short:
+  1. swing confermati (k=3) non ancora superati da una chiusura, su M33 / H2 / H6;
+  2. bordo vicino della zona OB CONTRARIA attiva su M33 (per i long, zona
+     ribassista sopra il prezzo);
+  3. massimo/minimo del giorno precedente;
+  4. massimo/minimo della sessione Asia del giorno (00-07 UTC);
+  5. numeri tondi (multipli di 10 $ e di 25 $) — comparatore senza struttura.
+- Obiettivo = livello piu' vicino oltre l'entry, meno 0,10 $ (long; +0,10
+  short). Due varianti per famiglia: senza distanza minima, e distanza minima
+  3R. Se nessun livello: si resta al 1:10 ufficiale.
+- Esito ricalcolato al minuto con lo stesso motore (stop batte obiettivo,
+  pareggio +3R, chiusura 21).
+- PLACEBO A DISTANZE UGUALI, il controllo decisivo: per ogni famiglia, le
+  stesse distanze in R rimescolate a caso fra le operazioni (500 giri, seme
+  fisso). Se la famiglia non batte il suo placebo, il livello non aggiunge
+  nulla oltre alla propria distribuzione di distanze.
+- Metriche: R totale (asticella +171,1), % TP presi, anni positivi, delta
+  contro placebo.
+
+Previsioni: (1) i TP presi saliranno molto (ovvio: obiettivi piu' vicini);
+(2) il totale NON batter'a il 1:10 per le famiglie vicine (decapitano le
+corse, meccanismo appendice K); (3) l'unica con una chance e' lo swing H6 o
+il giorno-prima con minimo 3R (lontani quanto basta); (4) 60/40 che nessuna
+batta il placebo a distanze uguali.
