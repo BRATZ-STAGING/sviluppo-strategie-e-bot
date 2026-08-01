@@ -1884,3 +1884,23 @@ in nessuna componente. La fase 2 (Fibo-estensioni, vuoti di liquidita' come
 TP) non si apre: era condizionata ai sopravvissuti, e non ce ne sono. Grezzi
 ricalcolabili con lo script; nel repo resta l'aggregato
 (`avwap-eventi-aggregato.parquet`, 522 righe).
+
+## Appendice AC: audit di sensibilita' di TUTTI i parametri (registrazione)
+
+Richiesta dell'utente: "testa tutto e valutiamo tutti i parametri". Non e' una
+ri-taratura: e' la mappa dell'altopiano. Ogni parametro della taratura
+ufficiale viene mosso UNO ALLA VOLTA (26 varianti registrate qui sotto, prima
+di misurare) e si osserva il risultato 2020-2026 con esito ufficiale.
+
+Varianti: ora_inizio 6/8; ora_fine 17/18/20; ora_chiusura 20/22; max
+operazioni/giorno 2/5; attesa 0/60 minuti; media macro 30/100; fattore alta
+volatilita' 1,3/1,7; k dei frattali 2/4; buffer 0,15/0,60; impulso minimo
+3/5; rischio minimo 0,5/2; rischio massimo 7/15; barre dello stop 3/8.
+(RR, pareggio, conferme e tipi di stop: gia' misurati, appendici K/L/Q/T.)
+
+Interpretazione REGISTRATA: un parametro e' FRAGILE se una variante adiacente
+taglia il totale oltre il 40% o fa passare gli anni positivi sotto 6/7. La
+taratura NON cambia in base a questo audit, qualunque cosa esca: una cella
+migliore del base qui non e' una scoperta, e' rumore di vicinato finche' non
+passa la procedura fuori campione. Lo scopo e' sapere se il bot poggia su un
+altopiano o su una punta.
