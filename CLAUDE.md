@@ -107,6 +107,14 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   decimillesimo di ATR con il 49% di probabilita' di essere caso). Il rapporto
   reazione/penetrazione e' 1,06-1,10, mentre lo scalping con stop da 2 $
   richiede il 66% di operazioni vinte solo per coprire lo spread. Appendice O.
+- **Obiettivo appoggiato ai livelli** (swing non superati M33/H2/H6, OB
+  contrario, estremi del giorno prima e della sessione Asia, numeri tondi;
+  con e senza distanza minima 3R): nessuna famiglia batte il 1:10 fisso. I
+  TP presi salgono fino al 24% ma proprio le famiglie con piu' TP sono le
+  peggiori (asia -14 R, tondi 10 $ -31,7 R contro +171,1). Solo lo swing H6
+  batte il proprio placebo a distanze uguali (+173 contro +129, p<0,005): sa
+  dove NON mettere l'obiettivo, ma pareggia soltanto il 1:10 con 6/7 anni.
+  Appendice AE.
 - **Obiettivo variabile col regime di volatilita'**: inutile, 1:10 e' il
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento

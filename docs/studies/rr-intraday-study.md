@@ -2004,3 +2004,53 @@ Previsioni: (1) i TP presi saliranno molto (ovvio: obiettivi piu' vicini);
 corse, meccanismo appendice K); (3) l'unica con una chance e' lo swing H6 o
 il giorno-prima con minimo 3R (lontani quanto basta); (4) 60/40 che nessuna
 batta il placebo a distanze uguali.
+
+### Risultati: nessuna famiglia batte il 1:10 fisso
+
+Base riprodotta al decimale (+171,1 R, 11 TP = 3,2%). Otto famiglie, due
+varianti di distanza minima; ``ob_contrario`` scartata (meno di 30 operazioni
+con una zona contraria attiva sopra/sotto l'ingresso: gli OB contrari quasi
+non esistono nel verso giusto al momento dell'ingresso).
+
+| famiglia | min | n | rr med | R tot | TP presi | anni+ | placebo | p |
+|---|---|---|---|---|---|---|---|---|
+| asia | — | 292 | 1,2 | **-14,1** | 22% | 2/7 | -19,6 | 0,14 |
+| tondi 10 $ | — | 324 | 1,0 | **-31,7** | 24% | 2/7 | -31,6 | 0,50 |
+| giorno prima | — | 187 | 1,5 | +78,9 | 11% | 6/7 | +81,7 | 0,65 |
+| tondi 25 $ | — | 335 | 2,5 | +73,6 | 18% | 4/7 | +38,4 | 0,00 |
+| swing M33 | — | 336 | 193 | +121,4 | 7% | 5/7 | +117,0 | 0,47 |
+| swing H2 | — | 342 | 184 | +150,5 | 6% | 5/7 | +120,4 | 0,04 |
+| swing H6 | — | 346 | 177 | +173,2 | 5% | 6/7 | +128,8 | **0,00** |
+| swing H6 | 3R | 277 | 335 | **+184,4** | 2% | 7/7 | +173,3 | 0,11 |
+| tondi 25 $ | 3R | 138 | 4,8 | +182,8 | 5% | 7/7 | +156,0 | 0,01 |
+
+Previsione 1 confermata in pieno: i TP presi salgono fino al 24% (asia 22%,
+tondi 22-24%). Previsione 2 pure: **quelle stesse famiglie sono le peggiori**
+— asia -14,1 R e tondi 10 $ -31,7 R, cioe' da +171 a sotto zero. Piu' TP
+presi = strategia distrutta, con la relazione monotona: piu' e' vicino il
+livello, peggio va (rr mediano 1,0 -> -31,7; 1,2 -> -14,1; 1,5 -> +78,9;
+2,5 -> +73,6; 4,8 -> +182,8).
+
+Le due celle che sfiorano il base sono un abbaglio da leggere bene: swing H6
+e swing M33 con minimo 3R hanno **rr mediano 335 e 345**, cioe' un obiettivo
+cosi' lontano da non essere mai raggiunto (TP 2%). Non sono "obiettivi sui
+livelli": sono la strategia SENZA tetto, che infatti rende +181/+184 contro
++171. Il livello non c'entra — lo dice il placebo, che alle stesse distanze
+fa +173/+181.
+
+Un solo segnale genuino: **swing H6 senza minimo batte nettamente il proprio
+placebo** (+173,2 contro +128,8 ± 18,6, p<0,005). Alle stesse distanze
+casuali si perderebbero 45 R: il livello H6 sa dove NON mettere l'obiettivo.
+Ma pareggia soltanto il 1:10 fisso (+173,2 contro +171,1) con meno anni
+positivi (6/7 contro 7/7), quindi non e' adottabile. L'informazione c'e', il
+vantaggio operativo no.
+
+Nota di metodo: la famiglia dei numeri tondi — il comparatore SENZA struttura
+— e' fra quelle con p piu' basso (0,00 e 0,01). Un comparatore nullo che
+"vince" e' il segno che a queste distanze il confronto e' dominato dal
+rumore, non che i numeri tondi funzionino.
+
+**Conclusione**: l'obiettivo sui livelli e' respinto. Aumentare i TP presi si
+puo' (fino al 24%) ma costa l'intera redditivita': il 1:10 resta, ed e' ormai
+il quarto studio che lo conferma (K, V, AB, AE). Dati in
+`tp-livelli.parquet`.
