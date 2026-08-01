@@ -1695,3 +1695,30 @@ estremi non rotti NON discrimina oltre il placebo su nessun timeframe: non
 entra ne' nella strategia ne' nel laboratorio come criterio. Dati per
 operazione in `avwapf_<TF>.parquet` (scratchpad di sessione, ricalcolabili
 con le regole registrate).
+
+## Appendice Z: tocco dell'OB valido solo dopo un allontanamento minimo (registrazione)
+
+Idea dell'utente: il fill dell'order block vale solo se prima il prezzo si e'
+allontanato dalla zona di almeno 50 punti sui TF medio-alti e 10/20 su quelli
+medio-bassi. Regole registrate prima di misurare:
+
+- Zone `zone_ob` (piene) su M33, M66, H2, H3; operazioni del campione largo
+  full (1897), esito ufficiale (strutturale, +3R, 1:10, spread 0,30).
+- ESCURSIONE di una zona al momento del tocco: quanto il prezzo si e' spinto
+  oltre il bordo della zona NEL VERSO della rottura, dall'attivazione al
+  minuto d'ingresso (rialzista: massimo dei massimi M1 - bordo alto; opposto
+  per la ribassista). Per ogni operazione in zona (margine 0,5 x rischio, come
+  sempre) si tiene l'escursione MASSIMA fra le zone concordi che la
+  contengono. Tutto causale.
+- Soglie D: 0 (base attuale) / 10 / 20 / 50 $, misurate su TUTTI e quattro i
+  TF: la mappa dell'utente (50 sui medio-alti, 10-20 sui medio-bassi) e'
+  l'ipotesi da confermare, non una griglia da minare.
+- Test: fra le operazioni IN zona, delta R/op fra tocco con escursione >= D e
+  tocco con escursione < D, con permutazione; controllo che la base D=0 su
+  M33 riproduca i flag del laboratorio; verifica avversariale su un TF.
+
+Previsioni: (1) plausibile che il vantaggio degli OB si concentri nei tocchi
+con un minimo di escursione (il ritorno DOPO l'allontanamento e' il retest
+"vero") - 50/50 che regga la permutazione; (2) D=50 sui TF piccoli lascera'
+pochissime operazioni, stime instabili; (3) se non discrimina, il filtro
+attuale resta com'e'.
