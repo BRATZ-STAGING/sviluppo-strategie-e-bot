@@ -288,7 +288,7 @@
     return { n:ts.length, tot, expR:ts.length?tot/ts.length:0, win:ts.length?win/ts.length:0,
              stop:ts.length?mot[0]/ts.length:0, pari:ts.length?mot[3]/ts.length:0,
              rend:eqv-1, ddPct:dd, ddR, perAnno,
-             svMax, spMax, sottoMax,
+             svMax, spMax, sottoMax, nVinte:nw, nPerse:nl,
              mediaW:nw?gw/nw:0, mediaL:nl?gl/nl:0, pf:gl>0?gw/gl:(gw>0?Infinity:0),
              anniPos:Object.values(perAnno).filter(x=>x>0).length,
              anniTot:Object.keys(perAnno).length };
@@ -543,6 +543,8 @@
       ["a pareggio", st.be ? (m.pari*100).toFixed(0)+"%" : "—", ""],
       ["anni positivi", `${m.anniPos}<span style="color:var(--ink3);font-size:13px"> / ${m.anniTot}</span>`,
         m.anniPos*2>m.anniTot?"pos":"neg"],
+      ["op. in profitto", `${m.nVinte}<span style="color:var(--ink3);font-size:13px"> (${m.n?Math.round(m.nVinte/m.n*100):0}%)</span>`, "pos"],
+      ["op. in perdita", `${m.nPerse}<span style="color:var(--ink3);font-size:13px"> (${m.n?Math.round(m.nPerse/m.n*100):0}%)</span>`, "neg"],
       ["vittorie di fila max", String(m.svMax), "pos"],
       ["perdite di fila max", String(m.spMax), "neg"],
       ["media vittoria", "+"+fmt(m.mediaW,2)+" R", "pos"],
