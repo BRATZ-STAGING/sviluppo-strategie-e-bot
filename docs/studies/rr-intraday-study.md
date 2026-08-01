@@ -1807,3 +1807,49 @@ strategia. Resta valido l'uso degli order block come FILTRO (appendice P) —
 ingresso a mercato, ma sapendo di essere dentro una zona. E resta l'avvertenza
 per l'operativita' manuale: su questo segnale, l'ingresso in ritracciamento
 non e' un prezzo migliore, e' un'operazione diversa e peggiore.
+
+## Appendice AB: strategia AVWAP a eventi — scrematura (registrazione)
+
+Proposta dell'utente, strategia NUOVA da zero su XAUUSD: AVWAP ancorati agli
+estremi non rotti con tre livelli (VWAP e bande), session volume profile,
+segnali = tocco del livello / rottura con chiusura oltre / retest / incrocio
+delle bande dei due AVWAP; estensioni di Fibonacci e vuoti di liquidita' come
+zone TP. Scrematura su M3/M6/M12/M20/M33/M66/H2/H3/H6.
+
+Avvertenze registrate: la VICINANZA all'AVWAP e' gia' morta contro placebo
+(app. Y), il volume profile come discriminante pure (app. V), i ritracciamenti
+Fibo pure (app. O). La parte mai testata sono gli EVENTI DINAMICI: rotture,
+retest, incroci di bande. La scrematura decide su quelli.
+
+### Regole registrate PRIMA dei risultati
+
+- Ancore come in appendice Y (swing k=3, non rotti da chiusure del TF,
+  ri-ancoraggio causale). AVWAP su M1 (tipico, peso volume tick) + sigma
+  pesata causale. Livelli per ancora: VWAP, +-1, +-2, +-3 sigma.
+- Eventi per candela del TF, tutti causali (livello noto alla candela
+  precedente):
+  - TOCCO: la candela tocca il livello e chiude dallo stesso lato di prima.
+    Ipotesi: il livello tiene, il prezzo riparte dal lato di provenienza.
+  - ROTTURA: chiusura oltre il livello (lato diverso dalla candela prima).
+    Ipotesi: continuazione nel verso della rottura.
+  - RETEST: dopo una rottura del VWAP (entro 30 candele), primo ritorno sul
+    livello con chiusura ancora dal lato della rottura. Ipotesi: riparte nel
+    verso della rottura.
+  - COMPRESSIONE: le bande 1-sigma dei due AVWAP (ancora alta e bassa)
+    iniziano a sovrapporsi. Ipotesi non direzionale: espansione del movimento.
+- Esito: spostamento della chiusura a 5 e 20 candele, in unita' di ATR
+  giornaliero, nel verso dell'ipotesi (assoluto per la compressione).
+- PLACEBO integrale: stessa pipeline con ancore su swing confermati scelti a
+  caso con eta' simile (seme fisso). Un evento sopravvive solo se batte SIA
+  il caso SIA il placebo.
+- Soglia di sopravvivenza: ~144 celle testate (9 TF x 2 ancore x famiglie),
+  quindi p < 0,0003 (Bonferroni) su entrambi gli orizzonti E delta positivo
+  contro placebo. Sotto soglia = bocciato, senza appello ne' seconde griglie.
+- Fibo-estensioni e vuoti di liquidita' come TP: SOLO per gli eventi
+  sopravvissuti, in una fase 2 con placebo dedicato. Niente "ecc": quello che
+  non e' scritto qui non viene testato.
+
+Previsione: i tocchi faranno la fine dell'appendice Y (placebo li replica);
+per rotture e retest 60/40 che non sopravviva nulla alla soglia; la
+compressione e' la piu' plausibile come segnale di volatilita' (non di
+direzione). M20 aggiunto ai timeframe canonici per questo studio.

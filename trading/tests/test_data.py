@@ -84,7 +84,7 @@ class TestResample:
 class TestTimeframes:
     def test_registro_completo(self):
         # tutti i TF operativi del progetto, inclusi i non-nativi MT5
-        assert {"M1", "M3", "M6", "M10", "M12", "M33", "M66",
+        assert {"M1", "M3", "M6", "M10", "M12", "M20", "M33", "M66",
                 "H1", "H2", "H3", "H6", "H12", "D1"} == set(data.TIMEFRAMES)
 
     def test_resample_m33(self):

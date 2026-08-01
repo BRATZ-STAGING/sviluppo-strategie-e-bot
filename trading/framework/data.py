@@ -31,7 +31,7 @@ SESSIONS = {
 # qui sono cittadini di prima classe, per MT5 andranno esportati come custom.
 TIMEFRAMES = {
     "M1": "1min", "M3": "3min", "M6": "6min", "M10": "10min", "M12": "12min",
-    "M33": "33min", "M66": "66min",
+    "M20": "20min", "M33": "33min", "M66": "66min",
     "H1": "1h", "H2": "2h", "H3": "3h", "H6": "6h", "H12": "12h", "D1": "1D",
 }
 
