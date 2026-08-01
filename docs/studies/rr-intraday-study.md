@@ -1624,3 +1624,41 @@ non dimostrato. Da rivedere quando lo storico si allunga.
 rischio (0,5% → DD storico ~9%), piu' l'aspettativa giusta: 13 perdite di fila
 e 33 operazioni senza nuovi massimi SONO nel copione. Le regole dinamiche
 restano fuori dalla taratura.
+
+## Appendice Y: VWAP ancorato agli estremi non rotti (registrazione)
+
+Idea dell'utente: VWAP ancorato all'ultimo massimo NON ancora rotto e
+all'ultimo minimo non rotto, esteso in avanti, su tutti i timeframe, per
+valutare le confluenze.
+
+### Regole registrate PRIMA dei risultati
+
+- TF: M33, M66, H2, H3, H6, H12. Su ciascuno: swing k=3 per lato, confermato
+  alla chiusura della k-esima candela dopo l'estremo (come `structure.py`).
+- Ancora ALTA = ultimo swing high confermato non superato da una chiusura di
+  quel TF; rotta la chiusura sopra, si passa al successivo confermato (anche
+  nessuno, finche' non ne nasce uno). Simmetrico per l'ancora BASSA.
+- AVWAP su M1 (prezzo tipico HLC/3 pesato col volume tick) dall'estremo
+  dell'ancora; utilizzabile solo dalla conferma in poi. Tutto causale.
+- Appartenenza: |ingresso - AVWAP| <= 0,5 x rischio dell'operazione (stessa
+  convenzione degli order block). 12 serie (6 TF x alto/basso); confluenza =
+  quante serie entro il margine.
+- Campione: le operazioni del campione largo full:H6 con esito della
+  configurazione ufficiale (strutturale, pareggio +3R, 1:10, spread 0,30);
+  sotto-analisi sulla regola completa.
+- PLACEBO obbligatorio: ancore finte scelte a caso tra gli swing confermati
+  dello stesso TF con la stessa distribuzione di eta'. Se il delta reale non
+  batte il placebo, l'effetto e' "vicino a una media qualunque" (fine che ha
+  fatto Fibonacci, appendice O).
+- Test: delta dentro/fuori con permutazione; placebo; monotonia della
+  confluenza; valore incrementale sulle operazioni gia' accettate dalle
+  conferme e su quelle scartate.
+
+### Previsioni (scritte prima di misurare)
+
+1. Copertura 25-45% (il segnale nasce sul VWAP giornaliero: le medie si
+   assomigliano).
+2. Delta reale piccolo, 0 / +0,3 R per operazione; 50/50 che passi p<0,05.
+3. Il rischio principale e' che il placebo sopravviva: "vicino a un AVWAP"
+   potrebbe essere solo "prezzo in equilibrio", comunque ancorato.
+4. Confluenza non monotona (le code hanno campioni minuscoli).
