@@ -2054,3 +2054,24 @@ rumore, non che i numeri tondi funzionino.
 puo' (fino al 24%) ma costa l'intera redditivita': il 1:10 resta, ed e' ormai
 il quarto studio che lo conferma (K, V, AB, AE). Dati in
 `tp-livelli.parquet`.
+
+## Appendice AF: stop strutturale scalato x obiettivo (registrazione)
+
+Ultima prova richiesta dall'utente su stop e RR. L'asse mai testato: non stop
+fissi in punti (gia' fatto, app. Q/T) ma un MOLTIPLICATORE sullo stop
+strutturale, incrociato con obiettivi fino a 1:20.
+
+- 348 operazioni ufficiali, spread 0,30, chiusura 21, motore invariato.
+- Moltiplicatore m dello stop: 0,50 / 0,75 / 1,00 / 1,25 / 1,50 / 2,00
+  (m=1 = taratura in vigore). Il percorso in R si riscala di 1/m, e con esso
+  il costo dello spread: uno stop doppio dimezza le R guadagnate ma dimezza
+  anche il peso del costo.
+- Obiettivo: 2 / 3 / 5 / 8 / 10 / 15 / 20. Pareggio: nessuno e +3R.
+- 84 celle. Asticella: +171,1 R e 7 anni positivi su 7.
+
+Previsioni: (1) m=1 vicino all'ottimo, con la campana gia' osservata sulla
+larghezza dello stop; (2) m<1 peggiora molto (lo stop stretto viene preso dal
+rumore: e' la lezione di Q, U e AA); (3) m>1 perde poco e potrebbe pareggiare
+(meno stop presi, ma ogni R vale meno); (4) l'obiettivo migliore resta 10 o
+sale a 15-20 quando lo stop e' largo, perche' in R l'obiettivo si avvicina;
+(5) nessuna cella batte il base in modo netto E con 7/7.
