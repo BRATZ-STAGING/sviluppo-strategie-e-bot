@@ -1853,3 +1853,34 @@ Previsione: i tocchi faranno la fine dell'appendice Y (placebo li replica);
 per rotture e retest 60/40 che non sopravviva nulla alla soglia; la
 compressione e' la piu' plausibile come segnale di volatilita' (non di
 direzione). M20 aggiunto ai timeframe canonici per questo studio.
+
+### Risultati (misurati dopo la registrazione qui sopra)
+
+8,7 milioni di eventi su nove timeframe (implementazione unica in
+`run_avwap_eventi.py`; conteggio degli swing identico a quello trovato dagli
+agenti indipendenti dell'appendice Y sui TF in comune: controllo incrociato
+superato). 261 celle contro la soglia registrata.
+
+**Eventi direzionali: bocciatura totale, zero celle su 232.** Nessun tocco,
+nessuna rottura, nessun retest, su nessun livello (VWAP o bande 1/2/3 sigma),
+nessuna ancora e nessun timeframe supera p<0,0003 con delta positivo sul
+placebo. La cella direzionale migliore in assoluto (tocco banda -2 sigma H6,
+ancora alta) fa p 0,03 sull'orizzonte corto: sarebbe bocciata anche senza
+correzione per i test multipli. Previsione 1 confermata; la 60/40 su rotture
+e retest si e' risolta sul lato "niente".
+
+**Compressione: quattro celle passano il criterio formale, ma e' un artefatto
+del criterio.** L'esito della compressione e' uno spostamento ASSOLUTO,
+sempre positivo per costruzione: il test "batte il caso" e' privo di senso su
+una grandezza assoluta, e infatti "passa" con qualunque n grande. Il
+confronto che conta e' col placebo: da +0,003 a +0,007 ATR, cioe' 10-20
+centesimi di dollaro su XAUUSD — meno di un terzo dello spread reale. Sui TF
+alti il segno del delta oscilla pure (H2 e M66 negativi). Nessun segnale
+sfruttabile; al massimo conferma l'ovvio, che bande compresse precedono
+espansione, con un'entita' indistinguibile dal placebo.
+
+**Conclusione**: la strategia "AVWAP a eventi" non ha superato la scrematura
+in nessuna componente. La fase 2 (Fibo-estensioni, vuoti di liquidita' come
+TP) non si apre: era condizionata ai sopravvissuti, e non ce ne sono. Grezzi
+ricalcolabili con lo script; nel repo resta l'aggregato
+(`avwap-eventi-aggregato.parquet`, 522 righe).

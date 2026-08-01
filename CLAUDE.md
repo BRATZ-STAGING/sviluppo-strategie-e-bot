@@ -111,6 +111,13 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
   (appendice L).
+- **Strategia "AVWAP a eventi"** (tocco/rottura/retest di VWAP ancorati e
+  bande 1-3 sigma, compressione fra le bande, 9 TF da M3 a H6): scrematura su
+  8,7 milioni di eventi, zero celle direzionali su 232 alla soglia
+  registrata; la compressione supera il criterio formale solo per un
+  artefatto (esito assoluto) e contro placebo vale 10-20 centesimi, sotto lo
+  spread. Fase 2 (Fibo-estensioni, vuoti di liquidita' come TP) mai aperta.
+  Appendice AB.
 - **VWAP ancorato agli estremi non rotti (6 TF, con confluenze)**: dove un
   delta appare, il placebo con ancore a caso lo riproduce esattamente
   (M33 +0,255 vs +0,261; H2 -0,193 vs -0,216): proxy di "prezzo in
