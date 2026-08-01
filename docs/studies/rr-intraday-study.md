@@ -1936,3 +1936,31 @@ campione — non adesso, non su questi dati.
 che sbagliasse di poco un orario, una soglia o un parametro strutturale
 resterebbe profittevole: il rischio di implementazione e' basso. Dati in
 `sensibilita.parquet`.
+
+## Appendice AD: k=2 governata dal livello preciso dell'OB — non aggiunge
+
+Idea dell'utente dopo l'audit AC: tenere la k=3 (7/7) ma recuperare la
+variante k=2 usando la zona raffinata dell'order block come cancello di
+qualita'. Due forme, misurate subito dopo la registrazione in chat:
+
+| configurazione | n | R tot | R/op | anni+ |
+|---|---|---|---|---|
+| ufficiale k=3 | 348 | +171,1 | +0,492 | **7/7** |
+| k=2 tutte | 331 | +186,1 | +0,562 | 6/7 |
+| A: k=2 solo in zona piena | 77 | +27,3 | +0,355 | 5/7 |
+| A': k=2 solo in zona raffinata | 31 | +24,3 | +0,785 | 4/7 |
+| segnali solo-k2 (non visti dalla k=3) | 117 | +33,0 | +0,282 | 4/7 |
+| — di questi, in zona piena | 27 | **-6,9** | -0,257 | 2/7 |
+| — di questi, in zona raffinata | 9 | +0,6 | +0,071 | — |
+| B: innesto k3 + solo-k2 in piena | 375 | +164,2 | +0,438 | 7/7 |
+| B': innesto k3 + solo-k2 in raffinata | 357 | +171,7 | +0,481 | 7/7 |
+
+Il filtro duro (A/A') decima il campione come sempre. L'innesto (B/B') non
+danneggia ma non aggiunge: +0,6 R in sette anni con la raffinata, -6,9 con la
+piena. Il dato interessante e' che il cancello OB, che sulle operazioni
+UFFICIALI seleziona bene (appendice P), sui segnali extra della k=2 non
+seleziona nulla (in piena addirittura sceglie peggio del mucchio): quei
+segnali anticipati sono rumore strutturale che nessun livello ripulisce.
+
+**Conclusione**: taratura invariata (k=3). La strada "recuperare segnali in
+piu' con un cancello di qualita'" e' misurata e chiusa anche in questa forma.
