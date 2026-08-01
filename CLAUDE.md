@@ -115,6 +115,12 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   batte il proprio placebo a distanze uguali (+173 contro +129, p<0,005): sa
   dove NON mettere l'obiettivo, ma pareggia soltanto il 1:10 con 6/7 anni.
   Appendice AE.
+- **Stop strutturale scalato x obiettivo** (moltiplicatore 0,5-2,0 sullo stop
+  x RR 2-20, 84 celle): la riga m=1 domina la griglia per ogni obiettivo da
+  1:3 in su. Stringere lo stop porta gli stop presi al 77%, allargarlo costa
+  il 25-40% perche' ogni R vale meno. L'unica cella sopra il base (m=0,5,
+  1:20: +187,9 R) ha il doppio del drawdown e in euro rende meno.
+  Appendice AF.
 - **Obiettivo variabile col regime di volatilita'**: inutile, 1:10 e' il
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento

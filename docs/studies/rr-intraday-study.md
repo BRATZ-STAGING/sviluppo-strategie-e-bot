@@ -2075,3 +2075,45 @@ rumore: e' la lezione di Q, U e AA); (3) m>1 perde poco e potrebbe pareggiare
 (meno stop presi, ma ogni R vale meno); (4) l'obiettivo migliore resta 10 o
 sale a 15-20 quando lo stop e' largo, perche' in R l'obiettivo si avvicina;
 (5) nessuna cella batte il base in modo netto E con 7/7.
+
+### Risultati: m=1 e' il crinale, 84 celle su 84 confermano la taratura
+
+R totale, pareggio +3R (la riga m=1,00 e' la taratura in vigore):
+
+| m \ obiettivo | 1:2 | 1:3 | 1:5 | 1:8 | **1:10** | 1:15 | 1:20 |
+|---|---|---|---|---|---|---|---|
+| 0,50 | -75,6 | 22,4 | 28,4 | 51,5 | 66,9 | 94,9 | 118,1 |
+| 0,75 | -34,3 | 55,7 | 83,3 | 92,5 | 98,9 | 113,4 | 114,3 |
+| **1,00** | 17,4 | 108,4 | 126,9 | 151,0 | **171,1** | 168,0 | 173,0 |
+| 1,25 | 16,3 | 91,3 | 95,3 | 126,8 | 122,3 | 127,3 | 132,3 |
+| 1,50 | 30,9 | 91,9 | 95,5 | 111,6 | 112,0 | 117,0 | 121,4 |
+| 2,00 | 40,8 | 79,8 | 99,1 | 100,6 | 104,6 | 109,8 | 109,8 |
+
+Tutte e cinque le previsioni confermate. La riga m=1 domina l'intera griglia
+per ogni obiettivo da 1:3 in su: **lo stop strutturale e' un crinale, non un
+punto scelto a caso**. Sotto (m<1) si crolla — a m=0,50 gli stop presi vanno
+al 77% — e sopra (m>1) si perde il 25-40% pur prendendo meno stop, perche'
+ogni R vale meno. La colonna 1:2 e' negativa o quasi ovunque: e' la firma
+della strategia, che vive delle corse lunghe.
+
+Le uniche due celle sopra il base:
+
+| cella | R tot | anni+ | DD | conto |
+|---|---|---|---|---|
+| m=0,50, 1:20, senza pareggio | **+187,9** | 6/7 | **30,0%** | 49.249 EUR |
+| m=1,00, 1:20, pareggio +3R | +173,0 | 7/7 | 16,3% | **49.922 EUR** |
+| **m=1,00, 1:10, +3R (in vigore)** | +171,1 | **7/7** | **16,3%** | 49.321 EUR |
+
+La prima e' un miraggio da manuale: +10% di R ma con **il doppio del
+drawdown** (30% contro 16,3%), un anno in perdita e il 77% di stop presi. A
+parita' di dolore rende MENO del base, e in euro fa gia' meno (49.249 contro
+49.321) perche' la composizione punisce i cali profondi.
+
+La seconda e' la stessa taratura con l'obiettivo a 1:20 invece che 1:10:
++1,9 R e 600 EUR su sette anni, con TP presi allo 0,29% (una operazione su
+348). Non e' un'altra strategia, e' il tetto alzato ancora di piu' — la
+conferma finale che il 1:10 e' gia' "praticamente nessun tetto", e che oltre
+quel punto non c'e' piu' niente da guadagnare.
+
+**Conclusione**: taratura invariata, con la mappa completa alle spalle. Dati
+in `stop-rr.parquet`.
