@@ -122,6 +122,12 @@ su 7, e migliora fuori campione). Robusto a ogni margine provato, e presente
 **anche sulle operazioni che le conferme scartano**, quindi aggiunge
 informazione invece di ripetere quella esistente.
 
+**Zona raffinata** (basi di OB e candela successiva che combaciano): sul
+campione largo aggiunge davvero (+1,106 R/op nel testa-a-testa dentro la zona
+piena, p 0,005, verificato indipendentemente); sulla regola completa punta
+uguale ma 30 operazioni non bastano (appendice V). Il **volume profile** come
+segnale invece non discrimina nulla (p 0,85): resta solo visivo nel lab.
+
 **Non ancora adottato**: va misurato come filtro sul risultato complessivo, e va
 escluso che sia un travestimento dell'impulso minimo. Codice in
 `trading/scripts/run_order_block.py`.

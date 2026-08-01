@@ -1477,3 +1477,68 @@ sono un TETTO, e sono gia' negativi.
 
 **Strada chiusa: scalp su M1 con stop 1-3 punti.** Con lo spread di XAU la
 matematica non lascia spazio: e' la quarta misura (M, Q, S, U) che converge.
+
+## Appendice V: la zona raffinata degli order block AGGIUNGE; il volume profile no
+
+Due studi pre-registrati, eseguiti in parallelo con verifica indipendente.
+
+### La zona raffinata (idea dell'utente)
+
+Definizione: dentro l'order block, il sotto-intervallo dove la base della
+candela OB e la base della candela successiva combaciano
+([max dei minimi, min dei corpi bassi]; speculare per il ribassista). Esiste
+per 4.801 delle 5.017 zone M33. Ipotesi dichiarata: e' il cuore della domanda,
+e deve rendere piu' della zona piena.
+
+| campione | gruppo | n | R/op | delta | p permutazione |
+|---|---|---|---|---|---|
+| tutte (1.344) | zona piena | 160 | +0,640 | +0,553 | 0,003 |
+| tutte | zona raffinata | 64 | **+1,304** | +1,209 | **0,0001** |
+| tutte | **testa-a-testa** (raffinata vs solo-piena, fra le 160) | 64 | +1,304 | **+1,106** | **0,0054** |
+| regola completa (348) | zona raffinata | 30 | +1,178 | +0,751 | 0,072 |
+| regola completa | testa-a-testa | 30 | +1,178 | +0,677 | 0,152 |
+
+**Sul campione largo la raffinazione aggiunge davvero**: il testa-a-testa —
+fra le operazioni gia' dentro la zona piena, quelle nel cuore contro le altre —
+passa la permutazione (p 0,005). Non e' la zona che si ripete: e' informazione
+in piu' dentro la zona.
+
+Sul sottoinsieme della regola completa i numeri puntano nella stessa direzione
+(+1,178 R/op) ma 30 operazioni non bastano per la significativita' (p 0,15),
+e per anno fa 5/7 (2020 e 2026 lievemente negativi su 2-6 operazioni l'anno).
+
+**Verifica indipendente** (implementazione da zero): n=30, +1,1776, delta
++0,7506 — coincide alla quarta cifra. Scelte ambigue dichiarate dal
+verificatore: se la candela OB coincide con quella di rottura la successiva
+non e' ancora chiusa (lookahead) e la raffinata non esiste (15 zone;
+sensibilita' misurata: zero). Il laboratorio mostra 29 operazioni contro le 30
+dello studio: un caso limite di bordo, ininfluente.
+
+**Stato**: promossa come opzione nel laboratorio (filtro "in zona raffinata").
+NON adottata nella taratura: su 30 operazioni non si taratura niente. La
+strada giusta per usarla e' l'OB COME INGRESSO (tocco della zona = segnale),
+dove le operazioni sono molte di piu': studio in corso.
+
+### Il session volume profile NON discrimina
+
+Ipotesi esplorativa senza direzione dichiarata: la classe di liquidita' del
+punto d'ingresso (bin del profilo volume causale della giornata: LVN = terzile
+basso, HVN = alto) discrimina gli esiti?
+
+| campione | classe | n | R/op |
+|---|---|---|---|
+| tutte | LVN (buco) | 150 | +0,119 |
+| tutte | medio | 360 | +0,155 |
+| tutte | HVN (eccesso) | 834 | +0,158 |
+
+Delta LVN-HVN = -0,038 con p di permutazione **0,85**: rumore puro. Nota
+strutturale: l'83% degli ingressi cade in zone medio-alte del profilo — ovvio a
+posteriori, il reclaim del VWAP avviene dove si e' scambiato.
+
+**Conseguenze**: il profilo resta nel laboratorio come strumento VISIVO (i
+buchi si vedono), ma come segnale non ha mostrato nulla. E l'idea naturale per
+l'obiettivo adattivo ("TP guidato dalla mappa di liquidita'") parte con la
+premessa gia' falsificata: qualunque studio futuro sull'obiettivo adattivo
+deve dichiarare un meccanismo diverso e battere il 1:10 fisso, che ha gia'
+resistito all'obiettivo per regime (appendice K) e per qualita' del setup.
+Avvertenza: volume TICK, non volume scambiato (standard sullo spot, ma va detto).
