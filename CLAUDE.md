@@ -116,6 +116,13 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   (M33 +0,255 vs +0,261; H2 -0,193 vs -0,216): proxy di "prezzo in
   equilibrio", nessuna informazione nell'ancora. Confluenza non monotona.
   Appendice Y.
+- **Ordine limite sul livello invece che a mercato** (order block di
+  M6/M12/M33/H3/H6, stop sulla zona o strutturale, distanze 5/10/20 $):
+  respinto. Il rischio si dimezza (4,23 -> 2,2 $) ma la migliore versione
+  rende +0,367 R/op su 189 operazioni e 4 anni su 7, contro +0,492 su 348 e
+  7 su 7. Motivo misurato: **il ritracciamento seleziona i fallimenti** — le
+  222 operazioni che tornano su un livello rendono -0,387 R/op nella
+  strategia in vigore, le 126 che non tornano +2,040. Appendice AA.
 - **Order block come segnale d'INGRESSO** (tocco della zona = entry, su
   M33/M66/H2/H3, RR 2-10, con e senza contesto/macro): 48 celle su 48
   negative, da -0,11 a -0,30 R/op, verifica avversariale confermata. La

@@ -1763,3 +1763,47 @@ ingresso**. Questo studio prova la sua versione.
 4. Saldo netto incerto, 50/50. La percentuale di stop presi salira' (stop piu'
    stretto), quindi la domanda giusta NON e' «quanti stop prendo» ma «quanto
    rende per operazione».
+
+### Risultati (misurati dopo la registrazione qui sopra)
+
+46.667 zone sui cinque timeframe, 1.897 segnali. Confronto sulla regola
+ufficiale (spread 0,30, esito ufficiale):
+
+| versione | op | R/op | R tot | stop presi | anni + |
+|---|---|---|---|---|---|
+| **a mercato (in vigore)** | 348 | **+0,492** | **+171,1** | 54% | **7/7** |
+| sul livello, stop sulla zona (10 $, 1:10) | 206 | +0,288 | +59,3 | 72% | 4/7 |
+| sul livello, stop strutturale (10 $, 1:10, +3R) | 189 | +0,367 | +69,4 | 64% | 4/7 |
+
+Previsione 1 CONFERMATA: il rischio mediano crolla da 4,23 a ~2,2 $. Lo stop
+strutturale batte quello appoggiato alla zona (+0,367 contro +0,288): il bordo
+e' fragile, il prezzo lo penetra di qualche dollaro e torna. Ma entrambe
+perdono contro la versione a mercato, e la costanza per anno crolla a 4/7.
+
+### Perche': il ritracciamento SELEZIONA i fallimenti
+
+Il risultato decisivo. Delle 348 operazioni ufficiali, 222 tornano su un
+livello (e quindi verrebbero riempite da un ordine limite), 126 no. Nella
+strategia IN VIGORE, quelle stesse operazioni rendono:
+
+| gruppo | op | R/op | R tot |
+|---|---|---|---|
+| tornano sul livello | 222 | **-0,387** | **-85,9** |
+| non tornano mai | 126 | **+2,040** | **+257,0** |
+
+**Il ritracciamento e' un segnale negativo, non un'occasione di prezzo
+migliore.** Su questa strategia il vantaggio sta tutto nella prosecuzione
+immediata: le 12 operazioni che superano +8R valgono +117,5 R, il 69% del
+risultato di sette anni, e solo 3 di esse tornano su un livello. Aspettare il
+livello significa, sistematicamente, farsi riempire dalle operazioni che
+stanno fallendo e restare fuori da quelle che pagano.
+
+Non e' un difetto di taratura ne' un caso: e' la logica del segnale. Il
+reclaim del VWAP con la struttura allineata cattura una ripartenza; se il
+prezzo torna indietro fino a un order block, la ripartenza non c'e' stata.
+
+**Conseguenza operativa**: l'ordine limite sul livello e' respinto per QUESTA
+strategia. Resta valido l'uso degli order block come FILTRO (appendice P) —
+ingresso a mercato, ma sapendo di essere dentro una zona. E resta l'avvertenza
+per l'operativita' manuale: su questo segnale, l'ingresso in ritracciamento
+non e' un prezzo migliore, e' un'operazione diversa e peggiore.
