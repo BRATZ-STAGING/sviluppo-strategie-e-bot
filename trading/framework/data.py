@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import glob
 import os
+import sys
 
 import pandas as pd
 
@@ -36,12 +37,37 @@ TIMEFRAMES = {
 }
 
 
+def anni_da_env() -> list[int] | None:
+    """Anni richiesti via ``XAU_ANNI`` ("2020-2026" oppure "2020,2021"), o None.
+
+    Serve a fissare la finestra di uno studio SENZA toccarne il codice: da
+    quando l'archivio contiene anche il 2009-2019, ``load_m1`` senza argomenti
+    caricherebbe tutto e i numeri pubblicati (calcolati sul 2020-2026) non
+    sarebbero piu' riproducibili.
+    """
+    spec = os.environ.get("XAU_ANNI", "").strip()
+    if not spec:
+        return None
+    anni: list[int] = []
+    for pezzo in spec.split(","):
+        pezzo = pezzo.strip()
+        if "-" in pezzo:
+            a, b = pezzo.split("-", 1)
+            anni.extend(range(int(a), int(b) + 1))
+        elif pezzo:
+            anni.append(int(pezzo))
+    return sorted(set(anni))
+
+
 def load_m1(path: str, years: list[int] | None = None) -> pd.DataFrame:
     """Carica le candele M1 dai Parquet annuali.
 
     ``path`` è la cartella con i file ``XAUUSD_M1_<anno>.parquet``.
-    ``years`` limita gli anni caricati (default: tutti quelli presenti).
+    ``years`` limita gli anni caricati; se è None si usa la variabile
+    d'ambiente ``XAU_ANNI``, e in sua assenza tutti gli anni presenti.
     """
+    if years is None:
+        years = anni_da_env()
     files = sorted(glob.glob(os.path.join(path, "XAUUSD_M1_*.parquet")))
     if years is not None:
         wanted = {str(y) for y in years}
@@ -53,6 +79,10 @@ def load_m1(path: str, years: list[int] | None = None) -> pd.DataFrame:
     if df.index.tz is None:
         df.index = df.index.tz_localize("UTC")
     validate_ohlcv(df)
+    # riga su stderr: nessun risultato deve restare ambiguo su QUALE storico
+    # e' stato usato, ora che l'archivio copre 2009-2026
+    print(f"[M1] {df.index[0]:%Y-%m-%d} -> {df.index[-1]:%Y-%m-%d}, "
+          f"{len(df):,} candele", file=sys.stderr)
     return df
 
 

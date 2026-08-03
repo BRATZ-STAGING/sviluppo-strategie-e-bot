@@ -34,6 +34,36 @@ class TestLoadM1:
         with pytest.raises(FileNotFoundError):
             data.load_m1(str(tmp_path))
 
+    def test_env_limita_gli_anni(self, tmp_path, monkeypatch):
+        for year in (2019, 2024):
+            df = flat_bars(f"{year}-06-03 00:00", 5)
+            df.reset_index().to_parquet(tmp_path / f"XAUUSD_M1_{year}.parquet", index=False)
+        monkeypatch.setenv("XAU_ANNI", "2024")
+        out = data.load_m1(str(tmp_path))
+        assert len(out) == 5 and out.index[0].year == 2024
+
+    def test_argomento_esplicito_batte_env(self, tmp_path, monkeypatch):
+        for year in (2019, 2024):
+            df = flat_bars(f"{year}-06-03 00:00", 5)
+            df.reset_index().to_parquet(tmp_path / f"XAUUSD_M1_{year}.parquet", index=False)
+        monkeypatch.setenv("XAU_ANNI", "2024")
+        out = data.load_m1(str(tmp_path), years=[2019])
+        assert out.index[0].year == 2019
+
+
+class TestAnniDaEnv:
+    def test_assente(self, monkeypatch):
+        monkeypatch.delenv("XAU_ANNI", raising=False)
+        assert data.anni_da_env() is None
+
+    def test_intervallo(self, monkeypatch):
+        monkeypatch.setenv("XAU_ANNI", "2020-2023")
+        assert data.anni_da_env() == [2020, 2021, 2022, 2023]
+
+    def test_elenco_e_misto(self, monkeypatch):
+        monkeypatch.setenv("XAU_ANNI", "2013, 2020-2021 , 2013")
+        assert data.anni_da_env() == [2013, 2020, 2021]
+
 
 class TestValidate:
     def test_ok(self):
