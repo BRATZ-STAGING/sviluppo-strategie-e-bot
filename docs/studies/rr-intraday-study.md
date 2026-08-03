@@ -2326,3 +2326,39 @@ Come filtro DURO la raffinata butta il 92% del campione e chiude a +36,4 R
 contro +171,1: non e' una strategia sostitutiva. Il suo posto e' altrove —
 sovrappeso di rischio (appendice X: +26,7% a pari drawdown, p 0,06) e
 selezione delle occasioni migliori nell'operativita' manuale.
+
+## Appendice AK: si puo' arrivare a 100 operazioni l'anno?
+
+Richiesta dell'utente: una configurazione con 100-120 operazioni l'anno che
+porti allo stesso risultato. Scala di frequenza costruita allentando le
+conferme sul campione largo (macro sempre attivo), obiettivi 5/8/10,
+pareggio +3R. Confronto a PARITA' DI DRAWDOWN (16,3%, bisezione sul rischio):
+e' l'unico modo onesto di confrontare configurazioni che oscillano di piu'.
+
+| conferme | M12 | rr | n | op/anno | R tot | R/op | anni+ | DD a 1% | conto a 1% | **conto a pari DD** |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **M33+H12 (in vigore)** | pullback | 10 | 348 | **53** | +171,1 | **+0,492** | **7/7** | **16,3%** | 49.321 | **49.321** |
+| M33+H12+M66 | pullback | 10 | 320 | 49 | +149,8 | +0,468 | 7/7 | 16,3% | 40.292 | 40.336 |
+| M33 | pullback | 10 | 388 | 60 | +169,4 | +0,437 | 7/7 | 18,8% | 47.971 | 38.682 |
+| M33+H12 | — | 10 | 627 | **96** | **+238,3** | +0,380 | 7/7 | **26,7%** | **88.313** | 36.823 |
+| H12 | pullback | 10 | 628 | 96 | +164,4 | +0,262 | 6/7 | 18,7% | 44.242 | 36.768 |
+| nessuna | pullback | 10 | 730 | **112** | +171,8 | +0,235 | 6/7 | 19,9% | 46.267 | 35.522 |
+| M33 | — | 10 | 698 | 107 | +236,7 | +0,339 | 6/7 | 28,5% | 85.406 | 33.143 |
+
+Si arriva a 96-112 operazioni l'anno, e in R si fa anche molto di piu': la
+riga M33+H12 senza il vincolo di pullback fa **+238,3 R e 88.313 EUR a
+rischio 1%**, con 7 anni positivi. Ma il drawdown sale al **26,7%**, e a
+parita' di dolore il conto scende a 36.823: **il 25% in meno del base**.
+
+E' la legge della frequenza gia' vista tre volte (appendici M, S, W), qui
+misurata sulla scala completa: ogni allentamento porta operazioni con meno
+vantaggio per operazione (da +0,492 a +0,235), quindi per fare lo stesso
+risultato serve piu' rischio, e il drawdown cresce piu' in fretta del
+guadagno. **Nessuna delle 18 configurazioni da 90-140 op/anno batte la
+taratura a parita' di drawdown.**
+
+Nota per chi cerca volume di operazioni: la riga M33+H12 senza pullback e'
+comunque la migliore di quella fascia, ed e' l'unica con 7/7 anni. Se un
+giorno servisse frequenza (per un conto prop con obiettivi di attivita'),
+quella e' la candidata — al prezzo dichiarato di un quarto del rendimento a
+parita' di rischio.
