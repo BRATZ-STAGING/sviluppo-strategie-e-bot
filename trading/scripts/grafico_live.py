@@ -75,7 +75,7 @@ def calcola():
     simbolo, m1, bid, ask = leggi_mt5()
     out = {"simbolo": simbolo, "bid": bid, "ask": ask,
            "spread": round(ask - bid, 3),
-           "ora": pd.Timestamp.utcnow().strftime("%H:%M:%S"),
+           "ora": pd.Timestamp.now("UTC").strftime("%H:%M:%S"),
            "ultima_candela": m1.index[-1].strftime("%d/%m %H:%M"),
            "serie": {}, "zone": [], "struttura": {}, "pronto": True}
     for tf in ("M6", "M33", "H2", "H6"):
