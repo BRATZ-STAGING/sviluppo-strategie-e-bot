@@ -86,6 +86,31 @@ si guadagna meno.
 utile o in perdita. Un terzo delle operazioni finisce cosi', ed e' da queste
 che arriva la maggior parte del guadagno.
 
+## E il fine settimana?
+
+Con la strategia come e' tarata **la domanda non si pone**: si chiude tutto
+alle 21:00 UTC di ogni giorno, quindi non si arriva mai al venerdi' con
+qualcosa di aperto. E' anche il motivo per cui non si paga mai swap: il
+rollover del broker cade esattamente alle 21:00 UTC.
+
+Se pero' capita di tenere aperto (operativita' manuale, o una variante che
+tiene le posizioni piu' a lungo), la regola misurata e' una sola:
+
+**si attraversa il fine settimana solo se l'operazione e' gia' sopra +1R.
+Sotto quella soglia si chiude il venerdi'. Lo stop non si tocca.**
+
+Perche' proprio cosi': il filtro alza il risultato medio di 5,5 R e soprattutto
+migliora le storie sfortunate (il decimo percentile passa da 36,5 a 46,5 R su
+20.000 simulazioni con salti pescati dai fine settimana reali). Spostare lo
+stop — a pareggio o al prezzo del venerdi' — non aggiunge nulla una volta
+applicato il filtro, e portarlo al prezzo del venerdi' fa danno perche' azzera
+il margine che serve ad assorbire il salto.
+
+Il salto del lunedi' e' mediamente 1,31 $, ma una volta su venti supera i
+19,59 $ e il massimo osservato in sette anni e' 111,94 $ — piu' di venti volte
+lo stop tipico. Con lo stop non si scappa: se il mercato riapre oltre, si esce
+al prezzo di riapertura, non allo stop.
+
 ## Quando NON si entra
 
 - **Non si aspetta il ritracciamento su una zona.** Se il segnale e' arrivato,
