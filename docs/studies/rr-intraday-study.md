@@ -2152,3 +2152,49 @@ acqua. Il 1:20 fa 600 EUR in piu' del 1:10 con TP allo 0,29%: irrilevante.
 **Conclusione**: sulla frontiera a pari drawdown la configurazione in vigore
 e' gia' sul bordo efficiente. Non esiste, in 84 celle, una combinazione di
 stop e obiettivo che dia insieme piu' soldi e piu' stabilita'.
+
+## Appendice AH: togliere la chiusura serale (ottica prop firm)
+
+Domanda dell'utente: senza chiusura giornaliera, tenendo solo quella del
+venerdi', quante operazioni arrivano all'obiettivo e quante muoiono? Tre
+regimi sulle stesse 348 operazioni, obiettivo 1:10, pareggio +3R, spread 0,30.
+
+| regime | R tot | stop | obiettivo | pareggio | scadenza | ore medie | anni+ |
+|---|---|---|---|---|---|---|---|
+| giornaliera (in vigore) | +171,1 | 189 (54,3%) | **11 (3,2%)** | 24 (6,9%) | 124 (35,6%) | 4,2 | **7/7** |
+| settimanale | +182,4 | 214 (61,5%) | **25 (7,2%)** | 56 (16,1%) | 53 (15,2%) | 11,2 | 6/7 |
+| aperta (fino a stop/obiettivo) | **+224,1** | 221 (63,5%) | **47 (13,5%)** | 80 (23,0%) | 0 | 16,3 | 6/7 |
+
+Risposta secca: **gli obiettivi pieni passano da 11 a 25 (settimanale) o 47
+(nessuna scadenza)**, ma gli stop passano da 189 a 214-221 e i pareggi da 24 a
+56-80. Le operazioni "morte" non spariscono, cambiano nome: la chiusura di
+fine giornata (124 casi, +2,44 R medi) viene sostituita da stop e pareggi.
+
+### Perche' non e' il regalo che sembra
+
+A parita' di drawdown (bisezione sul rischio, bersaglio 16,3%):
+
+| regime | rischio pari-DD | conto | DD a 1% | anno peggiore |
+|---|---|---|---|---|
+| giornaliera | 1,00% | **49.321** | **16,3%** | **+6,9 R** |
+| settimanale | 0,81% | 39.399 | 19,7% | **-10,6 R** |
+| aperta | 0,73% | 45.000 | 21,8% | **-10,6 R** |
+
+Il +224 R della tenuta aperta e' comprato con volatilita': a parita' di dolore
+rende MENO del base (45.000 contro 49.321), il drawdown a rischio uguale sale
+al 21,8%, e in entrambi i regimi lunghi compare un anno in perdita (-10,6 R)
+dove la chiusura serale ne ha sette positivi. La costanza si paga.
+
+### Avvertenze non modellate (peggiorano i regimi lunghi, non il base)
+
+- **Swap**: il 24% delle operazioni resterebbe aperto oltre sera; su XAU e' un
+  costo reale per notte, qui non conteggiato.
+- **Gap del fine settimana**: presenti nei prezzi M1, ma con lo stop che puo'
+  essere saltato — il modello assume il fill al livello, ottimistico.
+- **Posizioni sovrapposte**: media 1,4 e massimo 4 aperte insieme (contro 1,2
+  e 3 del base): con rischio 1% ciascuna, fino al 4% esposto in un istante.
+
+**Per una prop firm** il punto e' proprio questo: le regole tipiche puniscono
+il drawdown giornaliero e l'esposizione simultanea, cioe' esattamente le due
+cose che i regimi lunghi peggiorano. La chiusura serale non e' un limite da
+togliere: e' il meccanismo che tiene 7 anni su 7 e il drawdown sotto controllo.
