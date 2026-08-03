@@ -2944,3 +2944,41 @@ guadagno del tenere aperto si assottiglia.
 **non attraversare il fine settimana con le operazioni deboli**. Lo stop a
 pareggio da solo e' controproducente; il filtro sopra +1R e' la regola giusta,
 e va tenuta anche senza toccare lo stop.
+
+### Correzione: la metrica giusta e' il risultato, non lo scarto dallo stop
+
+Obiezione dell'utente, fondata: se il lunedi' riapre sotto lo stop, si esce al
+prezzo di RIAPERTURA, non allo stop. Quindi due regole con stop diversi ma
+entrambe superate dal salto **chiudono allo stesso prezzo**: il "costo rispetto
+allo stop" misurato sopra non e' una differenza di soldi fra le regole, e' solo
+lo scarto rispetto al piano. La tabella precedente esagerava le differenze.
+
+Rifatto misurando il **risultato finale** delle sole 23 operazioni vive al fine
+settimana, sulle stesse 20.000 storie (quando il salto non supera lo stop
+l'operazione prosegue, col percorso reale traslato del salto):
+
+| regola | reale | mediana | media | p10 | p90 |
+|---|---|---|---|---|---|
+| sempre aperta, stop dov'e' | 51,8 | 50,7 | 49,4 | 36,5 | 60,5 |
+| stop a pareggio | 51,8 | 52,3 | **50,8** | 37,6 | 62,0 |
+| **pareggio + solo sopra +1R** | **56,5** | 56,3 | **54,9** | **46,5** | 61,3 |
+| **solo sopra +1R, stop invariato** | **56,5** | 56,3 | **54,9** | **46,4** | 61,2 |
+| chiude sempre il venerdi' | 43,1 | 43,1 | 43,1 | 43,1 | 43,1 |
+
+Tre correzioni alla lettura precedente:
+
+1. **Lo stop a pareggio non e' controproducente**: aggiunge +1,4 R in media
+   (50,8 contro 49,4). Poco, ma positivo — l'opposto di quanto diceva la
+   metrica sbagliata. Serve nei casi in cui il salto e' piccolo e il prezzo
+   torna indietro senza gap, non contro i gap grossi.
+2. **Il filtro sopra +1R resta la regola che conta**, e da sola: +5,5 R di
+   media rispetto al non filtrare, e soprattutto alza il decimo percentile da
+   36,5 a 46,5 — cioe' migliora le storie sfortunate, che e' il punto.
+3. **Stop a pareggio e filtro insieme valgono quanto il solo filtro** (54,9 in
+   entrambi i casi): una volta tolte le operazioni deboli, spostare lo stop non
+   aggiunge nulla. E' il filtro a fare tutto.
+
+Confermata invece la conclusione di fondo: **chiudere sempre il venerdi' e' la
+peggiore** (43,1 fisso contro 54,9 di media), ma e' anche l'unica senza
+incertezza. La differenza fra tenere aperto col filtro e chiudere e' 11,8 R
+sulle sole 23 operazioni interessate, con una dispersione fra 46,5 e 61,3.
