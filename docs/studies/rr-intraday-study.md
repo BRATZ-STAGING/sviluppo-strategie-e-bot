@@ -2362,3 +2362,53 @@ comunque la migliore di quella fascia, ed e' l'unica con 7/7 anni. Se un
 giorno servisse frequenza (per un conto prop con obiettivi di attivita'),
 quella e' la candidata — al prezzo dichiarato di un quarto del rendimento a
 parita' di rischio.
+
+## Appendice AL: scale di trailing x obiettivi 1:5-1:12
+
+Richiesta dell'utente: verificare gli obiettivi fini da 1:5 a 1:9 e provare
+vere SCALE di trailing (a +3R stop a pari, a +5R stop a +2R, ecc.), che
+finora non erano mai state misurate — il pareggio era sempre stato provato
+come soglia unica.
+
+84 celle: 12 gestioni x 7 obiettivi, sulle 348 operazioni ufficiali, spread
+0,30. Convenzione conservativa: dentro il minuto lo stop prevale
+sull'obiettivo, e la scala si aggiorna DOPO il controllo dello stop.
+
+### Conto a parita' di drawdown (16,3%), euro da 10.000
+
+| gestione | 1:5 | 1:6 | 1:7 | 1:8 | 1:9 | **1:10** | 1:12 |
+|---|---|---|---|---|---|---|---|
+| **pari a +3R (in uso)** | 32.962 | 36.399 | 36.931 | 41.022 | 45.742 | **49.321** | 46.918 |
+| pari a +2R | — | — | — | — | 45.559 | 48.545 | 46.266 |
+| scala 3>0 5>2 | 32.962 | 34.562 | 34.877 | 38.381 | 42.404 | 45.305 | 43.704 |
+| scala 3>0 5>2 7>4 | 32.962 | 34.562 | 34.877 | 37.552 | 39.583 | 38.764 | 37.338 |
+| scala 2>0 4>2 6>4 | 29.169 | 32.486 | 34.478 | 36.288 | 37.311 | 37.631 | 35.088 |
+| scala 5>0 8>4 | 28.518 | 31.491 | 31.952 | 35.492 | 37.759 | 37.318 | 35.446 |
+| stop fisso | 28.518 | 31.430 | 31.571 | 35.068 | 39.103 | 42.162 | 40.108 |
+| trail MFE-2 da +3R | 30.445 | 30.614 | 30.374 | 31.783 | 31.538 | 31.689 | 31.520 |
+| trail MFE-3 da +4R | 29.891 | 30.713 | 31.317 | 33.342 | 35.149 | 35.437 | 32.200 |
+| trail MFE-4 da +6R | 28.518 | 31.430 | 31.149 | 33.616 | 35.757 | 36.028 | 32.524 |
+
+### Tre risultati
+
+**1. Nessuna scala batte la soglia singola.** La configurazione in uso
+(pareggio a +3R, nessun gradino successivo) e' la migliore di tutte e 84 le
+celle, sia in R (+171,1) sia in euro a parita' di drawdown. Aggiungere il
+secondo gradino (3>0 poi 5>2) costa **-9,1 R**; aggiungerne un terzo (7>4)
+costa **-25,7 R**. Ogni gradino in piu' toglie, e toglie in modo monotono.
+
+**2. Il trailing continuo e' il peggiore in assoluto.** Stop sempre a MFE-2:
++122,5 R contro +171,1, cioe' **-28%**, ed e' l'unica gestione che non migliora
+alzando l'obiettivo (resta piatta a ~31.000 EUR da 1:5 a 1:12). Il motivo e'
+quello di sempre: il trailing stretto taglia proprio le corse lunghe, che
+sono il 69% del risultato. Piu' e' lasco (MFE-4) meno danneggia, e al limite
+coincide con il non farlo.
+
+**3. Fra 1:5 e 1:9 non c'e' niente di nascosto.** La colonna cresce in modo
+regolare fino a 1:10 e poi cala a 1:12: 32.962 → 36.399 → 36.931 → 41.022 →
+45.742 → **49.321** → 46.918. Nessun massimo intermedio, nessuna sorpresa
+fra 1:5 e 1:9: l'ottimo e' 1:10 e la curva e' liscia.
+
+**Conclusione**: taratura invariata. La domanda "il trailing migliora?" ha
+risposta netta e negativa su 84 celle — e ora e' agli atti invece di essere
+un'ipotesi mai verificata. Dati in `scale-trailing.parquet`.

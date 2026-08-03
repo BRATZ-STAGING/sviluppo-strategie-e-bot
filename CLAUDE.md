@@ -121,6 +121,12 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   il 25-40% perche' ogni R vale meno. L'unica cella sopra il base (m=0,5,
   1:20: +187,9 R) ha il doppio del drawdown e in euro rende meno.
   Appendice AF.
+- **Scale di trailing a gradini** (3>0 poi 5>2 poi 7>4, e trailing continuo a
+  MFE-k), incrociate con obiettivi 1:5-1:12: 84 celle, nessuna batte il
+  pareggio a +3R da solo. Ogni gradino in piu' toglie (-9,1 R il secondo,
+  -25,7 R il terzo); il trailing continuo perde il 28% ed e' piatto su tutti
+  gli obiettivi. Fra 1:5 e 1:9 la curva e' liscia, l'ottimo resta 1:10.
+  Appendice AL.
 - **Obiettivo variabile col regime di volatilita'**: inutile, 1:10 e' il
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
