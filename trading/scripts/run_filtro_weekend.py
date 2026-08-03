@@ -41,8 +41,9 @@ def cammina(apri, fav, sfav, chiu, buchi, rr, scala, trail,
 
     ``buchi`` sono gli indici DOPO i quali il mercato chiude (fine settimana).
     ``soglia``: si resta aperti solo se a quel punto si e' sopra quella soglia,
-    altrimenti si esce alla chiusura. ``blocca``: lo stop viene portato al
-    prezzo di chiusura prima della sosta.
+    altrimenti si esce alla chiusura. ``blocca`` puo' essere "chiusura" (stop
+    al prezzo del venerdi', che azzera il margine) oppure "pareggio" (stop al
+    prezzo d'ingresso: garantisce di non perdere e lascia intatto il margine).
     """
     livello = -1.0
     mfe = 0.0
@@ -64,8 +65,10 @@ def cammina(apri, fav, sfav, chiu, buchi, rr, scala, trail,
         if i in buchi:                            # si va verso il fine settimana
             if soglia is not None and chiu[i] < soglia:
                 return chiu[i], 6, i              # chiusa prima della sosta
-            if blocca:
+            if blocca == "chiusura":
                 livello = max(livello, chiu[i])
+            elif blocca == "pareggio":
+                livello = max(livello, 0.0)
     return max(chiu[-1], livello), 2, len(fav) - 1
 
 
@@ -81,13 +84,14 @@ def main():
     print(f"operazioni: {len(ops)}\n", flush=True)
 
     PROVE = [
-        ("trail 1:8 · chiude venerdi'",        None,  False, True),
-        ("trail 1:8 · sempre aperta",          None,  False, False),
-        ("trail 1:8 · weekend solo sopra +3R", 3.0,   False, False),
-        ("trail 1:8 · weekend solo sopra +5R", 5.0,   False, False),
-        ("trail 1:8 · +3R e stop a chiusura",  3.0,   True,  False),
-        ("trail 1:8 · +5R e stop a chiusura",  5.0,   True,  False),
-        ("trail 1:8 · stop a chiusura, senza filtro", None, True, False),
+        ("chiude venerdi'",                 None, None,       True),
+        ("sempre aperta",                   None, None,       False),
+        ("weekend solo sopra +3R",          3.0,  None,       False),
+        ("stop a PAREGGIO nel weekend",     None, "pareggio", False),
+        ("pareggio + solo sopra +1R",       1.0,  "pareggio", False),
+        ("pareggio + solo sopra +3R",       3.0,  "pareggio", False),
+        ("pareggio + solo sopra +5R",       5.0,  "pareggio", False),
+        ("stop alla chiusura del venerdi'", None, "chiusura", False),
     ]
     scala, trail = next((s, t) for n, s, t in GESTIONI
                         if n == "trail MFE-2 da +3R")

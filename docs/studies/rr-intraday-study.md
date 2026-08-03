@@ -2875,3 +2875,36 @@ zero uscite per gap. Ma resta sotto la configurazione in vigore (+171,1 R con
 zero notti, zero swap e zero esposizione) — quindi non cambia la conclusione,
 migliora solo la comprensione: **se un giorno servisse tenere aperto, si tiene
 solo quando si e' gia' avanti, e lo stop NON si porta alla chiusura**.
+
+### Stop a PAREGGIO prima del fine settimana (precisazione dell'utente)
+
+L'idea non era portare lo stop al prezzo del venerdi' ma **al prezzo
+d'ingresso**: si garantisce di non perdere e si lascia intatto il margine che
+serve ad assorbire il salto. E' una regola diversa, e infatti va molto meglio.
+
+| variante | netto | vinte | uscite per gap | chiuse dal filtro |
+|---|---|---|---|---|
+| sempre aperta (riferimento) | +163,0 | 36,5% | 0 | — |
+| **stop a pareggio nel weekend** | **+161,2** | 37,1% | 3 | — |
+| **pareggio + solo sopra +1R** | **+160,8** | 37,4% | **0** | 11 |
+| pareggio + solo sopra +3R | +158,5 | 37,9% | 0 | 16 |
+| pareggio + solo sopra +5R | +157,2 | 37,9% | 0 | 22 |
+| chiude sempre il venerdi' | +154,6 | 37,6% | 0 | — |
+| stop alla chiusura del venerdi' | +152,5 | 37,9% | **10** | — |
+
+Lo stop a pareggio costa **1,8 R** contro gli 8,4 del chiudere sempre: e' il
+modo piu' economico di proteggersi. Da solo lascia ancora 3 uscite per gap
+(operazioni che il lunedi' riaprono sotto il prezzo d'ingresso); **aggiungendo
+il filtro sopra +1R le uscite per gap vanno a zero** e il costo totale resta
+2,2 R.
+
+La differenza con lo stop alla chiusura e' istruttiva: stessa intenzione, esiti
+opposti (+161,2 contro +152,5, 3 uscite per gap contro 10). Il motivo e' il
+margine: al pareggio resta tutto il guadagno accumulato come cuscinetto, alla
+chiusura del venerdi' il cuscinetto e' zero.
+
+**La regola migliore per tenere aperto** e' quindi: *stop a pareggio prima
+della sosta, e si resta aperti solo se si e' almeno a +1R*. Costa 2,2 R su
+163,0 (l'1,3%) e azzera l'esposizione ai gap. Resta comunque sotto la
+configurazione in vigore (+171,1 R), ma e' la versione giusta se un giorno
+servisse.
