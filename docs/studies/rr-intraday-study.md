@@ -2198,3 +2198,38 @@ dove la chiusura serale ne ha sette positivi. La costanza si paga.
 il drawdown giornaliero e l'esposizione simultanea, cioe' esattamente le due
 cose che i regimi lunghi peggiorano. La chiusura serale non e' un limite da
 togliere: e' il meccanismo che tiene 7 anni su 7 e il drawdown sotto controllo.
+
+## Appendice AI: OB + volumetrica + Fibonacci insieme, ricerca libera (registrazione)
+
+Richiesta dell'utente: rianalizzare order block, profilo volume, ritracciamenti
+ED estensioni di Fibonacci INSIEME, scegliendo io i parametri migliori per i
+livelli d'ingresso, per trovare una strategia solida e bilanciata nel tempo.
+
+Precedenti da tenere presenti: Fibo respinto col placebo da solo (app. O),
+profilo volume respinto come discriminante (app. V), OB respinto come
+ingresso (app. W) ma valido come filtro (app. P). Mai provata la
+COMBINAZIONE, ne' le estensioni Fibo come obiettivo.
+
+### Protocollo registrato PRIMA di guardare i risultati
+
+- Campione: le 1.897 operazioni del campione largo (contesto H6+H2 gia' nel
+  segnale), esito al minuto, spread 0,30, chiusura 21 UTC.
+- SEPARAZIONE OBBLIGATORIA: la ricerca dei parametri usa SOLO 2020-2023;
+  2024-2026 non viene guardato finche' la scelta non e' congelata. Il verdetto
+  e' il fuori campione, non la cella migliore in ricerca.
+- Griglia (450 celle): OB M33 {nessuno, piena, raffinata} x margine {0,5R, 1R};
+  profilo volume {nessuno, terzile basso, terzile alto}; ritracciamento Fibo
+  della gamba M33 {nessuno, 50%, 61,8%, 70,5%, 78,6%} con tolleranza 0,5R;
+  obiettivo {1:10 fisso, estensione 1,272, estensione 1,618}; pareggio
+  {nessuno, +3R}.
+- Scelta: la cella con R/op migliore in ricerca, con almeno 60 operazioni.
+- Verdetto: quella cella sul 2024-2026, confrontata con l'ufficiale sullo
+  stesso periodo. Si riportano anche le prime 10 celle, per far vedere quante
+  sopravvivono al passaggio.
+- Controllo del data mining: si dichiara quante celle battono il riferimento
+  IN RICERCA (per costruzione saranno molte) e quante lo battono FUORI. Se la
+  media delle prime 10 crolla fuori campione, la ricerca ha trovato rumore.
+
+Previsione: molte celle brillanti in ricerca (e' il senso di 450 tentativi),
+crollo fuori campione, e nessuna combinazione stabilmente sopra l'ufficiale.
+Se invece una regge, va comunque considerata candidata e non adottata.
