@@ -2570,3 +2570,82 @@ regimi lunghi. Il 24% delle operazioni resterebbe aperto oltre sera, con fino
 a 4 posizioni contemporanee: a rischio 1% ciascuna sono il 4% esposto in un
 istante. Prima di adottare uno di questi due profili serve misurare lo swap
 reale del broker e mettere un tetto alle posizioni contemporanee.
+
+## Appendice AP: scheda completa delle due candidate senza chiusura serale
+
+Tutto quello che serve per decidere fra le due combinazioni emerse
+nell'appendice AO e quella in vigore. Lotti fissi, 100 EUR per operazione,
+spread 0,30.
+
+| | **A** pari +3R, 1:8, venerdi' | **B** trail MFE-2, 1:8, aperta | in uso: pari +3R, 1:10, sera |
+|---|---|---|---|
+| operazioni | 348 | 348 | 348 |
+| **risultato** | **+191,8 R** (29.182 EUR) | +172,3 R (27.234) | +171,1 R (27.111) |
+| per operazione | +0,55 | +0,50 | +0,49 |
+| **vinte** | **81 (23,3%)** | 127 (36,5%) | 123 (35,3%) |
+| media vinta / persa | **+5,27** / -0,88 | +3,22 / -1,07 | +3,11 / -0,94 |
+| fattore di profitto | **1,82** | 1,73 | 1,81 |
+| vittorie / perdite di fila | 3 / **15** | **7** / 14 | 6 / 13 |
+| **perdita massima** | **14,3 R** | **14,3 R** | 17,6 R |
+| operazioni sotto il massimo | **59** | 34 | 33 |
+| mesi positivi | 32/71 | **37/71** | 36/71 |
+| anni positivi | **7/7** | **7/7** | **7/7** |
+| **anno peggiore** | **+11,5 R** | +10,4 R | +6,9 R |
+
+### Come esce, ciascuna
+
+| uscita | A | B | in uso |
+|---|---|---|---|
+| stop pieno | 214 | 221 | 189 |
+| obiettivo | **36** | 17 | 11 |
+| pareggio | 50 | 0 | 24 |
+| stop in utile | 0 | **110** | 0 |
+| scadenza (venerdi'/sera) | 48 | 0 | 124 |
+
+Sono due meccanismi opposti. **A vince poco e grosso**: solo 81 operazioni in
+utile su 348, ma la vincita media e' +5,27 R (contro +3,11) perche' le lascia
+correre tutta la settimana. **B vince spesso e medio**: 127 operazioni in
+utile, di cui 110 chiuse dal trailing a un livello gia' in guadagno — e' il
+trailing a fare tutto il lavoro.
+
+### I costi non modellati, misurati
+
+| | A | B | in uso |
+|---|---|---|---|
+| durata mediana | 3,0 ore | 2,5 ore | 2,7 ore |
+| durata media | 10,9 ore | 10,4 ore | 4,2 ore |
+| operazione piu' lunga | 4,3 giorni | 5,8 giorni | 14 ore |
+| operazioni oltre la notte | 25,0% | 24,1% | **0%** |
+| **notti totali da pagare** | **128** | **141** | **0** |
+| **fine settimana attraversati** | **0** | **22** | **0** |
+| posizioni contemporanee (max) | **4** | 3 | 3 |
+
+Numeri concreti per il conto: A paga **128 notti di swap** in sette anni, B ne
+paga 141 e attraversa **22 fine settimana** col rischio di gap sopra lo stop.
+Con uno swap tipico di 1-3 EUR per notte su 0,10 lotti, sono 130-400 EUR su
+sette anni: poco rispetto ai ~9.000 EUR di differenza, ma va verificato sul
+listino vero di FP, perche' su XAUUSD lo swap short e long non sono simmetrici
+e in certi periodi sono molto piu' alti.
+
+### Risultato per anno (R)
+
+| anno | A | B | in uso |
+|---|---|---|---|
+| 2020 | +17,4 | **+27,0** | +6,9 |
+| 2021 | +14,2 | +10,4 | +9,8 |
+| 2022 | +34,2 | +28,3 | +37,2 |
+| 2023 | +27,5 | +17,5 | +27,7 |
+| 2024 | +26,4 | +20,6 | +38,4 |
+| 2025 | **+60,7** | +55,2 | +44,1 |
+| 2026 | +11,5 | +13,3 | +7,0 |
+
+### Cosa manca prima di adottarle
+
+1. **Swap reale di FP** su XAUUSD, long e short, e ricalcolo con quel costo.
+2. **Gap del fine settimana**: il modello assume il fill esatto allo stop, che
+   in un gap non avviene. Riguarda solo B (22 weekend).
+3. **Tetto alle posizioni contemporanee**: A arriva a 4 aperte insieme, cioe'
+   il 4% esposto a rischio 1% ciascuna. Va messo un limite esplicito.
+4. **Verifica fuori campione**: queste due sono state scelte guardando gli
+   stessi sette anni, quindi vale l'avvertenza di sempre — sono candidate,
+   non adottate.
