@@ -2982,3 +2982,23 @@ Confermata invece la conclusione di fondo: **chiudere sempre il venerdi' e' la
 peggiore** (43,1 fisso contro 54,9 di media), ma e' anche l'unica senza
 incertezza. La differenza fra tenere aperto col filtro e chiudere e' 11,8 R
 sulle sole 23 operazioni interessate, con una dispersione fra 46,5 e 61,3.
+
+### Controllo della variante proposta (filtro +3R con stop a +1R)
+
+| variante | netto | vinte | uscite per gap | chiuse dal filtro |
+|---|---|---|---|---|
+| sempre aperta | +163,0 | 36,5% | 0 | — |
+| **solo sopra +1R** | **+167,6** | 37,6% | **0** | 11 |
+| +1R e stop a pareggio | +160,8 | 37,4% | 0 | 11 |
+| solo sopra +3R | +158,5 | 37,9% | 0 | 16 |
+| **+3R e stop a +1R** | **+158,5** | 37,9% | 0 | 16 |
+| +3R e stop a pareggio | +158,5 | 37,9% | 0 | 16 |
+
+Le tre righe con soglia +3R danno **lo stesso identico risultato**: quando
+l'operazione e' gia' sopra +3R il trailing ha portato lo stop ad almeno +1R da
+solo (MFE-2), quindi ordinare di spostarlo a +1R o a pareggio non cambia nulla.
+La regola proposta e' gia' contenuta nel trailing.
+
+**La soglia migliore e' +1R, non +3R**: +167,6 contro +158,5, cioe' 9 R di
+differenza. A +3R si filtrano 16 operazioni invece di 11, e le 5 in piu' che
+si chiudono erano mediamente in guadagno. Entrambe azzerano le uscite per gap.

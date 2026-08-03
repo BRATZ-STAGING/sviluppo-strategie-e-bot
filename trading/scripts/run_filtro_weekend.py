@@ -69,6 +69,8 @@ def cammina(apri, fav, sfav, chiu, buchi, rr, scala, trail,
                 livello = max(livello, chiu[i])
             elif blocca == "pareggio":
                 livello = max(livello, 0.0)
+            elif isinstance(blocca, (int, float)):
+                livello = max(livello, float(blocca))
     return max(chiu[-1], livello), 2, len(fav) - 1
 
 
@@ -84,14 +86,13 @@ def main():
     print(f"operazioni: {len(ops)}\n", flush=True)
 
     PROVE = [
-        ("chiude venerdi'",                 None, None,       True),
-        ("sempre aperta",                   None, None,       False),
-        ("weekend solo sopra +3R",          3.0,  None,       False),
-        ("stop a PAREGGIO nel weekend",     None, "pareggio", False),
-        ("pareggio + solo sopra +1R",       1.0,  "pareggio", False),
-        ("pareggio + solo sopra +3R",       3.0,  "pareggio", False),
-        ("pareggio + solo sopra +5R",       5.0,  "pareggio", False),
-        ("stop alla chiusura del venerdi'", None, "chiusura", False),
+        ("chiude venerdi'",              None, None,       True),
+        ("sempre aperta",                None, None,       False),
+        ("solo sopra +1R",               1.0,  None,       False),
+        ("solo sopra +3R",               3.0,  None,       False),
+        ("+3R e stop a +1R (proposta)",  3.0,  1.0,        False),
+        ("+3R e stop a pareggio",        3.0,  "pareggio", False),
+        ("+1R e stop a pareggio",        1.0,  "pareggio", False),
     ]
     scala, trail = next((s, t) for n, s, t in GESTIONI
                         if n == "trail MFE-2 da +3R")
