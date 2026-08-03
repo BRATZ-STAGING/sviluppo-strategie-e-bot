@@ -2828,3 +2828,50 @@ piu' piccolo della sua stessa incertezza (5,4 R di costo atteso, 32 R al
 percentile 99). Confermata la scelta di chiudere il venerdi', e confermato
 che la configurazione in vigore — che non attraversa neanche la notte — non
 ha affatto questa esposizione.
+
+## Appendice AT: filtro sul fine settimana e stop alla chiusura del venerdi'
+
+Due proposte dell'utente per rendere sostenibile il tenere aperto: attraversare
+il fine settimana solo se gia' sopra una soglia (+3R o +5R), e portare lo stop
+al prezzo di chiusura del venerdi' per congelare il guadagno. Motore completo:
+gap pagati al prezzo di riapertura, swap reale di FP.
+
+| variante | netto | swap | vinte | uscite per gap | chiuse dal filtro |
+|---|---|---|---|---|---|
+| **sempre aperta** | **+163,0** | -9,3 | 36,5% | 0 | — |
+| weekend solo sopra +3R | +158,5 | -8,7 | **37,9%** | **0** | 16 |
+| weekend solo sopra +5R | +157,2 | -7,6 | **37,9%** | **0** | 22 |
+| chiude sempre il venerdi' | +154,6 | -6,8 | 37,6% | 0 | — |
+| +5R e stop a chiusura | +156,0 | -7,6 | 37,9% | 1 | 22 |
+| +3R e stop a chiusura | +153,7 | -8,7 | 37,9% | **5** | 16 |
+| stop a chiusura, senza filtro | +152,5 | -9,0 | 37,9% | **10** | — |
+
+### Il filtro funziona come sperato, ma costa
+
+Le due varianti con filtro fanno esattamente il loro mestiere: **zero uscite
+per gap** e la quota di operazioni vinte sale al 37,9% (contro 36,5%). Il
+prezzo e' 4,5-5,8 R rispetto al tenere sempre aperto — meno di quanto costava
+chiudere sempre il venerdi' (8,4 R). Quindi il filtro **e' meglio di entrambe
+le regole secche**: prende meta' del vantaggio del tenere aperto e ne toglie
+quasi tutta l'esposizione.
+
+### Lo stop portato alla chiusura fa il contrario di quello che si spera
+
+L'idea era proteggere il guadagno; il risultato e' che **crea gli stop che
+voleva evitare**. Senza filtro le uscite per gap passano da 0 a **10**, e il
+netto scende da +163,0 a +152,5 — la peggiore di tutte le varianti. Il motivo
+e' aritmetico: portando lo stop al prezzo del venerdi' si azzera il margine,
+e a quel punto **qualunque riapertura anche solo di pochi centesimi sotto
+chiude l'operazione**. Il margine mediano fra prezzo e stop era 1,58 R e
+serviva proprio ad assorbire il salto.
+
+Aggiunto al filtro il danno si riduce (5 uscite per gap con +3R, una sola con
++5R) ma resta un peggioramento: -4,8 e -1,2 R rispetto al solo filtro.
+
+### Conclusione
+
+Il filtro sopra +3R e' la versione migliore del tenere aperto: +158,5 R con
+zero uscite per gap. Ma resta sotto la configurazione in vigore (+171,1 R con
+zero notti, zero swap e zero esposizione) — quindi non cambia la conclusione,
+migliora solo la comprensione: **se un giorno servisse tenere aperto, si tiene
+solo quando si e' gia' avanti, e lo stop NON si porta alla chiusura**.
