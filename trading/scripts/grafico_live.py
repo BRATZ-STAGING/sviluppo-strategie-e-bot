@@ -36,7 +36,7 @@ from framework.vwap import anchored_vwap                          # noqa: E402
 
 from export_lab import zone_ob                                    # noqa: E402
 
-TF_ZONE = ["M33", "H2", "H6", "H12"]
+TF_ZONE = ["M6", "M12", "M33", "M66", "H2", "H3", "H6", "H12"]
 VALIDITA = 30              # candele di vita di una zona, come negli studi
 BARRE_M1 = 60_000          # ~6 settimane: basta per struttura e zone
 AGGIORNA = 3.0             # secondi fra un ricalcolo e l'altro
@@ -78,7 +78,7 @@ def calcola():
            "ora": pd.Timestamp.now("UTC").strftime("%H:%M:%S"),
            "ultima_candela": m1.index[-1].strftime("%d/%m %H:%M"),
            "serie": {}, "zone": [], "struttura": {}, "pronto": True}
-    for tf in ("M6", "M33", "H2", "H6"):
+    for tf in ("M6", "M12", "M33", "M66", "H2", "H3", "H6"):
         s = resample_tf(m1, tf).tail(400)
         v = anchored_vwap(s, "day") if tf == "M6" else None
         out["serie"][tf] = {
@@ -111,6 +111,44 @@ def calcola():
                 "scade": scad[i].strftime("%d/%m %H:%M"),
                 "dist": round(bid - r.alto if r.lato == 1 else r.basso - bid, 2)})
     out["zone"].sort(key=lambda x: abs(x["dist"]))
+    out["profilo"] = profilo_sessioni(m1)
+    return out
+
+
+SESSIONI = {"asia": (0, 7), "london": (7, 12), "ny": (12, 21), "late": (21, 24)}
+BIN = 0.5                  # larghezza dei livelli di prezzo, in dollari
+
+
+def profilo_sessioni(m1):
+    """Volume scambiato per livello di prezzo, diviso per sessione UTC.
+
+    Solo la giornata corrente: e' il profilo che serve a leggere dove il
+    mercato ha lavorato oggi, non una media storica.
+    """
+    giorno = m1.index[-1].normalize()
+    d = m1[m1.index >= giorno]
+    if d.empty:
+        return None
+    tipico = ((d.high + d.low + d.close) / 3).values
+    vol = d.volume.values.astype(float)
+    vol[~np.isfinite(vol) | (vol <= 0)] = 1.0
+    liv = np.round(tipico / BIN).astype(np.int64)
+    ore = d.index.hour.values
+    unici = np.unique(liv)
+    out = {"prezzi": [round(float(u * BIN), 2) for u in unici]}
+    somme = {}
+    for nome, (a, b) in SESSIONI.items():
+        m = (ore >= a) & (ore < b)
+        s = np.zeros(len(unici))
+        if m.any():
+            np.add.at(s, np.searchsorted(unici, liv[m]), vol[m])
+        somme[nome] = s
+    # il volume e' in unita' diverse a seconda della fonte (conteggio tick da
+    # MT5, decimale nello storico): si normalizza a 100, contano le proporzioni
+    massimo = max(1e-12, float(sum(somme.values()).max()))
+    for nome, s in somme.items():
+        out[nome] = [round(float(x) / massimo * 100, 2) for x in s]
+    out["giorno"] = giorno.strftime("%d/%m")
     return out
 
 
@@ -153,18 +191,22 @@ th{color:var(--i3);font-weight:500;text-align:right}td:first-child,th:first-chil
 </style></head><body><div class="w">
 <h1>XAUUSD <span>·</span> live da MT5</h1>
 <div class="bar" id="bar"></div>
-<div class="seg" id="tf"></div>
+<div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div></div>
 <canvas id="c"></canvas>
 <table id="tab"></table>
 <p class="note">La colonna <b>raffinata</b> e' la parte che porta il vantaggio misurato.
 Una zona non e' un segnale da sola e non va usata come limite in attesa: serve il
 segnale della strategia con la struttura concorde.</p>
 </div><script>
-const TF=["M6","M33","H2","H6"];let tf="M33",D=null;
+const TF=["M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1;
 const el=i=>document.getElementById(i);
 el("tf").innerHTML=TF.map(t=>`<button aria-pressed="${t===tf}">${t}</button>`).join("");
 [...el("tf").children].forEach((b,k)=>b.onclick=()=>{tf=TF[k];
 [...el("tf").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
+el("vp").innerHTML=["profilo off","profilo sessioni"].map((t,k)=>
+ `<button aria-pressed="${k===vp}">${t}</button>`).join("");
+[...el("vp").children].forEach((b,k)=>b.onclick=()=>{vp=k;
+ [...el("vp").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
 const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra",""];
 async function tira(){try{const r=await fetch("/api/dati");D=await r.json();draw();}
 catch(e){}finally{setTimeout(tira,3000);}}
@@ -182,18 +224,26 @@ function draw(){
  const W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
  x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
  const n=s.c.length,vis=Math.min(n,180),i0=n-vis;
- const zs=D.zone.filter(z=>z.tf===tf||tf==="M6");
+ const zs=D.zone;
  let lo=Math.min(...s.l.slice(i0)),hi=Math.max(...s.h.slice(i0));
  zs.forEach(z=>{if(z.basso>lo-200&&z.alto<hi+200){lo=Math.min(lo,z.basso);hi=Math.max(hi,z.alto);}});
  const pad=(hi-lo)*.06||1;lo-=pad;hi+=pad;
  const pl=8,pr=62,pt=10,pb=8,pw=W-pl-pr,ph=H-pt-pb;
  const X=i=>pl+(i-i0)/Math.max(vis-1,1)*pw, Y=p=>pt+(hi-p)/(hi-lo)*ph;
- zs.forEach(z=>{const y1=Y(z.alto),y2=Y(z.basso);
-  x.fillStyle=z.lato===1?"rgba(78,165,127,.10)":"rgba(194,90,70,.10)";
+ const F="11px "+getComputedStyle(document.body).getPropertyValue("--m");
+ zs.forEach(z=>{const y1=Y(z.alto),y2=Y(z.basso),up=z.lato===1;
+  x.fillStyle=up?"rgba(78,165,127,.10)":"rgba(194,90,70,.10)";
   x.fillRect(pl,Math.min(y1,y2),pw,Math.abs(y2-y1));
   if(z.rbasso!==null){const r1=Y(z.ralto),r2=Y(z.rbasso);
-   x.fillStyle=z.lato===1?"rgba(78,165,127,.30)":"rgba(194,90,70,.30)";
-   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}});
+   x.fillStyle=up?"rgba(78,165,127,.32)":"rgba(194,90,70,.32)";
+   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}
+  // etichetta: senza, non si capisce di che timeframe sia la banda
+  const et=z.tf+" "+(up?"BUY":"SELL"), ym=(Math.min(y1,y2)+Math.max(y1,y2))/2;
+  x.font=F;x.textBaseline="middle";x.textAlign="left";
+  const w=x.measureText(et).width+8;
+  x.fillStyle=up?"rgba(78,165,127,.22)":"rgba(194,90,70,.22)";
+  x.fillRect(pl+3,ym-8,w,16);
+  x.fillStyle=up?"#4EA57F":"#C25A46";x.fillText(et,pl+7,ym);});
  if(s.v){x.strokeStyle=getComputedStyle(document.body).getPropertyValue("--vw");
   x.lineWidth=1.6;x.beginPath();let pen=false;
   for(let i=i0;i<n;i++){if(s.v[i]===null){pen=false;continue;}
@@ -204,6 +254,16 @@ function draw(){
   x.beginPath();x.moveTo(Math.round(X(i))+.5,Y(s.h[i]));x.lineTo(Math.round(X(i))+.5,Y(s.l[i]));x.stroke();
   const yo=Y(s.o[i]),yc=Y(s.c[i]);
   x.fillRect(X(i)-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
+ if(vp&&D.profilo){const P=D.profilo,SS=["asia","london","ny","late"],
+   CO={asia:"rgba(142,123,208,.55)",london:"rgba(201,154,62,.55)",
+       ny:"rgba(78,165,127,.55)",late:"rgba(110,103,95,.55)"};
+  let max=0;P.prezzi.forEach((_,i)=>{let t=0;SS.forEach(s2=>t+=P[s2][i]);max=Math.max(max,t)});
+  if(max>0){const lw=pw*.18, hb=Math.max(2,ph/((hi-lo)/0.5));
+   P.prezzi.forEach((p,i)=>{if(p<lo||p>hi)return;let x0=pl+pw;
+    SS.forEach(s2=>{const v=P[s2][i];if(!v)return;const w2=v/max*lw;
+     x.fillStyle=CO[s2];x.fillRect(x0-w2,Y(p)-hb/2,w2,hb);x0-=w2;});});
+   x.font=F;x.textAlign="right";x.textBaseline="top";x.fillStyle="#6E675F";
+   x.fillText("profilo volume "+P.giorno+" · asia londra ny sera",pl+pw-4,pt+4);}}
  const yb=Math.round(Y(D.bid))+.5;
  x.strokeStyle="#C99A3E";x.lineWidth=1;x.setLineDash([4,3]);
  x.beginPath();x.moveTo(pl,yb);x.lineTo(pl+pw,yb);x.stroke();x.setLineDash([]);
