@@ -191,14 +191,14 @@ th{color:var(--i3);font-weight:500;text-align:right}td:first-child,th:first-chil
 </style></head><body><div class="w">
 <h1>XAUUSD <span>·</span> live da MT5</h1>
 <div class="bar" id="bar"></div>
-<div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div></div>
+<div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div></div>
 <canvas id="c"></canvas>
 <table id="tab"></table>
 <p class="note">La colonna <b>raffinata</b> e' la parte che porta il vantaggio misurato.
 Una zona non e' un segnale da sola e non va usata come limite in attesa: serve il
 segnale della strategia con la struttura concorde.</p>
 </div><script>
-const TF=["M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1;
+const TF=["M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,etich=0,curY=null,fissate=new Set();
 const el=i=>document.getElementById(i);
 el("tf").innerHTML=TF.map(t=>`<button aria-pressed="${t===tf}">${t}</button>`).join("");
 [...el("tf").children].forEach((b,k)=>b.onclick=()=>{tf=TF[k];
@@ -207,6 +207,17 @@ el("vp").innerHTML=["profilo off","profilo sessioni"].map((t,k)=>
  `<button aria-pressed="${k===vp}">${t}</button>`).join("");
 [...el("vp").children].forEach((b,k)=>b.onclick=()=>{vp=k;
  [...el("vp").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
+el("et").innerHTML=["nomi al passaggio","nomi sempre"].map((t,k)=>
+ `<button aria-pressed="${k===etich}">${t}</button>`).join("");
+[...el("et").children].forEach((b,k)=>b.onclick=()=>{etich=k;
+ [...el("et").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
+// il puntatore decide quali nomi mostrare; il clic li fissa
+const cv0=el("c");
+cv0.addEventListener("mousemove",e=>{curY=e.clientY-cv0.getBoundingClientRect().top;draw();});
+cv0.addEventListener("mouseleave",()=>{curY=null;draw();});
+cv0.addEventListener("click",()=>{if(!D||!D.zone)return;
+ D.zone.forEach((z,i)=>{if(z._sotto){fissate.has(i)?fissate.delete(i):fissate.add(i);}});
+ draw();});
 const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra",""];
 async function tira(){try{const r=await fetch("/api/dati");D=await r.json();draw();}
 catch(e){}finally{setTimeout(tira,3000);}}
@@ -269,7 +280,10 @@ function draw(){
   x.fillRect(pl,Math.min(y1,y2),pw,Math.abs(y2-y1));
   if(z.rbasso!==null){const r1=Y(z.ralto),r2=Y(z.rbasso);
    x.fillStyle=up?"rgba(78,165,127,.32)":"rgba(194,90,70,.32)";
-   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}});
+   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}
+  z._sotto = curY!==null && curY>=Math.min(y1,y2)-2 && curY<=Math.max(y1,y2)+2;
+  if(z._sotto){x.strokeStyle=up?"#4EA57F":"#C25A46";x.lineWidth=1;
+   x.strokeRect(pl+.5,Math.min(y1,y2)+.5,pw-1,Math.max(Math.abs(y2-y1)-1,1));}});
 
  if(s.v){x.strokeStyle=getComputedStyle(document.body).getPropertyValue("--vw");
   x.lineWidth=1.6;x.beginPath();let pen=false;
@@ -288,9 +302,14 @@ function draw(){
  x.fillStyle="#C99A3E";x.font=F;x.textAlign="left";
  x.textBaseline="middle";x.fillText(D.bid.toFixed(2),pl+pw+6,yb);
 
- // --- etichette delle zone: a destra, distanziate per non sovrapporsi ------
+ // --- etichette: solo la banda sotto il puntatore, o quelle fissate col clic
  x.font=F;x.textBaseline="middle";x.textAlign="right";
- const et=zs.map(z=>({t:z.tf+" "+(z.lato===1?"BUY":"SELL"),up:z.lato===1,
+ const scelte=zs.filter((z,i)=>etich===1||z._sotto||fissate.has(i));
+ if(!scelte.length){x.fillStyle="#6E675F";x.textAlign="right";x.textBaseline="top";
+  x.fillText(zs.length+" zone · passa sopra una banda per il nome, clic per fissarlo",
+             pl+pw-4,pt+4);x.textBaseline="middle";}
+ const et=scelte.map(z=>({t:z.tf+" "+(z.lato===1?"BUY":"SELL")+"  "
+    +z.basso.toFixed(2)+"–"+z.alto.toFixed(2),up:z.lato===1,
    y:(Y(z.alto)+Y(z.basso))/2})).sort((a,b)=>a.y-b.y);
  const H0=16;                                  // altezza minima fra etichette
  for(let k=1;k<et.length;k++)                  // scendendo: spingi in giu'
