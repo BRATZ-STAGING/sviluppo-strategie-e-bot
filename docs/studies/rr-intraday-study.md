@@ -2519,3 +2519,54 @@ Due cose che questo dice, e che valgono piu' di qualunque ottimizzazione:
 2. **Tre mesi e mezzo con 13 perdite di fila sono nel copione.** Nessuna delle
    84 gestioni le riduce: il massimo di perdite consecutive e' 13 in TUTTE le
    celle. Si puo' cambiare quanto costano, non quante sono.
+
+## Appendice AO: le otto gestioni senza la chiusura di fine giornata
+
+Domanda dell'utente: se il conto non ha il vincolo prop sull'overnight, cosa
+succede alle otto gestioni sopravvissute alla scrematura? Tre regimi: chiusura
+alle 21 (in vigore), chiusura al venerdi' sera, nessuna chiusura per tempo
+(tetto 30 giorni). Lotti fissi, 100 EUR per operazione.
+
+| gestione | rr | giornaliera | settimanale | aperta | DD R (gio→apert) | anni+ |
+|---|---|---|---|---|---|---|
+| pari a +3R (in uso) | 10 | +171,1 | +182,4 | **+224,1** | 17,6 → **24,0** | 7 → **6** |
+| pari a +3R | 9 | +162,8 | +187,3 | **+231,1** | 17,6 → 25,7 | 7 → 7 |
+| **pari a +3R** | **8** | +151,0 | **+191,8** | +218,1 | 17,6 → **14,3** (sett.) | 7 → 7 |
+| scala 3>0 5>2 | 10 | +162,0 | +142,4 | +184,1 | 17,6 → 20,7 | 7 → 6 |
+| stop fisso | 10 | +155,6 | +172,9 | +221,1 | 17,6 → **38,6** | 7 → 6 |
+| pari a +2R | 10 | +151,9 | +167,1 | +193,1 | 15,6 → 19,6 | 7 → 6 |
+| **scala 4>1 7>4** | **9** | +148,4 | +176,4 | +178,1 | 17,6 → **16,5** | 7 → **7** |
+| **trail MFE-2** | **8** | +122,7 | +161,4 | +172,3 | 17,6 → **14,3** | 7 → **7** |
+
+### Il ribaltamento: senza chiusura serale servono gestioni diverse
+
+Tenendo aperto, **le gestioni cambiano di ruolo**. Con la chiusura serale il
+trailing era il peggiore di tutti (+122,7, ultimo su otto); senza chiusura
+diventa una delle migliori scelte: +172,3 R con il **drawdown piu' basso in
+assoluto (14,3 R contro i 24,0 della configurazione in uso)**, 37 mesi
+positivi su 71 e 7 anni su 7. Il motivo e' evidente: quando la posizione puo'
+restare aperta giorni, qualcuno deve proteggere il guadagno — di notte non c'e'
+piu' la campanella a farlo.
+
+Specularmente, il pareggio a +3R con 1:10 e' quello che guadagna di piu' in
+assoluto senza chiusura (+224,1), ma il conto e' salato: drawdown da 17,6 a
+**24,0 R**, la quota di operazioni vinte crolla dal 35,3% al **13,5%**, le
+perdite di fila passano da 13 a **28**, e si perde un anno positivo. Lo stop
+fisso e' il caso estremo: +221 R con **38,6 R di drawdown**, piu' del doppio.
+
+### Le due combinazioni che migliorano su tutto
+
+Solo due celle stanno meglio senza chiusura serale **senza pagare in rischio**:
+
+- **pari a +3R con obiettivo 1:8, chiusura settimanale**: +191,8 R (contro
+  151,0), drawdown **14,3 R invece di 17,6**, perdite di fila 15, 7 anni su 7,
+  anno peggiore +11,4 R — il migliore di tutta la tabella.
+- **trailing MFE-2 con 1:8, tenuta aperta**: +172,3 R (contro 122,7),
+  drawdown 14,3, 34 operazioni sott'acqua, 37 mesi positivi.
+
+Avvertenza obbligatoria, la stessa dell'appendice AH: **swap, gap del fine
+settimana e posizioni sovrapposte non sono modellati**, e penalizzano solo i
+regimi lunghi. Il 24% delle operazioni resterebbe aperto oltre sera, con fino
+a 4 posizioni contemporanee: a rischio 1% ciascuna sono il 4% esposto in un
+istante. Prima di adottare uno di questi due profili serve misurare lo swap
+reale del broker e mettere un tetto alle posizioni contemporanee.
