@@ -2465,3 +2465,57 @@ E la lezione ripetuta per l'ennesima volta, ora anche sulle misure di
 stabilita': **la percentuale di operazioni in perdita non e' una leva da
 migliorare**. Si puo' comprare (65 celle lo fanno) ma il prezzo e' sempre lo
 stesso — meno risultato e meno robustezza. Dati in `stabilita.parquet`.
+
+## Appendice AN: scrematura delle 84 gestioni, e dove cadono le serie
+
+### Le celle che sopravvivono al confronto
+
+Delle 84 combinazioni, **10 non sono dominate** da nessun'altra (cioe' non
+esiste una cella che le batta insieme su risultato, drawdown in R, quota di
+vinte, tempo sotto il massimo e anni positivi). Le altre 74 si possono
+scartare senza pensarci: c'e' sempre qualcosa di meglio sotto ogni aspetto.
+
+| gestione | rr | R tot | % vinte | DD R | sotto max | mesi+ | anni+ | peggiore | PF |
+|---|---|---|---|---|---|---|---|---|---|
+| **pari a +3R (in uso)** | 10 | **171,1** | 35,3 | 17,6 | 33 | 36 | 7 | **+6,9** | **1,81** |
+| scala 3>0 5>2 | 10 | 162,0 | 36,2 | 17,6 | 33 | 35 | 7 | +0,8 | 1,77 |
+| stop fisso | 10 | 155,6 | 36,5 | 17,6 | 33 | 35 | 7 | +4,8 | 1,68 |
+| pari a +2R | 10 | 151,9 | 32,5 | **15,6** | 49 | 32 | 7 | +2,4 | 1,78 |
+| scala 4>1 7>4 | 9 | 148,4 | 38,5 | 17,6 | 33 | 35 | 7 | +3,7 | 1,66 |
+| trail MFE-2 da +3R | 8 | 122,7 | **42,2** | 17,6 | 45 | **37** | 7 | +1,2 | 1,59 |
+
+(le altre quattro sono varianti peggiori delle stesse famiglie)
+
+Solo tre scelte hanno senso: **massimo risultato** (quella in uso), **minimo
+drawdown** (pari a +2R: 15,6 R contro 17,6, ma 49 operazioni sott'acqua invece
+di 33 e 19 R in meno), **massima quota di vinte** (trailing MFE-2: 42,2%, al
+prezzo di 48 R). Nessuna combinazione dà due cose insieme.
+
+### Le serie sono un fatto del mercato, non della gestione
+
+Osservazione dell'utente: le serie di vittorie e sconfitte sono identiche in
+quasi tutte le celle. E' vero, e il motivo e' che **la gestione cambia quanto
+rende un'operazione, non se e' vinta o persa**: rispetto alla configurazione
+in uso, lo stop fisso cambia segno a 4 operazioni su 348, la scala a 16, il
+trailing continuo a 24. Il resto e' identico.
+
+Dove cadono, sulla configurazione in uso:
+
+| serie | quando | durata | esito |
+|---|---|---|---|
+| **13 perdite di fila** | 24/02/2026 → 09/06/2026 | 105 giorni | -13,3 R |
+| 6 vittorie di fila | 14/04/2020 → 29/06/2020 | 76 giorni | +7,9 R |
+
+L'intuizione dell'utente e' corretta: la serie nera **e' esattamente il
+drawdown massimo**. La curva era a +164,1 R (massimo +168,4), scende a
++150,8 R: sono i 17,6 R di perdita massima, e il periodo va dal 20/10/2025 al
+09/06/2026, 27 operazioni in tutto.
+
+Due cose che questo dice, e che valgono piu' di qualunque ottimizzazione:
+
+1. **La peggiore attraversata dei sette anni e' l'ultima**, ancora in corso a
+   fine campione. Non e' un guasto della strategia: e' il tipo di periodo che
+   capita, e chi comincia adesso potrebbe partire proprio da li'.
+2. **Tre mesi e mezzo con 13 perdite di fila sono nel copione.** Nessuna delle
+   84 gestioni le riduce: il massimo di perdite consecutive e' 13 in TUTTE le
+   celle. Si puo' cambiare quanto costano, non quante sono.

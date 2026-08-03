@@ -58,7 +58,9 @@ def esito(fav, sfav, r_eod, rr, scala, trail):
     mfe = 0.0
     for i in range(len(fav)):
         if sfav[i] >= -livello:                  # 1) lo stop, per primo
-            return livello, (0 if livello <= -1 else 3)
+            if livello <= -1:
+                return livello, 0                # stop pieno
+            return livello, (3 if livello == 0 else 4)   # pareggio / stop in utile
         if fav[i] >= rr:                         # 2) poi l'obiettivo
             return float(rr), 1
         mfe = max(mfe, fav[i])                   # 3) infine la protezione
