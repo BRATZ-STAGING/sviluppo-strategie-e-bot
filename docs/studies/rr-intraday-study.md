@@ -2233,3 +2233,55 @@ COMBINAZIONE, ne' le estensioni Fibo come obiettivo.
 Previsione: molte celle brillanti in ricerca (e' il senso di 450 tentativi),
 crollo fuori campione, e nessuna combinazione stabilmente sopra l'ufficiale.
 Se invece una regge, va comunque considerata candidata e non adottata.
+
+### Risultati: sopravvive l'order block, muore Fibonacci
+
+136 celle valutabili (almeno 60 operazioni in ricerca) su 600. Riferimento:
+tutte le operazioni con 1:10 e pareggio +3R, +0,138 R/op in ricerca e
++0,176 fuori campione. **49 celle su 136 battono il riferimento in ricerca**:
+esattamente il numero che ci si aspetta cercando fra centinaia, ed e' il
+motivo per cui il verdetto e' solo il fuori campione.
+
+Le prime dieci celle scelte SOLO su 2020-2023, misurate su 2024-2026:
+
+| # | order block | volume | fibo | R/op ricerca | n | **R/op fuori** | tot fuori |
+|---|---|---|---|---|---|---|---|
+| 1 | piena, margine 0,5R | terzile alto | — | +0,589 | 46 | **+1,168** | +53,7 |
+| 3 | raffinata, margine 1R | terzile alto | — | +0,535 | 51 | **+1,139** | +58,1 |
+| 5 | piena, margine 0,5R | qualunque | — | +0,436 | 68 | **+0,916** | +62,3 |
+| 9 | nessuno | terzile medio | **50%** | +0,359 | 87 | **-0,092** | -8,0 |
+| 10 | piena, margine 1R | terzile alto | — | +0,344 | 76 | +0,880 | +66,9 |
+
+Lettura netta, e coerente con tutto lo studio:
+
+1. **Le celle con l'order block reggono il passaggio fuori campione** e anzi
+   migliorano (+0,59 in ricerca, +1,17 fuori). E' la conferma indipendente
+   dell'appendice P, ora su un campione e un periodo diversi.
+2. **L'unica cella con Fibonacci fra le prime dieci e' anche l'unica che
+   CROLLA** (+0,359 in ricerca, -0,092 fuori). Terza falsificazione dopo il
+   placebo dell'appendice O e la scrematura AB.
+3. **Il profilo volume da solo non compare mai**; in coppia con l'OB il
+   terzile alto sembra aggiungere (+1,168 contro +0,916 senza), ma su 46
+   operazioni la differenza non e' distinguibile: resta un indizio.
+
+### Verifica di causalita' (dubbio sollevato dall'utente)
+
+Il motore e' a scorrimento: swing noti k barre DOPO l'estremo, zone attive
+dalla chiusura della candela che rompe, ingresso su candele chiuse, uscita
+risolta minuto per minuto con lo stop che prevale sull'obiettivo. Per
+escludere una fuga di informazione sottile, la cella migliore e' stata
+ricalcolata pretendendo le zone note con 33 e 66 minuti di RITARDO:
+
+| ritardo imposto | n in zona | R/op ricerca | R/op fuori campione |
+|---|---|---|---|
+| nessuno | 160 | +0,589 | +1,168 |
+| una candela M33 (33') | 157 | +0,592 | +1,168 |
+| due candele M33 (66') | 151 | +0,649 | +0,962 |
+
+Il risultato non dipende dal sapere le cose in anticipo: ritardando
+l'informazione resta identico. Se ci fosse lookahead, crollerebbe.
+
+**Conclusione**: la ricerca libera su tre famiglie di livelli riporta allo
+stesso posto di sempre — l'order block come filtro funziona, Fibonacci no, il
+volume al massimo accompagna. Nessuna adozione: 46-51 operazioni fuori
+campione sono poche, e la strada corretta e' verificarlo in avanti.
