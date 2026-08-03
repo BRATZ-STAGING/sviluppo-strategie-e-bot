@@ -127,6 +127,12 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   -25,7 R il terzo); il trailing continuo perde il 28% ed e' piatto su tutti
   gli obiettivi. Fra 1:5 e 1:9 la curva e' liscia, l'ottimo resta 1:10.
   Appendice AL.
+- **Tenere aperto oltre la sera** (chiusura al venerdi' o nessuna chiusura,
+  con le gestioni migliori): con lo SWAP REALE di FP (long -71,5 punti a
+  notte, mercoledi' triplo, cioe' 0,151 R a notte con lo stop mediano) il
+  vantaggio sparisce. La candidata migliore scende da +172,3 a +163,0 R,
+  sotto la configurazione in vigore. Il rollover cade alle 21 UTC: chiudere
+  a fine giornata costa zero swap. Appendici AO, AP, AQ.
 - **Obiettivo variabile col regime di volatilita'**: inutile, 1:10 e' il
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento

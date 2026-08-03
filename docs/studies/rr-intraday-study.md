@@ -2649,3 +2649,49 @@ e in certi periodi sono molto piu' alti.
 4. **Verifica fuori campione**: queste due sono state scelte guardando gli
    stessi sette anni, quindi vale l'avvertenza di sempre — sono candidate,
    non adottate.
+
+## Appendice AQ: lo swap reale di FP ribalta le candidate overnight
+
+Specifiche del simbolo XAUUSD sul conto FP, lette dall'utente il 03/08/2026:
+swap **in punti**, long **-71,5**, short **+32,5**, lotto 100 once,
+coefficiente **x3 il mercoledi'**. Su XAUUSD un punto vale 0,01 $ di prezzo,
+che su 100 once fa **1 $ per lotto**: una notte di long costa **71,50 $ per
+lotto**, una di short ne rende 32,50.
+
+Tradotto in multipli del rischio (swap_R = punti / (100 x stop in $)), con lo
+stop mediano di 4,72 $: **una notte di long costa 0,151 R**, cioe' il 15% del
+rischio dell'operazione. Il rollover cade alle 00:00 del server (UTC+3) = le
+21:00 UTC, esattamente l'ora della chiusura di fine giornata: **chi chiude alle
+21 non paga swap, mai**.
+
+| configurazione | lordo | swap | **netto** | notti pesate | vinte | DD | anni+ | peggiore |
+|---|---|---|---|---|---|---|---|---|
+| **in uso: pari +3R 1:10, sera** | +171,1 | **0,0** | **+171,1** | 0 | 35,3% | 17,6 | 7/7 | +6,9 |
+| A: pari +3R 1:8, venerdi' | +191,8 | **-13,4** | +178,4 | 230 | 25,6% | **14,3** | 7/7 | **+11,3** |
+| B: trail MFE-2 1:8, aperta | +172,3 | -9,3 | +163,0 | 189 | 36,5% | **14,3** | 7/7 | +10,1 |
+| B': trail MFE-2 1:8, venerdi' | +161,4 | -6,8 | +154,6 | 139 | 37,6% | **14,3** | 7/7 | **+12,8** |
+
+### Cosa cambia
+
+Lo swap **mangia da 7 a 13 R** e riordina la classifica:
+
+- **B, la candidata che sembrava migliore, scende sotto la configurazione in
+  vigore**: +163,0 contro +171,1. Il vantaggio apparente era swap non pagato.
+- **B' (chiusura al venerdi', come chiesto dall'utente) e' ancora peggio**:
+  +154,6 R. Chiudere il venerdi' evita i gap del fine settimana ma taglia
+  anche le corse lunghe, e le notti restano comunque 139.
+- **A resta sopra**: +178,4 contro +171,1, cioe' **+7,3 R in sette anni** —
+  circa 730 EUR a lotti fissi, l'1% l'anno. In cambio di 230 notti di
+  esposizione, gap non modellati e una quota di vinte che scende al 25,6%.
+
+Da notare: il 69% delle operazioni e' long, cioe' proprio il lato che paga.
+Se la strategia fosse prevalentemente short lo swap sarebbe un ricavo (+32,5
+punti a notte) e la conclusione si rovescerebbe.
+
+### Conclusione
+
+**La chiusura alle 21 UTC non e' un vincolo da subire: e' gratis e vale
+quanto tenere aperto.** Il piccolo vantaggio residuo di A (+4%) non ripaga
+gap del weekend, fino a 4 posizioni contemporanee e 15 perdite di fila. La
+taratura resta quella in vigore, e adesso lo si sa con il listino vero in
+mano invece che con una stima.
