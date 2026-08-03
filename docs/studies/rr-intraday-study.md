@@ -2117,3 +2117,38 @@ quel punto non c'e' piu' niente da guadagnare.
 
 **Conclusione**: taratura invariata, con la mappa completa alle spalle. Dati
 in `stop-rr.parquet`.
+
+## Appendice AG: la frontiera a parita' di drawdown (stabilita' contro rendimento)
+
+Domanda dell'utente: col 1:10 solo il 3% tocca l'obiettivo; esistono
+condizioni con piu' stabilita' e meno stop, magari anche piu' redditizie?
+Confronto onesto: ogni cella (moltiplicatore stop x obiettivo x pareggio)
+portata allo STESSO drawdown del base (16,3%) muovendo il rischio, poi
+confrontata su conto finale e su tre misure di stabilita' (anni positivi,
+anno peggiore, operazioni consecutive sotto il massimo precedente).
+
+| cella | rischio | conto | stop presi | vinte | anni+ | anno peggiore | sotto-max |
+|---|---|---|---|---|---|---|---|
+| m1, 1:20, +3R | 1,00% | 49.929 | 54% | 35% | 7/7 | +4,2R | 33 |
+| **m1, 1:10, +3R (in vigore)** | **1,00%** | **49.328** | 54% | 35% | **7/7** | **+6,9R** | **33** |
+| m1, 1:10, +2R | 1,13% | 48.552 | **49%** | 32% | 7/7 | +2,4R | 49 |
+| m1, 1:8, +3R | 1,00% | 41.027 | 54% | 35% | 7/7 | +6,7R | 33 |
+| m1,5, 1:3, qualunque | 0,94% | 22.916 | **47%** | **47%** | 6/7 | **-7,6R** | 32 |
+
+Il risultato che risponde alla domanda: **abbassare l'obiettivo compra
+percentuali di successo, non stabilita'**. La cella con meno stop e piu'
+operazioni vinte in assoluto (stop largo 1,5x, obiettivo 1:3: 47% di stop,
+47% di vinte, TP toccato nel 17,5% dei casi) e' anche quella con l'unico
+ANNO IN PERDITA (-7,6R) e con meno della meta' del conto finale (22.916
+contro 49.328). Piu' vittorie, meno soldi, meno costanza: esattamente la
+legge gia' vista in appendice S.
+
+Il pareggio a +2R e' l'unico scambio reale disponibile: -5 punti di stop
+presi (49% contro 54%) e anno peggiore piu' vicino a zero, pagati con il 2%
+di conto e con 49 operazioni consecutive sotto il massimo invece di 33 —
+cioe' MENO stabilita' nel senso che conta davvero, il tempo passato sotto
+acqua. Il 1:20 fa 600 EUR in piu' del 1:10 con TP allo 0,29%: irrilevante.
+
+**Conclusione**: sulla frontiera a pari drawdown la configurazione in vigore
+e' gia' sul bordo efficiente. Non esiste, in 84 celle, una combinazione di
+stop e obiettivo che dia insieme piu' soldi e piu' stabilita'.
