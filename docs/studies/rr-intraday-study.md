@@ -2737,3 +2737,45 @@ Resta il motivo per cui nessuna delle due viene adottata: 230 e 139 notti di
 esposizione a mercato non sorvegliato, fino a 4 posizioni contemporanee, e
 soprattutto la scelta fatta guardando gli stessi sette anni. Il vantaggio di A
 (+4,5%) e' dentro il margine di rumore di una selezione fra 84 celle.
+
+## Appendice AR: vale la pena attraversare il fine settimana?
+
+Domanda dell'utente su B: meglio farla correre anche nel weekend o chiudere il
+venerdi'? Nel modello **correre rende di piu'**: +163,0 R contro +154,6, cioe'
+chiudere il venerdi' costa 8,4 R. Ma quel guadagno sta esattamente dove il
+modello e' cieco: i salti del lunedi'.
+
+Misurati sui 340 fine settimana dello storico 2020-2026 (differenza fra
+chiusura del venerdi' e apertura successiva, in valore assoluto):
+
+| | dollari | in R con stop 4,72 $ |
+|---|---|---|
+| mediana | 1,31 | 0,28 |
+| p75 | 3,52 | 0,75 |
+| p90 | 13,15 | 2,79 |
+| p95 | 19,59 | **4,15** |
+| p99 | 59,22 | 12,55 |
+| **massimo** | **111,94** | **23,72** |
+
+Il 21% dei fine settimana apre oltre 1 R di distanza, il 12% oltre 2 R.
+
+### Il conto
+
+B attraversa 22 fine settimana in sette anni e ne ricava **+8,4 R, cioe'
++0,38 R per weekend**. Contro: quando il salto supera lo stop nella direzione
+sbagliata, l'operazione non esce a -1 R ma alla riapertura, e i gap oltre 1 R
+valgono in media **3,96 R**. Con 22 attraversamenti e il 21% di gap oltre 1 R,
+l'attesa e' di circa 4-5 episodi: se anche solo uno o due cadono dalla parte
+sbagliata di una posizione aperta, il guadagno di 8,4 R e' bruciato.
+
+E c'e' l'asimmetria che conta di piu': il modello **conta i gap favorevoli**
+(il prezzo salta verso l'obiettivo e l'operazione chiude meglio) ma **non
+penalizza quelli contrari** oltre lo stop, perche' assume il fill esatto al
+livello. Quindi i +8,4 R sono gonfiati proprio dal meccanismo che li rende
+inaffidabili.
+
+**Risposta: chiudere il venerdi'.** Si rinuncia a un guadagno modellato di
+8,4 R (5%) per togliere una coda che nel caso peggiore osservato vale 23,7 R
+su una singola operazione — piu' del drawdown massimo di tutta la strategia.
+Vale comunque solo come nota di metodo: B in entrambe le versioni resta sotto
+la configurazione in vigore.
