@@ -24,7 +24,7 @@ occupata, e' il server. Per vederlo da fuori, in una seconda finestra:
 | bande verdi | zone BUY (sotto il prezzo), rosse: zone SELL (sopra) |
 | parte scura dentro la banda | **zona raffinata**: e' quella che conta |
 | linea gialla tratteggiata | il bid adesso |
-| linea viola | VWAP della giornata (grafico M6) |
+| linea viola | VWAP della giornata, uguale su ogni timeframe |
 | barre a sinistra | volume scambiato oggi per prezzo, colorato per sessione |
 | riga chiara tratteggiata | il livello piu' scambiato della giornata |
 | fasce appena schiarite | i vuoti, dove il prezzo e' passato di corsa |
@@ -48,7 +48,10 @@ occasioni sbagliate.
 **3. Conferme.** **M33 e H12 dalla stessa parte** dell'operazione, e **M12
 dalla parte opposta** (il ritracciamento in corso su cui si entra).
 
-**4. Il segnale, sul grafico M6.** Il prezzo scende a toccare il VWAP
+**4. Il segnale, sul grafico M6.** (Il VWAP e' ancorato alla giornata, quindi
+la linea e' la stessa su qualunque grafico: M6 stabilisce solo ogni quanto si
+verifica la condizione, ed e' il timeframe che ha reso di piu' fra quelli
+provati.) Il prezzo scende a toccare il VWAP
 giornaliero (la linea viola) e **chiude sopra**, sopra anche il massimo della
 candela precedente, dopo essersi allontanato di almeno 4 $ dal VWAP durante la
 giornata. Specularmente per il SELL. **Si entra a mercato alla chiusura di

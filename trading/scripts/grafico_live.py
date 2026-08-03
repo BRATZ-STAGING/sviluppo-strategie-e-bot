@@ -78,9 +78,14 @@ def calcola():
            "ora": pd.Timestamp.now("UTC").strftime("%H:%M:%S"),
            "ultima_candela": m1.index[-1].strftime("%d/%m %H:%M"),
            "serie": {}, "zone": [], "struttura": {}, "pronto": True}
+    # il VWAP e' ancorato alla giornata: si calcola una volta sui minuti e si
+    # legge alla chiusura di ogni candela, cosi' e' lo STESSO su ogni grafico
+    vwap_m1 = anchored_vwap(m1, "day")
     for tf in ("M6", "M12", "M33", "M66", "H2", "H3", "H6"):
         s = resample_tf(m1, tf).tail(400)
-        v = anchored_vwap(s, "day") if tf == "M6" else None
+        passo = pd.Timedelta(TIMEFRAMES[tf])
+        v = vwap_m1.reindex(s.index + passo - pd.Timedelta("1min"),
+                            method="ffill").values
         out["serie"][tf] = {
             "t": [int(x.timestamp() * 1000) for x in s.index],
             "o": [round(x, 2) for x in s.open], "h": [round(x, 2) for x in s.high],
