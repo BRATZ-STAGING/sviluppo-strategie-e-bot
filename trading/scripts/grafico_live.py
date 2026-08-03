@@ -231,19 +231,46 @@ function draw(){
  const pl=8,pr=62,pt=10,pb=8,pw=W-pl-pr,ph=H-pt-pb;
  const X=i=>pl+(i-i0)/Math.max(vis-1,1)*pw, Y=p=>pt+(hi-p)/(hi-lo)*ph;
  const F="11px "+getComputedStyle(document.body).getPropertyValue("--m");
+
+ // --- profilo volume: a SINISTRA, sotto a tutto il resto -------------------
+ let poc=null, vuoti=[];
+ if(D.profilo){const P=D.profilo,SS=["asia","london","ny","late"],
+   CO={asia:"rgba(142,123,208,.50)",london:"rgba(201,154,62,.50)",
+       ny:"rgba(78,165,127,.50)",late:"rgba(110,103,95,.50)"};
+  const tot=P.prezzi.map((_,i)=>SS.reduce((a,s2)=>a+P[s2][i],0));
+  const max=Math.max(...tot,0);
+  if(max>0){
+   poc=P.prezzi[tot.indexOf(max)];
+   // zone di vuoto: livelli scambiati poco, uniti in fasce contigue
+   const soglia=max*.15; let ini=null;
+   P.prezzi.forEach((p,i)=>{const sotto=tot[i]<soglia&&tot[i]>0;
+    if(sotto&&ini===null)ini=p; if(!sotto&&ini!==null){vuoti.push([ini,P.prezzi[i-1]]);ini=null;}});
+   if(ini!==null)vuoti.push([ini,P.prezzi[P.prezzi.length-1]]);
+   vuoti=vuoti.filter(v=>v[1]-v[0]>=1.5);           // solo i vuoti veri
+   if(vp){const lw=pw*.20, hb=Math.max(2,ph/((hi-lo)/0.5));
+    // le fasce di vuoto attraversano tutto il grafico
+    x.fillStyle="rgba(233,228,219,.045)";
+    vuoti.forEach(v=>x.fillRect(pl,Y(v[1]),pw,Math.max(Y(v[0])-Y(v[1]),1.5)));
+    P.prezzi.forEach((p,i)=>{if(p<lo||p>hi)return;let x0=pl;
+     SS.forEach(s2=>{const v=P[s2][i];if(!v)return;const w2=v/max*lw;
+      x.fillStyle=CO[s2];x.fillRect(x0,Y(p)-hb/2,w2,hb);x0+=w2;});});
+    // il livello piu' scambiato, esteso su tutto il grafico
+    const yp=Math.round(Y(poc))+.5;
+    x.strokeStyle="rgba(233,228,219,.55)";x.lineWidth=1;x.setLineDash([2,4]);
+    x.beginPath();x.moveTo(pl,yp);x.lineTo(pl+pw,yp);x.stroke();x.setLineDash([]);
+    x.font=F;x.textAlign="left";x.textBaseline="bottom";x.fillStyle="#8E877E";
+    x.fillText("volume massimo "+poc.toFixed(2),pl+4,yp-2);
+    x.textAlign="left";x.textBaseline="top";
+    x.fillText("profilo "+P.giorno+" · asia londra ny sera",pl+4,pt+4);}}}
+
+ // --- zone: bande, senza etichetta (le etichette vanno a destra, in fondo) --
  zs.forEach(z=>{const y1=Y(z.alto),y2=Y(z.basso),up=z.lato===1;
   x.fillStyle=up?"rgba(78,165,127,.10)":"rgba(194,90,70,.10)";
   x.fillRect(pl,Math.min(y1,y2),pw,Math.abs(y2-y1));
   if(z.rbasso!==null){const r1=Y(z.ralto),r2=Y(z.rbasso);
    x.fillStyle=up?"rgba(78,165,127,.32)":"rgba(194,90,70,.32)";
-   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}
-  // etichetta: senza, non si capisce di che timeframe sia la banda
-  const et=z.tf+" "+(up?"BUY":"SELL"), ym=(Math.min(y1,y2)+Math.max(y1,y2))/2;
-  x.font=F;x.textBaseline="middle";x.textAlign="left";
-  const w=x.measureText(et).width+8;
-  x.fillStyle=up?"rgba(78,165,127,.22)":"rgba(194,90,70,.22)";
-  x.fillRect(pl+3,ym-8,w,16);
-  x.fillStyle=up?"#4EA57F":"#C25A46";x.fillText(et,pl+7,ym);});
+   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}});
+
  if(s.v){x.strokeStyle=getComputedStyle(document.body).getPropertyValue("--vw");
   x.lineWidth=1.6;x.beginPath();let pen=false;
   for(let i=i0;i<n;i++){if(s.v[i]===null){pen=false;continue;}
@@ -254,21 +281,27 @@ function draw(){
   x.beginPath();x.moveTo(Math.round(X(i))+.5,Y(s.h[i]));x.lineTo(Math.round(X(i))+.5,Y(s.l[i]));x.stroke();
   const yo=Y(s.o[i]),yc=Y(s.c[i]);
   x.fillRect(X(i)-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
- if(vp&&D.profilo){const P=D.profilo,SS=["asia","london","ny","late"],
-   CO={asia:"rgba(142,123,208,.55)",london:"rgba(201,154,62,.55)",
-       ny:"rgba(78,165,127,.55)",late:"rgba(110,103,95,.55)"};
-  let max=0;P.prezzi.forEach((_,i)=>{let t=0;SS.forEach(s2=>t+=P[s2][i]);max=Math.max(max,t)});
-  if(max>0){const lw=pw*.18, hb=Math.max(2,ph/((hi-lo)/0.5));
-   P.prezzi.forEach((p,i)=>{if(p<lo||p>hi)return;let x0=pl+pw;
-    SS.forEach(s2=>{const v=P[s2][i];if(!v)return;const w2=v/max*lw;
-     x.fillStyle=CO[s2];x.fillRect(x0-w2,Y(p)-hb/2,w2,hb);x0-=w2;});});
-   x.font=F;x.textAlign="right";x.textBaseline="top";x.fillStyle="#6E675F";
-   x.fillText("profilo volume "+P.giorno+" · asia londra ny sera",pl+pw-4,pt+4);}}
+
  const yb=Math.round(Y(D.bid))+.5;
  x.strokeStyle="#C99A3E";x.lineWidth=1;x.setLineDash([4,3]);
  x.beginPath();x.moveTo(pl,yb);x.lineTo(pl+pw,yb);x.stroke();x.setLineDash([]);
- x.fillStyle="#C99A3E";x.font="11px "+getComputedStyle(document.body).getPropertyValue("--m");
+ x.fillStyle="#C99A3E";x.font=F;x.textAlign="left";
  x.textBaseline="middle";x.fillText(D.bid.toFixed(2),pl+pw+6,yb);
+
+ // --- etichette delle zone: a destra, distanziate per non sovrapporsi ------
+ x.font=F;x.textBaseline="middle";x.textAlign="right";
+ const et=zs.map(z=>({t:z.tf+" "+(z.lato===1?"BUY":"SELL"),up:z.lato===1,
+   y:(Y(z.alto)+Y(z.basso))/2})).sort((a,b)=>a.y-b.y);
+ const H0=16;                                  // altezza minima fra etichette
+ for(let k=1;k<et.length;k++)                  // scendendo: spingi in giu'
+  if(et[k].y-et[k-1].y<H0) et[k].y=et[k-1].y+H0;
+ for(let k=et.length-1;k>0;k--)                // risalendo: rientra nel bordo
+  if(et[k].y>pt+ph-8){et[k].y=pt+ph-8;
+   if(et[k].y-et[k-1].y<H0) et[k-1].y=et[k].y-H0;}
+ et.forEach(e=>{const w=x.measureText(e.t).width+9, xr=pl+pw-4;
+  x.fillStyle=e.up?"rgba(78,165,127,.22)":"rgba(194,90,70,.22)";
+  x.fillRect(xr-w,e.y-8,w,16);
+  x.fillStyle=e.up?"#4EA57F":"#C25A46";x.fillText(e.t,xr-5,e.y);});
  el("tab").innerHTML="<tr><th>tf</th><th>lato</th><th>zona</th><th>raffinata</th>"+
   "<th>distanza</th><th>attiva da</th><th>scade</th></tr>"+
   (D.zone.length?D.zone.map(z=>`<tr><td>${z.tf}</td>
