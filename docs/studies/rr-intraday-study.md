@@ -2695,3 +2695,45 @@ quanto tenere aperto.** Il piccolo vantaggio residuo di A (+4%) non ripaga
 gap del weekend, fino a 4 posizioni contemporanee e 15 perdite di fila. La
 taratura resta quella in vigore, e adesso lo si sa con il listino vero in
 mano invece che con una stima.
+
+### Le stesse tre, a rischio percentuale invece che a lotti fissi
+
+Con reinvestimento (1% e 0,5% del capitale corrente, da 10.000 EUR), swap
+reale gia' sottratto:
+
+| | in uso 1:10 sera | A: pari +3R 1:8 venerdi' | B: trail 1:8 venerdi' |
+|---|---|---|---|
+| **conto all'1%** | 49.321 | **51.524** | 42.707 |
+| rendimento | +393% | **+415%** | +327% |
+| **perdita max** | 16% (7.901 EUR) | 13% (6.480) | **13% (5.371)** |
+| conto allo 0,5% | 22.844 | **23.516** | 21.151 |
+| perdita max allo 0,5% | 8% (1.914 EUR) | 7% (1.575) | **7% (1.417)** |
+| mesi positivi | 36/71 | 31/71 | 36/71 |
+| anno peggiore | +646 EUR | +1.267 | **+1.445** |
+
+Per anno, a rischio 1% (euro):
+
+| anno | in uso | A | B |
+|---|---|---|---|
+| 2020 | 646 | 1.544 | **2.083** |
+| 2021 | 920 | 1.267 | **1.445** |
+| 2022 | 4.971 | 4.851 | **5.206** |
+| 2023 | **4.857** | 4.866 | 2.977 |
+| 2024 | **9.251** | 5.374 | 3.363 |
+| 2025 | 15.797 | **18.749** | 12.845 |
+| 2026 | 2.878 | **4.873** | 4.788 |
+
+Il quadro con la composizione e' lo stesso dei lotti fissi, con due sfumature
+che contano:
+
+- **A vince di 2.200 EUR su 6 anni e mezzo (+4,5%) e con drawdown minore**
+  (13% contro 16%): a parita' di rischio percentuale e' la sola configurazione
+  che migliora davvero, non solo in R.
+- **B resta sotto** (42.707 contro 49.321) ma ha la perdita massima piu' bassa
+  in assoluto (5.371 EUR contro 7.901) e l'anno peggiore piu' alto: e' il
+  profilo piu' tranquillo, pagato con un quinto del rendimento.
+
+Resta il motivo per cui nessuna delle due viene adottata: 230 e 139 notti di
+esposizione a mercato non sorvegliato, fino a 4 posizioni contemporanee, e
+soprattutto la scelta fatta guardando gli stessi sette anni. Il vantaggio di A
+(+4,5%) e' dentro il margine di rumore di una selezione fra 84 celle.
