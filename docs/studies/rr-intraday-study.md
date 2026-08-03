@@ -2285,3 +2285,44 @@ l'informazione resta identico. Se ci fosse lookahead, crollerebbe.
 stesso posto di sempre — l'order block come filtro funziona, Fibonacci no, il
 volume al massimo accompagna. Nessuna adozione: 46-51 operazioni fuori
 campione sono poche, e la strada corretta e' verificarlo in avanti.
+
+## Appendice AJ: backtest completo 7 anni, zona piena contro zona raffinata
+
+Richiesta dell'utente: backtest completo sui sette anni di OB pieno piu' OB
+raffinato. Margine 0,5 x rischio, obiettivo 1:10, pareggio +3R, spread 0,30.
+
+### Sulla regola ufficiale (348 operazioni)
+
+| sottoinsieme | n | R tot | R/op | utile | stop | TP | DD | anni+ | PF |
+|---|---|---|---|---|---|---|---|---|---|
+| tutte | 348 | +171,1 | +0,492 | 35% | 54% | 3,2% | 16,3% | **7/7** | 1,81 |
+| in zona piena | 69 | +54,8 | +0,795 | 45% | 43% | 4,3% | 8,0% | 5/7 | 2,63 |
+| **in zona raffinata** | 29 | +36,4 | **+1,256** | 52% | 38% | **10,3%** | **4,3%** | 5/7 | **4,07** |
+| piena ma NON raffinata | 40 | +18,4 | +0,461 | 40% | 48% | **0,0%** | 7,1% | 4/7 | 1,85 |
+
+### Sul campione largo (1.344 operazioni)
+
+| sottoinsieme | n | R tot | R/op | utile | stop | TP | DD | anni+ | PF |
+|---|---|---|---|---|---|---|---|---|---|
+| tutte | 1344 | +205,2 | +0,153 | 29% | 59% | 2,2% | 41,9% | 5/7 | 1,23 |
+| in zona piena | 160 | +102,4 | +0,640 | 41% | 49% | 3,8% | 11,6% | 6/7 | 2,17 |
+| **in zona raffinata** | 63 | +84,5 | **+1,342** | 56% | 35% | **9,5%** | **3,3%** | **7/7** | **4,50** |
+| piena ma NON raffinata | 97 | +17,9 | +0,184 | 32% | 58% | **0,0%** | 16,9% | 4/7 | 1,28 |
+
+### Il risultato che conta: e' la RAFFINATA a fare tutto
+
+Separando le due parti della zona piena si vede che il vantaggio dell'order
+block sta INTERAMENTE nella parte raffinata (la definizione dell'utente):
+
+- campione largo: raffinata +1,342 R/op su 63 operazioni, il resto della zona
+  piena +0,184 su 97 — praticamente il campione senza filtro.
+- **zero TP pieni** fuori dalla zona raffinata, in entrambi i campioni: le
+  corse fino a 1:10 avvengono solo dentro la zona stretta.
+- la raffinata sul campione largo e' l'unico sottoinsieme con 7 anni positivi
+  su 7, drawdown 3,3% e fattore di profitto 4,50.
+
+Limite serio e dichiarato: 29 e 63 operazioni sono poche, circa 4-9 all'anno.
+Come filtro DURO la raffinata butta il 92% del campione e chiude a +36,4 R
+contro +171,1: non e' una strategia sostitutiva. Il suo posto e' altrove —
+sovrappeso di rischio (appendice X: +26,7% a pari drawdown, p 0,06) e
+selezione delle occasioni migliori nell'operativita' manuale.
