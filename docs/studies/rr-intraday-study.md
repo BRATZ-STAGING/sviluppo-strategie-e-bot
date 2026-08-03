@@ -2908,3 +2908,39 @@ della sosta, e si resta aperti solo se si e' almeno a +1R*. Costa 2,2 R su
 163,0 (l'1,3%) e azzera l'esposizione ai gap. Resta comunque sotto la
 configurazione in vigore (+171,1 R), ma e' la versione giusta se un giorno
 servisse.
+
+### Le stesse regole contro gap generici, non solo quelli capitati
+
+Sui gap realmente accaduti tutte le regole con filtro escono a costo zero, ma
+e' un campione di 23 attraversamenti: dice poco. Ripetuto il metodo
+dell'appendice AS — salti pescati a caso dai 340 fine settimana dello storico,
+20.000 storie alternative — su ciascuna regola:
+
+| regola | attraversamenti | margine mediano | costo mediano | media | p90 | p99 | storie a costo zero |
+|---|---|---|---|---|---|---|---|
+| nessuna protezione | 23 | 1,58 R | 2,7 | 5,3 | 14,2 | 32,9 | 15% |
+| stop a pareggio | 23 | 1,09 R | 5,5 | **8,1** | 18,1 | 37,3 | **0%** |
+| **pareggio + solo sopra +1R** | **12** | 1,55 R | **0,0** | **2,1** | 7,2 | 23,8 | **56%** |
+| pareggio + solo sopra +3R | 7 | 1,38 R | 0,0 | **1,6** | 4,8 | 24,0 | **66%** |
+| stop alla chiusura | 23 | 0,00 R | 7,9 | 10,4 | 21,3 | 41,0 | 0% |
+
+### Il risultato che rovescia la lettura di prima
+
+Sui gap capitati lo stop a pareggio DA SOLO sembrava quasi gratis (1,8 R). Su
+storie generiche e' **la seconda regola peggiore**: costo atteso 8,1 R, e in
+nessuna delle 20.000 storie esce a zero. Il motivo si legge nella colonna del
+margine: portando lo stop a pareggio si **riduce** il cuscinetto da 1,58 a
+1,09 R, perche' le operazioni con lo stop gia' sopra il pareggio non
+guadagnano nulla mentre quelle sotto perdono margine. Protegge dal caso
+"chiudo in perdita" e peggiora il caso "gap oltre lo stop".
+
+**Il filtro invece regge**, ed e' l'unico che regge: tenendo solo le
+operazioni gia' sopra +1R gli attraversamenti scendono da 23 a 12, il costo
+atteso crolla a **2,1 R** e piu' della meta' delle storie esce a zero. Con la
+soglia a +3R si scende a 1,6 R ma restano solo 7 attraversamenti, quindi il
+guadagno del tenere aperto si assottiglia.
+
+**Conclusione rivista**: quello che protegge non e' spostare lo stop, e'
+**non attraversare il fine settimana con le operazioni deboli**. Lo stop a
+pareggio da solo e' controproducente; il filtro sopra +1R e' la regola giusta,
+e va tenuta anche senza toccare lo stop.
