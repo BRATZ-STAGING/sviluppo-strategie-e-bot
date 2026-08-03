@@ -3002,3 +3002,124 @@ La regola proposta e' gia' contenuta nel trailing.
 **La soglia migliore e' +1R, non +3R**: +167,6 contro +158,5, cioe' 9 R di
 differenza. A +3R si filtrano 16 operazioni invece di 11, e le 5 in piu' che
 si chiudono erano mediamente in guadagno. Entrambe azzerano le uscite per gap.
+
+## Appendice AU: undici anni mai visti — lo storico esteso al 2009
+
+Tutto quello che sta sopra e' misurato sul 2020-2026. La strategia e' stata
+costruita li' dentro: le verifiche "per anno" e i train/test 2020-2023 contro
+2024-2026 condividono tutti lo stesso mercato, l'oro che sale da 1.500 a
+5.500 con due strappi. Un fuori campione dentro il proprio periodo non e' un
+fuori campione.
+
+Il feed Dukascopy serve gli stessi file giornalieri fino al 2009, quindi
+l'archivio si allunga senza cambiare fonte ne' formato:
+`trading/scripts/estendi_storico.py`. Prima di fidarsi, la verifica: sul
+2020-06-10, giorno gia' in archivio, il convertitore riproduce le 1.379
+candele con **differenza massima 0,0** su tutte e cinque le colonne. E il
+riscontro esterno torna al centesimo: massimo **1920,66 il 06/09/2011**,
+minimo **1046,23 nel 2015**.
+
+Sono **undici anni** (2009-2019, 3,93 milioni di candele) che nessuna scelta
+di questo progetto ha mai visto, e contengono esattamente i regimi che
+mancavano: il picco del 2011, il crollo 2012-2015, il laterale 2016-2019.
+
+### Il risultato
+
+| periodo | strategia | op | R | R/op | vinte | DD | anni+ | PF |
+|---|---|---|---|---|---|---|---|---|
+| **2009-2019** | **in uso** | 382 | **-39,3** | -0,10 | 28,0% | **47,8** | **3/11** | 0,86 |
+| 2009-2019 | A | 382 | -47,5 | -0,12 | 17,0% | 71,1 | 4/11 | 0,86 |
+| 2009-2019 | B | 382 | -90,8 | -0,24 | 22,5% | 89,8 | 2/11 | 0,72 |
+| **2020-2026** | **in uso** | 350 | **+157,1** | +0,45 | 34,9% | 17,6 | 6/7 | 1,73 |
+| 2020-2026 | A | 350 | +169,7 | +0,48 | 24,9% | 14,6 | 7/7 | 1,69 |
+| 2020-2026 | B | 350 | +170,5 | +0,49 | 36,9% | 14,4 | 7/7 | 1,72 |
+| 2009-2026 | in uso | 732 | +117,8 | +0,16 | 31,3% | 54,5 | 9/18 | 1,24 |
+
+Tutte e tre le candidate **perdono** sugli undici anni nuovi. Non "guadagnano
+meno": perdono, con tre anni positivi su undici e una perdita massima di 47,8
+R contro i 17,6 del periodo di casa — quasi tre volte tanto, cioe' il 48% del
+conto al rischio dell'1%.
+
+### Per anno (R, lotti fissi)
+
+| anno | in uso | A | B | op | | anno | in uso | A | B | op |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2009 | -6,5 | -16,5 | -13,8 | 35 | | 2018 | -14,8 | +9,8 | -2,2 | 25 |
+| 2010 | -16,7 | -31,7 | -23,6 | 33 | | 2019 | -4,9 | -3,4 | -7,3 | 32 |
+| 2011 | +22,7 | +37,2 | +6,2 | 49 | | 2020 | -6,5 | +10,4 | +25,7 | 55 |
+| 2012 | -17,8 | -22,2 | -27,8 | 46 | | 2021 | +13,1 | +15,7 | +16,6 | 51 |
+| 2013 | -3,7 | -16,3 | -8,1 | 48 | | 2022 | +37,2 | +33,7 | +30,7 | 37 |
+| 2014 | -6,9 | -6,5 | -9,7 | 22 | | 2023 | +23,5 | +19,1 | +13,6 | 47 |
+| 2015 | +2,5 | +15,5 | +5,5 | 29 | | 2024 | +38,9 | +24,5 | +19,9 | 53 |
+| 2016 | +14,1 | +1,1 | -3,8 | 45 | | 2025 | +44,0 | +55,1 | +50,8 | 82 |
+| 2017 | -7,3 | -14,5 | -6,3 | 18 | | 2026 | +7,0 | +11,3 | +13,2 | 25 |
+
+La riga di separazione non e' graduale: **tutti gli anni dal 2021 in poi sono
+positivi, otto degli undici precedenti sono negativi.** Non e' un
+peggioramento progressivo, e' un interruttore.
+
+### Dove sta davvero il vantaggio: nel lato lungo
+
+| periodo | long | short |
+|---|---|---|
+| 2009-2019 | 230 op, **-29,5 R** (-0,13/op) | 152 op, -9,8 R (-0,06/op) |
+| 2020-2026 | 243 op, **+141,1 R** (+0,58/op) | 107 op, +16,0 R (+0,15/op) |
+| 2009-2026 | 473 op, +111,6 R (+0,24/op) | 259 op, **+6,2 R (+0,02/op)** |
+
+Su diciotto anni il lato **corto non ha vantaggio**: +6,2 R su 259 operazioni,
+cioe' due centesimi di R per operazione, indistinguibile da zero. E il 90% del
+risultato del 2020-2026 viene dalle operazioni lunghe. Letto con calma: quello
+che si e' misurato non e' una strategia che legge la struttura, e' un modo di
+salire sul treno dell'oro mentre saliva.
+
+### Nota sui numeri del periodo di casa
+
+Caricando anche il 2009-2019, il 2020-2026 non da' piu' +171,1 R ma +157,1 su
+350 operazioni invece di 348. Non e' un errore: `high_volatility_months` usa
+una finestra **espansiva** sul passato, quindi con undici anni di storia in
+piu' la mediana di riferimento cambia e qualche mese cambia regime. E' un
+calcolo causale in entrambi i casi — quello nuovo e' semplicemente meglio
+informato. Con `XAU_ANNI=2020-2026` si riottengono esattamente **348
+operazioni e +171,1 R**, cioe' il numero pubblicato.
+
+## Appendice AV: e' regime o unita' di misura? (ipotesi pre-registrata)
+
+Prima di concludere qualcosa dall'appendice AU va escluso il sospetto ovvio.
+Le soglie della taratura sono in **dollari**: impulso 4,00, buffer 0,30,
+rischio fra 1,00 e 10,00. La conversione all'ATR scatta solo nei mesi ad alta
+volatilita', quindi quasi mai prima del 2020. Quattro dollari valgono 0,16-0,34
+ATR nel 2009-2019 e 0,03-0,17 ATR nel 2020-2026: la stessa soglia e' due o tre
+volte piu' severa nel periodo vecchio.
+
+**Ipotesi pre-registrata**: se il vantaggio appartiene alla strategia e non al
+periodo, misurando TUTTE le soglie in ATR il 2009-2019 deve tornare positivo.
+
+| variante | 2009-2019 | 2020-2026 | op tot |
+|---|---|---|---|
+| ufficiale (dollari) | **-39,3** (3/11 anni) | +157,1 | 732 |
+| sempre ATR, rif. 2020-2024 | **-67,1** (3/11 anni) | +147,1 | 959 |
+| sempre ATR, rif. 2009-2013 | **-105,3** (2/11 anni) | +142,8 | 810 |
+
+**Ipotesi respinta.** Normalizzare all'ATR non recupera niente: peggiora, e
+peggiora di piu' quanto piu' il riferimento e' onesto (mediana nota all'epoca
+invece che presa dal futuro). Il periodo di casa resta positivo in tutte e tre
+le versioni. Non e' un problema di unita' di misura.
+
+### Cosa resta in piedi
+
+1. **Il vantaggio misurato appartiene al 2020-2026**, non alla strategia. Su
+   undici anni indipendenti la stessa identica regola perde.
+2. **La perdita massima vera non e' 16-17 R ma almeno 47,8 R** (89,8 per B).
+   Al rischio dell'1% per operazione sono 48 punti di conto, non 16. Qualunque
+   dimensionamento tarato sul 2020-2026 e' ottimista di un fattore tre.
+3. **Il lato corto e' da considerare senza vantaggio** finche' non lo si
+   dimostra altrove: 259 operazioni su diciotto anni per +6,2 R.
+4. Le conclusioni *relative* fra gestioni reggono anche fuori campione — A e B
+   restano vicine fra loro e in uso, e l'ordine non si ribalta. Quello che non
+   regge e' il segno.
+
+Questo non dice che la strategia sia sbagliata: dice che **l'unica prova che
+esiste a suo favore viene dal periodo su cui e' stata costruita**, e che gli
+undici anni indipendenti dicono il contrario. Prima di metterla su un conto
+reale — a maggior ragione su tre conti — la domanda da risolvere e' questa,
+non quale variante di trailing renda mezzo R in piu'.

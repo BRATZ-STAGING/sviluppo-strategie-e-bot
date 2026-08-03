@@ -36,14 +36,21 @@ CHIUSURA_MIN = 120        # oltre due ore fra due candele = mercato chiuso
 
 
 def cammina(apri, fav, sfav, chiu, buchi, rr, scala, trail,
-            soglia=None, blocca=False):
+            soglia=None, blocca=None):
     """Percorre l'operazione minuto per minuto.
 
     ``buchi`` sono gli indici DOPO i quali il mercato chiude (fine settimana).
     ``soglia``: si resta aperti solo se a quel punto si e' sopra quella soglia,
     altrimenti si esce alla chiusura. ``blocca`` puo' essere "chiusura" (stop
-    al prezzo del venerdi', che azzera il margine) oppure "pareggio" (stop al
-    prezzo d'ingresso: garantisce di non perdere e lascia intatto il margine).
+    al prezzo del venerdi', che azzera il margine), "pareggio" (stop al prezzo
+    d'ingresso: garantisce di non perdere e lascia intatto il margine), un
+    numero (lo stop va a quel livello) oppure None (lo stop non si tocca).
+
+    ATTENZIONE: ``blocca=False`` NON vuol dire "non toccare lo stop". In
+    Python ``isinstance(False, int)`` e' vero, quindi False finirebbe nel ramo
+    numerico e varrebbe ``0.0``, cioe' proprio il pareggio. Per non toccare lo
+    stop si passa None; il controllo esplicito qui sotto rende innocuo
+    l'errore, che e' gia' costato una misura sbagliata.
     """
     livello = -1.0
     mfe = 0.0
@@ -69,7 +76,7 @@ def cammina(apri, fav, sfav, chiu, buchi, rr, scala, trail,
                 livello = max(livello, chiu[i])
             elif blocca == "pareggio":
                 livello = max(livello, 0.0)
-            elif isinstance(blocca, (int, float)):
+            elif isinstance(blocca, (int, float)) and not isinstance(blocca, bool):
                 livello = max(livello, float(blocca))
     return max(chiu[-1], livello), 2, len(fav) - 1
 

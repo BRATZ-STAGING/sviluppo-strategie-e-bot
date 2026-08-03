@@ -106,7 +106,7 @@ def lunga(op, idx, ap_, hi, lo, cl, rr, scala, trail, solo_venerdi, soglia):
     d = np.diff(idx[a:b]) / 60_000_000_000
     buchi = set(np.flatnonzero(d > CHIUSURA_MIN).tolist())
     x, motivo, j = cammina(apri, fav, sfav, chiu, buchi, rr, scala, trail,
-                           soglia, False)
+                           soglia, None)     # None: lo stop non si tocca
     t_out = pd.Timestamp(idx[a + j], unit="ns", tz="UTC")
     swap = (notti(t_in, t_out) * (SWAP_LONG if segno == 1 else SWAP_SHORT)
             / (CONTRATTO * k))
@@ -153,6 +153,20 @@ def main():
           f"{(anni >= 2020).sum()} in quello gia' studiato)", flush=True)
 
     fuori = risultati(ops, m1)
+    # dettaglio per operazione: qualunque taglio successivo (per lato, per
+    # regime, per ora) si fa su questo file, senza rifare lo studio
+    dett = pd.DataFrame({
+        "time": [pd.Timestamp(o["time"]) for o in ops],
+        "anno": anni, "mese": mesi,
+        "lato": [o["lato"] for o in ops],
+        "entry": [o["entry"] for o in ops],
+        "rischio": [o["rischio"] for o in ops],
+        "costo": [o["costo"] for o in ops],
+        **{f"r_{n}": v for n, v in fuori.items()},
+    })
+    dett.to_parquet(os.path.join(ROOT, "docs", "studies", "dati",
+                                 "fuori_campione_dettaglio.parquet"), index=False)
+
     df = tabella(fuori, anni, mesi)
     df.to_parquet(os.path.join(ROOT, "docs", "studies", "dati",
                                "fuori_campione.parquet"), index=False)
@@ -171,6 +185,20 @@ def main():
         index=np.unique(anni))
     per_anno["ops"] = [int((anni == y).sum()) for y in np.unique(anni)]
     print(per_anno.round(1).to_string())
+
+    print("\n=== per lato: la strategia guadagna in entrambe le direzioni?")
+    for eti, da, a_ in PERIODI:
+        sel = (anni >= da) & (anni <= a_)
+        if not sel.any():
+            continue
+        lati = np.array([o["lato"] for o in ops])
+        pezzi = []
+        for lato in ("long", "short"):
+            s = sel & (lati == lato)
+            r = fuori["in uso"][s]
+            pezzi.append(f"{lato} {int(s.sum()):3d} op {r.sum():+7.1f} R "
+                         f"({r.mean():+.2f}/op)")
+        print(f"  {eti:16s} " + " | ".join(pezzi))
 
     print("\n=== controllo: mediana ATR di riferimento presa dal 2009-2013 "
           "(nota all'epoca) invece che dal 2020-2024 (che nel 2009 non esisteva)")

@@ -9,13 +9,29 @@ girando?** Aggiornato al 30/07/2026.
 
 | | |
 |---|---|
-| periodo | 2020-01-01 → 2026-07-06 |
-| righe | 2,31 milioni |
+| periodo | **2009-01-01 → 2026-07-06** |
+| righe | **6,24 milioni** |
 | prezzi | **BID** |
 | fuso | UTC, candele etichettate all'APERTURA |
-| peso | 39 MB |
+| peso | 109 MB |
 
 Fonte Dukascopy. E' la base di tutti gli studi in `docs/studies/`.
+
+Gli anni **2009-2019** sono stati aggiunti il 03/08/2026 con
+`trading/scripts/estendi_storico.py`, dallo stesso endpoint giornaliero
+`BID_candles_min_1.bi5`. Verifica del convertitore prima di usarli: sul
+2020-06-10, giorno gia' in archivio, riproduce le 1.379 candele con
+differenza massima **0,0** su tutte e cinque le colonne; copertura 309-314
+giornate l'anno e 1.130-1.170 minuti al giorno, come nel 2020-2026. Riscontro
+esterno: massimo **1920,66 il 06/09/2011** e minimo **1046,23 nel 2015**,
+entrambi al centesimo.
+
+**Attenzione agli studi vecchi**: da adesso `load_m1` senza argomenti carica
+anche il 2009-2019, quindi i numeri pubblicati prima dell'estensione non si
+riproducono per caso. Con `XAU_ANNI=2020-2026` si riottengono esatti (348
+operazioni, +171,1 R). Ogni caricamento stampa su stderr il periodo usato.
+Cosa dicono gli undici anni nuovi: `docs/studies/rr-intraday-study.md`,
+appendici AU e AV.
 
 ## 2. Tick bid+ask — sul PC, NON nel repository
 

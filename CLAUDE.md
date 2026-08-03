@@ -7,7 +7,10 @@
   NON rifare studi già fatti, i numeri sono lì).
 - Codice in `trading/framework/`, script in `trading/scripts/`, test:
   `cd trading && python3 -m pytest tests/ -q` (134 test al 2026-07-07).
-- Dati M1 2020→2026 in `data/XAUUSD_M1/*.parquet` (BID, UTC, un file/anno).
+- Dati M1 **2009→2026** in `data/XAUUSD_M1/*.parquet` (BID, UTC, un file/anno),
+  6,24 milioni di candele. `XAU_ANNI=2020-2026` limita gli anni caricati senza
+  toccare il codice: serve a riprodurre i numeri pubblicati prima
+  dell'estensione. Ogni `load_m1` stampa su stderr il periodo effettivo.
 - Dipendenze: `pip install pandas pyarrow pytest tabulate` (non in repo).
 
 ## Il laboratorio (`trading/scripts/`)
@@ -80,9 +83,20 @@ fuori campione (misure in `docs/studies/rr-intraday-study.md`):
 - soglie in dollari nei mesi normali, riscalate sull'ATR in quelli ad alta
   volatilita' (fattore 1,5)
 
-Risultato: +171,1R su 348 operazioni, **7 anni positivi su 7**, perdita
-massima 16%, 49.321 EUR da 10.000. Cambiare un numero qui cambia tutti gli
-studi: farlo solo dopo una verifica per anno e fuori campione.
+Risultato sul 2020-2026: +171,1R su 348 operazioni, **7 anni positivi su 7**,
+perdita massima 16%, 49.321 EUR da 10.000. Cambiare un numero qui cambia tutti
+gli studi: farlo solo dopo una verifica per anno e fuori campione.
+
+### ATTENZIONE — sul 2009-2019 la stessa taratura PERDE (appendici AU-AV)
+
+Undici anni mai visti, aggiunti all'archivio il 03/08/2026: **-39,3 R su 382
+operazioni, 3 anni positivi su 11, perdita massima 47,8 R** (contro 17,6 nel
+periodo di casa). Le candidate A e B fanno peggio (-47,5 e -90,8). Non e' un
+problema di soglie in dollari: normalizzando tutto all'ATR peggiora (-67,1 e
+-105,3, ipotesi pre-registrata respinta). Su diciotto anni il **lato corto non
+ha vantaggio** (+6,2 R su 259 operazioni) e il 90% del risultato 2020-2026
+viene dal lato lungo. Prima di portare la strategia su un conto reale, questa
+e' la domanda da risolvere.
 
 ## Strade gia' misurate e respinte (non ripercorrerle)
 
@@ -133,6 +147,11 @@ studi: farlo solo dopo una verifica per anno e fuori campione.
   vantaggio sparisce. La candidata migliore scende da +172,3 a +163,0 R,
   sotto la configurazione in vigore. Il rollover cade alle 21 UTC: chiudere
   a fine giornata costa zero swap. Appendici AO, AP, AQ.
+- **Soglie normalizzate all'ATR invece che in dollari** (ipotesi
+  pre-registrata per spiegare il crollo fuori campione): respinta. Sul
+  2009-2019 peggiora da -39,3 a -67,1 R con il riferimento ufficiale e a
+  -105,3 con la mediana nota all'epoca; il 2020-2026 resta positivo in tutte
+  e tre le versioni. Appendice AV.
 - **Obiettivo variabile col regime di volatilita'**: inutile, 1:10 e' il
   migliore in entrambi i regimi (appendice K).
 - **Chiusura parziale a meta' posizione**: costa il 27% del rendimento
@@ -191,6 +210,14 @@ escluso che sia un travestimento dell'impulso minimo. Codice in
 - **Parametri in unita' di volatilita'**: le soglie sono in dollari fissi
   (impulso 4$, rischio 1-10$, buffer 0.3$) ma il range M1 mediano e' passato da
   ~0.45$ (2020-24) a 1.05$ (2025) e 2.27$ (2026). Riparametrizzare in ATR.
+  Nota: la riparametrizzazione secca **non** risolve il fuori campione
+  (appendice AV), quindi vale come igiene, non come rimedio.
+- **PRIORITA': il fuori campione 2009-2019** (appendici AU-AV). Finche' non si
+  capisce se il -39,3 R e' regime o sovradattamento, tutto il resto — i tre
+  Expert Advisor compresi — sta costruendo su una prova sola. Piste non ancora
+  battute: filtro di regime (operare solo quando il contesto somiglia al
+  2020+), rinuncia al lato corto, ritaratura su 2009-2019 con verifica sul
+  2020-2026 (l'inverso di quella fatta).
 - **Bug confermati dalla ri-validazione 2026-07**: resample_tf M33/M66 dipende
   dagli anni caricati; resample('1D') conta lo spezzone domenicale come giornata
   piena (17% di D1 monchi); da verificare la chiusura EOD del venerdi'.
