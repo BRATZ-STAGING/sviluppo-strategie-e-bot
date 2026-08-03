@@ -1,96 +1,108 @@
-# Il grafico live: come si legge, come si usa
+# Il grafico live: leggerlo e usarlo per entrare a mercato
 
-`trading/scripts/grafico_live.py` mostra il prezzo in tempo reale preso da MT5
-con sopra i livelli misurati dal progetto. Non e' un altro TradingView: mostra
-poche cose, ma ognuna ha dietro un numero verificato su sette anni.
+`trading/scripts/grafico_live.py` mostra il prezzo in tempo reale da MT5 con
+sopra i livelli del progetto. Questa e' la guida operativa: cosa guardare, in
+che ordine, e come si apre un'operazione.
 
 ## Avviarlo
 
-Serve il terminale MT5 **aperto e connesso** (e' da li' che arrivano i prezzi).
+Serve MT5 **aperto e connesso**: i prezzi arrivano da li'.
 
     cd C:\Users\Administrator\sviluppo-strategie-e-bot
     python trading\scripts\grafico_live.py
 
-Poi nel browser: **http://127.0.0.1:8765**. La finestra di PowerShell resta
-occupata: e' il server, se la chiudi il grafico si ferma.
-
-Per vederlo da fuori (telefono, altro PC), in una SECONDA finestra:
+Nel browser: **http://127.0.0.1:8765**. La finestra di PowerShell resta
+occupata, e' il server. Per vederlo da fuori, in una seconda finestra:
 
     & "$env:USERPROFILE\cloudflared.exe" tunnel --protocol http2 --url http://127.0.0.1:8765
 
-Stampa un indirizzo `https://....trycloudflare.com`. Cambia a ogni riavvio del
-tunnel ed e' pubblico senza password: non contiene credenziali ne' comandi di
-trading, ma non va condiviso.
-
 ## Cosa c'e' sullo schermo
 
-**Barra in alto**: bid, spread del momento, ora dell'ultimo aggiornamento e lo
-stato della struttura di ogni timeframe (rialzista / ribassista). La struttura
-e' causale: uno swing e' confermato tre candele dopo il suo estremo, mai prima.
+| elemento | cosa dice |
+|---|---|
+| barra in alto | bid, spread del momento, struttura di ogni timeframe |
+| bande verdi | zone BUY (sotto il prezzo), rosse: zone SELL (sopra) |
+| parte scura dentro la banda | **zona raffinata**: e' quella che conta |
+| linea gialla tratteggiata | il bid adesso |
+| linea viola | VWAP della giornata (grafico M6) |
+| barre a sinistra | volume scambiato oggi per prezzo, colorato per sessione |
+| riga chiara tratteggiata | il livello piu' scambiato della giornata |
+| fasce appena schiarite | i vuoti, dove il prezzo e' passato di corsa |
+| tabella in basso | tutte le zone attive, ordinate per distanza |
 
-**Bande orizzontali**: le zone order block attive. Verdi = BUY (zona sotto il
-prezzo, nata da un impulso rialzista), rosse = SELL. La parte **piu' scura
-dentro la banda e' la zona raffinata**: e' quella che porta il vantaggio
-misurato. Passa il mouse su una banda per vederne nome e prezzi; **clic per
-fissare** l'etichetta, clic di nuovo per toglierla. Col pulsante «nomi sempre»
-si mostrano tutte insieme.
+Passa il mouse su una banda per il nome e i prezzi; **clic per fissarlo**.
 
-**Profilo volume (a sinistra)**: quanto e' stato scambiato a ogni livello di
-prezzo OGGI, diviso per sessione — viola asia, ocra londra, verde new york,
-grigio sera. La riga tratteggiata chiara e' il **livello piu' scambiato**; le
-fasce appena schiarite sono i **vuoti**, dove il prezzo e' passato di corsa.
+## La sequenza per entrare
 
-**Linea gialla tratteggiata**: il bid attuale. **Linea viola**: VWAP della
-giornata (solo sul grafico M6).
+Si entra **solo** quando tutte e cinque le condizioni sono vere insieme.
+Nell'ordine in cui conviene controllarle:
 
-**Tabella in basso**: tutte le zone attive ordinate per distanza dal prezzo,
-con la zona raffinata, quando e' nata e quando scade (30 candele del suo
-timeframe).
+**1. Orario.** Fra le **07:00 e le 19:00 UTC**. Fuori da quella finestra non si
+apre niente. Alle 21:00 UTC si chiude tutto quello che e' aperto.
 
-## Come si usa davvero, e come NON si usa
+**2. Struttura allineata (barra in alto).** Per un BUY servono **H6 e H2
+entrambi rialzisti**; per un SELL entrambi ribassisti. Se i due si
+contraddicono, si sta fermi: e' il filtro che da solo taglia meta' delle
+occasioni sbagliate.
 
-Tre risultati misurati che cambiano il modo di guardare questo grafico.
+**3. Conferme.** **M33 e H12 dalla stessa parte** dell'operazione, e **M12
+dalla parte opposta** (il ritracciamento in corso su cui si entra).
 
-**Una zona non e' un segnale.** Il tocco di una zona, da solo, perde su tutti i
-timeframe e tutti gli obiettivi provati: 48 celle su 48 negative, da -0,11 a
--0,30 R per operazione (appendice W). Serve il segnale della strategia, con la
-struttura del timeframe concorde.
+**4. Il segnale, sul grafico M6.** Il prezzo scende a toccare il VWAP
+giornaliero (la linea viola) e **chiude sopra**, sopra anche il massimo della
+candela precedente, dopo essersi allontanato di almeno 4 $ dal VWAP durante la
+giornata. Specularmente per il SELL. **Si entra a mercato alla chiusura di
+quella candela M6**, al prezzo che c'e' in quel momento.
 
-**Non mettere un ordine limite sulla zona e aspettare.** E' il risultato piu'
-importante di tutti: delle 348 operazioni della strategia, le 222 che tornano
-indietro su un livello rendono **-0,387 R**, le 126 che non ci tornano mai
-**+2,040 R** (appendice AA). Il ritracciamento non e' un prezzo migliore: e' il
-segnale che l'operazione sta fallendo. Le 12 operazioni sopra +8R valgono da
-sole il 69% di sette anni, e solo 3 tornano su un livello.
+**5. Dove sei rispetto alle zone.** Guarda la tabella: se l'ingresso cade
+**dentro una zona raffinata concorde**, e' l'occasione migliore che questa
+strategia produca. Se non ci sei dentro, l'operazione resta valida — la zona
+non e' obbligatoria, e' un indicatore di qualita'.
 
-**Il profilo volume serve agli occhi, non alle decisioni.** Vuoti ed eccessi
-non discriminano gli esiti: differenza -0,038 R con probabilita' 0,85 che sia
-caso (appendice V). Guardalo per capire dove il mercato ha lavorato, non per
-decidere se entrare.
+## Stop, obiettivo, gestione
 
-**Quello che invece conta**: essere DENTRO una zona raffinata quando arriva il
-segnale. Su sette anni le operazioni in zona raffinata rendono +1,342 R contro
-+0,153 del campione senza filtro, con 7 anni positivi su 7 e il 9,5% che arriva
-all'obiettivo pieno contro il 2,2% (appendice AJ). Fuori dalla zona raffinata,
-**nessuna** operazione ha mai raggiunto l'obiettivo pieno.
+**Stop**: sotto il minimo delle ultime 5 candele M6 (sopra il massimo per un
+SELL), piu' 0,30 $ di margine. Non e' un numero fisso: tipicamente 3-5 $ nei
+periodi normali, 6-12 $ in quelli agitati. Se viene sotto 1 $ o sopra 10 $
+(riscalati quando la volatilita' e' alta), **l'operazione si salta**.
+
+**Dimensione**: `lotti = (capitale x rischio%) / (distanza stop in $ x 100)`,
+arrotondata per difetto. Con 10.000 EUR allo 0,5% e stop da 4,72 $: 0,10 lotti.
+Se il calcolo scende sotto il lotto minimo del broker, **salta l'operazione**:
+non forzarla a 0,01, rischieresti il triplo del previsto.
+
+**Obiettivo**: 10 volte la distanza dello stop. Non e' un bersaglio realistico
+— ci arriva il 3% delle operazioni — ma serve a non mettere un tetto alle
+corse, che sono quelle che pagano.
+
+**Pareggio**: quando l'operazione arriva a **+3 volte il rischio**, sposta lo
+stop al prezzo d'ingresso. Non prima: a +1R o +2R si salvano piu' operazioni ma
+si guadagna meno.
+
+**Fine giornata**: alle 21:00 UTC si chiude quello che e' ancora aperto, in
+utile o in perdita. Un terzo delle operazioni finisce cosi', ed e' da queste
+che arriva la maggior parte del guadagno.
+
+## Quando NON si entra
+
+- **Non si aspetta il ritracciamento su una zona.** Se il segnale e' arrivato,
+  si entra a mercato subito. Mettere un ordine limite piu' in basso e aspettare
+  che il prezzo torni significa farsi riempire quasi solo dalle operazioni che
+  stanno fallendo, e restare fuori da quelle che corrono.
+- **Una zona toccata non e' un segnale.** Le bande da sole non valgono niente:
+  se non c'e' il reclaim del VWAP con la struttura allineata, non c'e'
+  operazione.
+- **Il profilo volume non decide gli ingressi.** Serve a vedere dove il mercato
+  ha lavorato oggi; entrare in un vuoto o in un eccesso non cambia gli esiti.
+- **Mai piu' di 3 operazioni al giorno**, e almeno 30 minuti fra una e l'altra.
+- **Mai muovere lo stop se non a pareggio**, mai chiudere a meta', mai
+  aggiungere alla posizione.
 
 ## Se qualcosa non va
 
 | cosa vedi | cosa significa |
 |---|---|
-| «MT5 non risponde» | terminale chiuso o non connesso: riparte da solo appena torna |
-| nessuna zona attiva | e' normale: le zone durano 30 candele e spesso non ce ne sono |
-| il prezzo non si muove | mercato chiuso (fine settimana) o terminale disconnesso |
+| «MT5 non risponde» | terminale chiuso o disconnesso: riparte da solo |
+| nessuna zona attiva | normale: durano 30 candele, spesso non ce ne sono |
+| il prezzo non si muove | mercato chiuso o terminale disconnesso |
 | la pagina non si apre | il server e' stato chiuso: rilancia lo script |
-
-## Tenerlo sempre acceso
-
-Utilita' di pianificazione → Crea attivita' → *Esegui indipendentemente dalla
-connessione dell'utente* → attivazione *All'avvio del sistema* → azione
-`python` con argomento il percorso dello script → in Impostazioni spunta
-*Riavvia se l'attivita' non riesce*.
-
-Con la stessa procedura conviene pianificare anche `aggiorna_dati.py` ogni 15
-minuti: tiene aggiornato l'archivio Dukascopy su cui girano studi e
-laboratorio. Attenzione alla differenza: **MT5 e' in tempo reale, Dukascopy
-pubblica un'ora per volta a ora conclusa** (fino a un'ora di ritardo).
