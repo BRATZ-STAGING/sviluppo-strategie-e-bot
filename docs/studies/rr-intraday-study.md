@@ -2412,3 +2412,56 @@ fra 1:5 e 1:9: l'ottimo e' 1:10 e la curva e' liscia.
 **Conclusione**: taratura invariata. La domanda "il trailing migliora?" ha
 risposta netta e negativa su 84 celle — e ora e' agli atti invece di essere
 un'ipotesi mai verificata. Dati in `scale-trailing.parquet`.
+
+## Appendice AM: stabilita' a lotti fissi (la costante di profitto)
+
+Osservazione dell'utente: le tabelle mostrano quanto si guadagna, non quanto
+si e' stabili, e il conto in euro col rischio percentuale confonde il
+vantaggio con l'effetto della composizione. Rifatto tutto a **lotti fissi**:
+10.000 EUR di conto, **100 EUR rischiati a ogni operazione, sempre**. Cosi'
+ogni operazione pesa uguale e resta solo il vantaggio.
+
+### La configurazione in uso, a lotti fissi
+
+| | |
+|---|---|
+| risultato | +171,1 R = **27.111 EUR** (da 10.000, in 6 anni e mezzo) |
+| costante annua | ~+26 R, cioe' **+2.600 EUR all'anno** a rischio 100 EUR |
+| operazioni in perdita | 64,7% |
+| perdite di fila (massimo) | 13 |
+| perdita massima | **17,6 R** (1.762 EUR) |
+| tempo sotto il massimo precedente | 33 operazioni |
+| recupero (risultato / perdita massima) | **9,71** |
+| mesi positivi | 50,7% |
+| anni positivi | 7/7, il peggiore **+6,9 R** |
+| fattore di profitto | 1,81 |
+
+### Il confronto sulle misure di stabilita', non sul profitto
+
+Nessuna delle 84 celle batte quella in uso su **tutte** le misure insieme.
+Nel dettaglio:
+
+- **65 celle hanno meno operazioni in perdita**, ma **nessuna di queste rende
+  di piu'**. Il caso limite e' il trailing continuo MFE-2: perse 57,8% contro
+  64,7% — sette punti in meno, esattamente quello che si cerca guardando le
+  perdite — ma rende 122,5 R contro 171,1, cioe' **22.246 EUR contro 27.111**,
+  e il rapporto recupero scende da 9,71 a 6,95. Meno perdite, meno soldi,
+  meno robustezza.
+- **Una sola cella ha un recupero migliore**: pareggio a +2R con 1:10, e per
+  un soffio (9,720 contro 9,708). Ma paga con 49 operazioni sotto il massimo
+  invece di 33 (cioe' quasi il doppio del tempo passato sott'acqua), con
+  l'anno peggiore a +2,4 R invece di +6,9 e con meno mesi positivi (45,1%
+  contro 50,7%). Un pareggio numerico che nella pratica e' peggiore.
+- **Zero celle hanno un anno peggiore migliore** di +6,9 R.
+
+### Cosa dice davvero questa tabella
+
+La "costante di profitto" della strategia, ripulita dalla composizione, e'
+**+26 R all'anno con una perdita massima di 17,6 R**: si guadagna circa una
+volta e mezza il proprio peggior periodo, ogni anno. Il rapporto di recupero
+9,71 su sette anni e' il numero piu' onesto che questo lavoro produce.
+
+E la lezione ripetuta per l'ennesima volta, ora anche sulle misure di
+stabilita': **la percentuale di operazioni in perdita non e' una leva da
+migliorare**. Si puo' comprare (65 celle lo fanno) ma il prezzo e' sempre lo
+stesso — meno risultato e meno robustezza. Dati in `stabilita.parquet`.
