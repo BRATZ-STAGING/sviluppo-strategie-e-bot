@@ -2779,3 +2779,52 @@ inaffidabili.
 su una singola operazione — piu' del drawdown massimo di tutta la strategia.
 Vale comunque solo come nota di metodo: B in entrambe le versioni resta sotto
 la configurazione in vigore.
+
+## Appendice AS: i gap contrari, contati davvero
+
+Difetto del motore segnalato dall'utente: quando il prezzo riapre OLTRE lo
+stop, l'uscita non avviene al livello ma al prezzo di riapertura. Il modello
+assumeva il riempimento esatto, quindi incassava i gap favorevoli senza pagare
+quelli contrari. Corretto: ora si guarda l'APERTURA di ogni minuto — se apre
+oltre lo stop si esce li', se apre oltre l'obiettivo si incassa li'.
+
+### Il risultato non cambia, ma per un pelo
+
+| configurazione | netto con gap pagati | gap contrari pagati |
+|---|---|---|
+| in uso 1:10 sera | +171,1 R | **0,0** (non attraversa mai una riapertura) |
+| A pari +3R 1:8 venerdi' | +178,4 R | **0,0** (chiude prima del weekend) |
+| B trail 1:8 venerdi' | +154,6 R | **0,0** |
+| B trail 1:8 aperta | +163,0 R | **0,0** su 23 attraversamenti |
+
+Zero non e' un errore: **solo 23 operazioni su 348 restano vive attraverso una
+chiusura del mercato**, e in quelle 23 il lunedi' ha riaperto sempre sopra lo
+stop (da +0,66 a +2,65 R). Ma e' fortuna, non robustezza.
+
+### Quanto vale quella fortuna
+
+Simulazione: agli stessi 23 attraversamenti si assegnano salti pescati a caso
+dalla distribuzione reale dei 340 fine settimana dello storico (con segno),
+20.000 storie alternative. Il margine mediano fra prezzo e stop al venerdi'
+sera e' 1,58 R, il minimo 0,20 R.
+
+| costo dei gap contrari | R |
+|---|---|
+| mediana | 2,6 |
+| media | **5,4** |
+| p90 | 14,5 |
+| p99 | 32,2 |
+| massimo osservato in simulazione | 74,9 |
+| storie a costo zero | **14%** |
+| **storie che bruciano gli 8,4 R di vantaggio** | **22%** |
+
+La storia reale che abbiamo (costo zero) e' fra il 14% piu' fortunato. In una
+storia media il costo sarebbe 5,4 R, cioe' i due terzi del vantaggio di
+tenere aperto; una volta su cinque lo brucia del tutto, e nella coda peggiore
+si perde piu' del drawdown massimo dell'intera strategia.
+
+**Conclusione**: il vantaggio di attraversare il fine settimana (+8,4 R) e'
+piu' piccolo della sua stessa incertezza (5,4 R di costo atteso, 32 R al
+percentile 99). Confermata la scelta di chiudere il venerdi', e confermato
+che la configurazione in vigore — che non attraversa neanche la notte — non
+ha affatto questa esposizione.
