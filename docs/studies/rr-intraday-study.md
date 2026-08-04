@@ -3444,3 +3444,29 @@ la maggior parte finisce in mezzo, e allora l'unico numero che conta e' **R
 per operazione**. Un obiettivo sensato non e' "oltre il 50% di vinte" ma
 "R/op stabilmente sopra zero al netto di spread e swap", e la quota di vinte
 che ne esce e' quello che e'.
+
+## Appendice BD: il filtro di fondo contava le domeniche come giornate
+
+Incoerenza nota del progetto, confermata dalla verifica avversariale:
+``segnali.filtro_macro`` faceva ``resample("1D")`` senza soglia di barre
+minime, mentre ``volatility.daily_bars`` — usata dall'ATR — scarta le sessioni
+sotto le 300 candele perche' non sono giornate.
+
+Misura sull'archivio: **il 17% delle giornate D1 grezze sono spezzoni**, e 104
+su 108 sono domeniche sera (mediana 120 minuti di scambi alla riapertura).
+Quindi la media a 50 giorni copriva ~42 giornate vere, e una volta a settimana
+ci entrava un valore quasi identico alla chiusura del venerdi'.
+
+| | come'era | senza domeniche |
+|---|---|---|
+| giornate classificate diversamente | — | **229 su 4.524 (5,1%)** |
+| operazioni (2009-2026) | 732 | 712 |
+| 2009-2019 | -39,3 R (-0,103/op) | -39,6 R (-0,106/op) |
+| 2020-2026 | +157,1 R (+0,449/op) | +154,7 R (+0,458/op) |
+| 2009-2026 | +117,8 R | +115,1 R |
+
+Il difetto e' reale e il 5,1% di giornate ribaltate non e' poco, ma **nessuna
+conclusione cambia**: il risultato per operazione e' identico a tre decimali
+in tutti i periodi. Corretto in `framework/segnali.py`, con la misura scritta
+nel docstring perche' i numeri pubblicati prima si spostano di poco e chi li
+ritrova sappia perche'.

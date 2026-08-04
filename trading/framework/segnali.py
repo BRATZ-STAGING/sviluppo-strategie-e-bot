@@ -24,7 +24,7 @@ import pandas as pd
 from .data import TIMEFRAMES, resample_tf
 from .structure import state_at, trend_state_series
 from .taratura import Taratura
-from .volatility import atr_at, daily_atr, high_volatility_months
+from .volatility import atr_at, daily_atr, daily_bars, high_volatility_months
 from .vwap import anchored_vwap
 
 
@@ -39,8 +39,20 @@ def stati(m1: pd.DataFrame, tfs, istanti, k: int) -> dict[str, np.ndarray]:
 
 
 def filtro_macro(m1: pd.DataFrame, n: int) -> dict:
-    """Chiusura giornaliera sopra o sotto la sua media, spostata di un giorno."""
-    d1 = m1.close.resample("1D").last().dropna()
+    """Chiusura giornaliera sopra o sotto la sua media, spostata di un giorno.
+
+    Le giornate sono quelle VERE: il resampling grezzo conta come giornata
+    anche lo spezzone della domenica sera (due ore alla riapertura), che e' il
+    17% delle righe. Contandolo, la media a 50 giorni copriva in realta' ~42
+    giornate e una volta a settimana ci entrava un valore quasi identico alla
+    chiusura del venerdi'. L'ATR gia' li escludeva (``daily_bars``); qui no, ed
+    era una delle incoerenze note del progetto.
+
+    Impatto misurato sui diciotto anni (appendice BD): 5,1% delle giornate
+    classificate diversamente, 732 operazioni contro 712, risultato da
+    +117,8 a +115,1 R. Nessuna conclusione cambia.
+    """
+    d1 = daily_bars(m1).close
     sopra = (d1 > d1.rolling(n).mean()).shift(1)
     sopra.index = sopra.index.normalize()
     return sopra.to_dict()

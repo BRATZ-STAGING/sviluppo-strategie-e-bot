@@ -61,7 +61,7 @@ class TestCoerenzaColMotore:
 
         passo = pd.Timedelta("6min")
         controllate = 0
-        for o in ops[::3]:                      # un campione ogni tre
+        for o in ops[::2]:                      # un campione ogni due
             quando = pd.Timestamp(o["time"])    # chiusura della candela M6
             m1 = storico[storico.index < quando]
             if len(m1) < 100_000:
