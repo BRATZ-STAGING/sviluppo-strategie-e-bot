@@ -15,7 +15,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "..", "scripts"))
 
 from framework.data import TIMEFRAMES, resample_tf
-from framework.segnali import genera, stati
+from framework.segnali import genera
+from framework.structure import trend_state_series
 from framework.taratura import UFFICIALE as T
 
 import grafico_live as G
@@ -66,9 +67,10 @@ class TestCoerenzaColMotore:
             if len(m1) < 100_000:
                 continue
             barra = quando - passo
-            struttura = stato_ai(m1, barra, set(T.timeframes))
-            c = G.condizioni_ora(m1, G.vwap_motore(m1), struttura,
-                                 quando)
+            serie = {tf: trend_state_series(resample_tf(m1, tf), T.frattale_k,
+                                            pd.Timedelta(TIMEFRAMES[tf]))
+                     for tf in T.timeframes}
+            c = G.condizioni_ora(m1, G.vwap_motore(m1), serie, quando)
             assert c is not None
             assert c["candela"] == barra.strftime("%d/%m %H:%M"), (
                 "il pannello guarda una candela diversa da quella del segnale")
@@ -106,18 +108,19 @@ class TestCoerenzaColMotore:
         noti = [{"t": int(pd.Timestamp(o["time"]).timestamp() * 1000),
                  "quando": pd.Timestamp(o["time"]).strftime("%d/%m %H:%M")}
                 for o in ops]
-        # la struttura si calcola UNA volta per tutta la serie: rifarla a ogni
-        # barra su fette crescenti e' quadratico e il test non finisce piu'
-        tutti = stati(m1, tuple(T.timeframes), finestra + passo, T.frattale_k)
+        # le SERIE di stato si calcolano una volta sola, come fa calcola():
+        # e' condizioni_ora a leggerle all'istante giusto
+        serie_stati = {tf: trend_state_series(resample_tf(m1, tf), T.frattale_k,
+                                              pd.Timedelta(TIMEFRAMES[tf]))
+                       for tf in T.timeframes}
         bugie, accesi = [], 0
-        for pos, barra in enumerate(finestra):
+        for barra in finestra:
             quando = barra + passo
-            struttura = {tf: int(tutti[tf][pos]) for tf in T.timeframes}
             # si passa la serie INTERA: tutto cio' che condizioni_ora calcola
             # e' gia' causale (ATR e macro sono shiftati, il regime guarda solo
             # il passato) e la barra la sceglie da "quando". Tagliare la serie
             # a ogni giro renderebbe il test quadratico.
-            c = G.condizioni_ora(m1, vwap, struttura, quando, segnali=noti)
+            c = G.condizioni_ora(m1, vwap, serie_stati, quando, segnali=noti)
             if c is None or c["candela"] != barra.strftime("%d/%m %H:%M"):
                 continue
             for lato in ("long", "short"):

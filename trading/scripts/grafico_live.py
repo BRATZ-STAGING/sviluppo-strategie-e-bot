@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 
 from framework.data import TIMEFRAMES, load_m1, resample_tf       # noqa: E402
 from framework.segnali import filtro_macro, genera                # noqa: E402
-from framework.structure import trend_state_series                # noqa: E402
+from framework.structure import state_at, trend_state_series      # noqa: E402
 from framework.taratura import UFFICIALE as T                     # noqa: E402
 from framework.volatility import (atr_at, daily_atr,              # noqa: E402
                                   high_volatility_months)
@@ -195,7 +195,7 @@ def soglie_ora(m1, barra, mediana=None):
     return T.soglie(atr=float(u), mediana=mediana), True, True
 
 
-def condizioni_ora(m1, vwap_m1, struttura, adesso, mediana=None, segnali=()):
+def condizioni_ora(m1, vwap_m1, stati_tf, adesso, mediana=None, segnali=()):
     """Le cinque condizioni della strategia, adesso, per i due lati.
 
     Si valutano sull'ultima candela M6 CHIUSA: quella in corso cambierebbe
@@ -220,6 +220,11 @@ def condizioni_ora(m1, vwap_m1, struttura, adesso, mediana=None, segnali=()):
     v = float(leggi_vwap(vwap_m1, [barra + passo]).iloc[0])
     if not np.isfinite(v):
         return None
+    # gli stati si leggono all'ISTANTE DELLA DECISIONE, non all'ora corrente:
+    # M33 non e' un multiplo di M6, quindi puo' cambiare stato nei minuti fra
+    # la chiusura della barra e adesso, e il pannello direbbe una cosa che al
+    # momento della decisione non era vera
+    struttura = leggi_stati(stati_tf, barra + passo)
     macro = filtro_macro(m1, T.media_macro).get(giorno, None)
     del_giorno = m6[m6.index.normalize() == giorno]
     prima = del_giorno[del_giorno.index < barra]
@@ -280,6 +285,17 @@ def condizioni_ora(m1, vwap_m1, struttura, adesso, mediana=None, segnali=()):
                            and strut and conf and ritr and tocca and rischio_ok
                            and spinta >= soglie["impulso"]
                            and macro == (segno == 1))}
+    return fuori
+
+
+def leggi_stati(stati_tf, quando):
+    """Lo stato di ogni timeframe vigente a un dato istante."""
+    fuori = {}
+    for tf, serie in stati_tf.items():
+        if isinstance(serie, pd.Series):
+            fuori[tf] = int(state_at(serie, pd.DatetimeIndex([quando]))[0])
+        else:
+            fuori[tf] = int(serie)          # gia' uno stato, per i test
     return fuori
 
 
@@ -460,11 +476,13 @@ def calcola(storia, mediana):
     # usare quella mostrerebbe struttura e zone nate da una candela non ancora
     # finita, cioe' informazione che dal vivo non esiste ancora
     adesso = pd.Timestamp.now("UTC")
+    serie_stati = {}
     for tf in TF_ZONE:
         tfd = resample_tf(m1, tf)
         passo = pd.Timedelta(TIMEFRAMES[tf])
         st = trend_state_series(tfd, T.frattale_k, passo)
         st = st[st.index <= adesso]      # niente stati "noti" solo in futuro
+        serie_stati[tf] = st
         out["struttura"][tf] = int(st.iloc[-1]) if len(st) else 0
         z = zone_ob(tfd, T.frattale_k, passo)
         if z.empty:
@@ -490,7 +508,7 @@ def calcola(storia, mediana):
     out["profilo"] = profilo_sessioni(m1)
     with _lock:
         noti = list(_segnali["elenco"])
-    out["condizioni"] = condizioni_ora(m1, vwap_m1, out["struttura"], adesso,
+    out["condizioni"] = condizioni_ora(m1, vwap_m1, serie_stati, adesso,
                                        mediana, noti)
     a = daily_atr(m1, 14)
     atr = float(a.iloc[-1]) if len(a) and np.isfinite(a.iloc[-1]) else float("nan")
