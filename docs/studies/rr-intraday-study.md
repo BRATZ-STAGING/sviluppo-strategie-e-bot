@@ -4488,3 +4488,69 @@ fra un cliente che resta e uno che se ne va, anche a parita' di euro persi.
    2009-2019 di questo stesso ingresso aveva dato −39,3 R. Cambiare la
    gestione non ripara l'ingresso: rende la strada piu' sopportabile, non piu'
    vera. Il test dell'1:2 sul 2009-2019 e' in appendice BS.
+
+---
+
+## Appendice BS: l'1:2 sul 2009-2019 — nessuna gestione salva l'ingresso
+
+L'appendice BR aveva trovato un candidato serio per il prodotto da clienti:
+ingresso ufficiale, obiettivo 1:2, rischio 0,47% -> 6% annuo con 5,7% di
+drawdown, 45,7% di operazioni vincenti e al massimo 7 perdite di fila. Reggeva
+la divisione 2020-2022 / 2023-2026 su due campioni.
+
+Restava il test che conta davvero prima di metterci soldi di altri: gli
+**undici anni 2009-2019**, dove l'ingresso era gia' stato bocciato (-39,3 R con
+la gestione 1:10). La domanda era precisa: la gestione a obiettivo vicino
+regge dove quella a obiettivo lontano era crollata?
+
+### La risposta: no, e non ci va nemmeno vicino
+
+Campione ufficiale, 34 operazioni l'anno, 2009-2019, spread 0,40 $:
+
+| gestione | R/op | vinte% |
+|---|---|---|
+| ufficiale 1:10, pareggio +3R | −0,10 | 8,6% |
+| **tutto a 1:2** | **−0,27** | 29,7% |
+| tutto a 1:3, pareggio +1R | −0,26 | 13,9% |
+| meta' 1:2 + meta' 1:10 | −0,21 | 29,7% |
+| meta' 1:1,5 + meta' 1:10 | −0,19 | 36,1% |
+| tre scaglioni 1/1,5/2 | −0,17 | 46,0% |
+| tutto a 1:1 | −0,17 | 48,7% |
+| meta' 1:1 + meta' 1:10 | −0,16 | 48,7% |
+
+Campione largo, 126 operazioni l'anno: **tutte fra −0,15 e −0,20 R/op**.
+
+**Otto gestioni su due campioni: sedici celle, sedici negative.** Non esiste
+una taglia di posizione che porti una qualunque di esse al 6% annuo, perche'
+nessuna e' positiva.
+
+E c'e' un dettaglio che chiude il discorso: l'1:2, che era il migliore sul
+2020-2026, e' il **peggiore** sul 2009-2019 (−0,27). Non e' una gestione
+robusta che soffre un po' fuori campione: e' una gestione che era adatta a
+quel particolare periodo.
+
+### Cosa vuol dire, senza giri di parole
+
+Il problema non e' mai stata la gestione. **E' l'ingresso.** Undici anni di
+perdite seguiti da sette di guadagni non sono una strategia con un periodo
+storto: sono la firma di una regola che non generalizza. Era gia' stato
+misurato in modo indipendente (l'1% di celle scelte sul 2020-2026 che
+sopravvive sul 2009-2019, contro il 64% nel verso opposto) e questa e' la
+terza conferma dallo stesso dato letto in un modo nuovo.
+
+Per un prodotto da clienti la conclusione e' una sola: **su questo ingresso,
+non c'e' un prodotto**. Un 6% annuo con drawdown del 5,7% costruito su sette
+anni scelti dopo aver visto i dati non e' un 6% annuo: e' una curva bella.
+
+### Restano due possibilita', e vanno tenute separate
+
+1. **L'oro e' davvero cambiato dal 2020** (la volatilita' e' triplicata, lo
+   spread e' raddoppiato) e la regola funziona solo nel regime nuovo. E'
+   possibile, ma **non e' scommettibile con i soldi dei clienti**: sarebbe una
+   scommessa su un regime che continua, senza modo di sapere quando finisce.
+2. **La regola e' sovradattata** ai sette anni su cui e' stata cercata. Le
+   misure disponibili puntano tutte qui.
+
+In entrambi i casi la strada per un prodotto stabile non passa da questa
+regola. Passa da un ingresso che sopravviva a diciotto anni — e in questo
+progetto, sull'oro, non ne e' ancora stato trovato uno.

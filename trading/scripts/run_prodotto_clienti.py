@@ -58,6 +58,7 @@ from framework.taratura import UFFICIALE as T                    # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 GIORNI_MAX = 30
 OBIETTIVO_ANNUO = 6.0            # il bersaglio dell'utente, in percento
+MEDIANA_ATR = 25.5968            # riferimento 2020-2024, congelato nelle schede
 # spread vero misurato nell'appendice BN, per anno
 SPREAD = {2020: 0.35, 2021: 0.349, 2022: 0.395, 2023: 0.334,
           2024: 0.384, 2025: 0.632, 2026: 0.631}
@@ -139,7 +140,12 @@ def misure(serie, date, anni):
 
 def main():
     m1 = load_m1(os.path.join(ROOT, "data", "XAUUSD_M1"))
-    tutte = genera(m1, T)
+    # la mediana ATR di riferimento e' quella del 2020-2024, congelata nelle
+    # schede: 25,5968 $. Va passata a mano quando si carica un periodo che non
+    # contiene quegli anni, altrimenti il motore si ferma — ed e' giusto che si
+    # fermi, perche' ricalcolarla sul periodo in esame vorrebbe dire tarare la
+    # strategia sui dati su cui la si sta verificando
+    tutte = genera(m1, T, mediana_atr=MEDIANA_ATR)
     ufficiali = [o for o in tutte
                  if all(o[f"c_{tf}"] for tf in T.conferme)
                  and all(not o[f"c_{tf}"] for tf in T.ritracciamento)]
