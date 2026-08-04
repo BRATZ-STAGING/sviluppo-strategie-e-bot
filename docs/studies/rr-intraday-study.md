@@ -3724,3 +3724,130 @@ Restano due cose utili, nessuna delle quali e' una strategia:
 - **la deriva della riapertura delle 18:00 ET**, unico effetto sopravvissuto
   al placebo, da misurare con lo spread vero di quella finestra prima di
   farci qualunque ipotesi.
+
+---
+
+## Appendice BJ: l'ORB dove dovrebbe funzionare (S&P 500), e cosa dice davvero la documentazione
+
+Richiesta dell'utente: *"non su oro, io non so l'ORB su che mercato giri ma e'
+su quello che dobbiamo stare"*. Giusto: l'ORB nasce sui futures su indici, che
+hanno l'asta di apertura che l'oro spot non ha. Quindi va misurato li'.
+
+### I dati
+
+S&P 500 a un minuto, **2010-11 -> 2018-12, 2.117.667 barre**, da HistData
+tramite il repository pubblico `FutureSharks/financial-data`. Fonte del tutto
+indipendente dal resto del progetto. Il fuso e' stato determinato **per
+misura**: il minuto piu' scambiato cade alle 09:30 sia in gennaio-febbraio sia
+in giugno-agosto, quindi i timestamp seguono gia' l'ora di New York con l'ora
+legale (se fossero EST fisso, d'estate il picco cadrebbe alle 08:30).
+
+Sessione di cassa 09:30-16:00, 1.938 giornate piene, costo 0,5 punti indice
+andata e ritorno. Ricerca 2011-2014, verifica 2015-2018 (`run_orb_sp500.py`).
+
+### Ipotesi A: la regola originale di Crabel, e le finestre classiche
+
+| finestra | ricerca R/op | verifica R/op | vinte% (ver.) | anni+ ricerca | anni+ verifica |
+|---|---|---|---|---|---|
+| 5 min   | -0,143 | -0,110 | 22,5 | 0/4 | 0/4 |
+| 15 min  | -0,161 | -0,134 | 30,2 | 0/4 | 1/4 |
+| 30 min  | -0,106 | -0,073 | 36,9 | 0/4 | 1/4 |
+| 60 min  | -0,054 | -0,018 | 44,2 | 0/4 | 1/4 |
+| Stretch | -0,026 | -0,029 | 40,5 | 0/4 | 2/4 |
+
+**Ipotesi A respinta su tutta la linea.** Nessuna finestra e' positiva in
+nessuno dei due periodi. Per anno la regola originale fa: 2011 -5,97 R, 2012
+-3,51, 2013 -8,91, 2014 -5,71, 2015 +19,21, 2016 -21,63, 2017 -27,07, 2018
++1,88 -> **2 anni positivi su 8**, saldo -46 R su 1.679 operazioni.
+
+Nota strutturale: piu' la finestra e' larga, meno si perde. E' la firma di una
+strategia che paga solo il costo del falso segnale: allargando la soglia si
+fanno meno rotture false, ma non compare mai un vantaggio. Lo Stretch, che e'
+la soglia *adattiva* di Crabel, e' il meno peggio proprio perche' e' quello che
+si adatta.
+
+### Ipotesi B: il vantaggio vive nei giorni volatili?
+
+| regime | ricerca R/op | verifica R/op |
+|---|---|---|
+| basso | -0,109 | -0,095 |
+| medio | +0,114 | -0,003 |
+| alto  | -0,066 | +0,004 |
+
+La letteratura (Lundstrom; Gao et al., *JFE*) prevede vantaggio nei giorni
+volatili. In ricerca il segno migliore e' nel regime **medio** (+0,114), in
+verifica nel regime **alto** (+0,004, cioe' zero). **La struttura non si
+replica**: il regime che "funziona" cambia fra i due periodi. Ipotesi B
+respinta.
+
+### Limiti da dichiarare
+
+1. I dati finiscono nel **2018**. Crabel sostiene che il decadimento e'
+   recente, quindi questo test non puo' dire se l'ORB funziona *oggi*: dice
+   che gia' **non funzionava dal 2011**, il che e' un'informazione piu' forte,
+   non piu' debole.
+2. E' l'indice cash (CFD SPXUSD), non il future ES. Manca il volume vero e i
+   costi reali del future sono diversi. Ma il *prezzo* e' lo stesso, e la
+   regola di Crabel e' fatta solo di prezzi.
+
+### Cosa dice la documentazione online, letta bene
+
+La ricerca in rete cambia il quadro, e va riportata con precisione perche' e'
+facile confondere tre cose diverse che si chiamano tutte "ORB".
+
+**1. Crabel originale (1990), Stretch, futures.** Crabel stesso, intervistato
+su *Futures Magazine* (nov. 2019) e ripreso nel 2025, dice che l'ORB **si e'
+rotto**: il passaggio ai mercati 24 ore ha cancellato il punto di riferimento
+su cui poggiava, cioe' l'apertura. Testuale: gli ultimi anni sono i peggiori
+per l'ORB dagli anni Sessanta, e Crabel Capital ha riequilibrato il momentum
+con la mean reversion. La nostra misura sull'S&P e' coerente e anzi anticipa
+la data.
+
+**2. ORB accademico su futures su indici (TORB, 2013-2019).** Lo studio
+*Assessing the Profitability of Timely Opening Range Breakout on Index Futures
+Markets* misura DJIA, S&P 500, NASDAQ, HSI, TAIEX dal 2003 al 2013 e trova
+oltre 8% annuo con p-value < 3% su tutti e cinque, fino al 20,3% sul TAIEX.
+Ma e' un ORB **filtrato e temporizzato** (da qui la T di *Timely*), non la
+regola nuda, ed e' un periodo che finisce nel 2013 — cioe' proprio dove i
+nostri numeri sull'S&P sono meno negativi.
+
+**3. L'ORB che oggi viene documentato come profittevole NON e' quello di
+Crabel e NON e' su un indice.** E' Zarattini-Barbon-Aziz, *A Profitable Day
+Trading Strategy For The U.S. Equity Market* (SSRN 4729284, 2024-25), e gira
+su **azioni singole americane**, non su un indice, non sull'oro. Regole:
+
+- range di apertura = **prima barra da 5 minuti**; long se rompe il massimo
+  quando la barra e' rialzista, short se rompe il minimo quando e' ribassista;
+- **stop a 10% dell'ATR a 14 giorni** dall'entrata (non l'altro estremo);
+- **nessun obiettivo**: si chiude a fine sessione;
+- filtri di ammissibilita': prezzo > 5 $, volume medio 14 giorni > 1.000.000
+  azioni, ATR 14 giorni > 0,50 $;
+- **e qui sta tutto**: si opera solo dove il volume dei primi 5 minuti supera
+  il 100% del normale (*relative volume*), e solo le **prime 20 azioni del
+  giorno** per quel rapporto. Sono le "Stocks in Play", cioe' i titoli che
+  quella mattina hanno una notizia.
+
+Risultato dichiarato 2016-2023: +1.637% totale, 41,6% annuo, Sharpe 2,4, beta
+~0 al netto delle commissioni.
+
+**4. La versione su QQQ (Zarattini-Aziz 2023)** — quella con obiettivo a 10R e
++1.484% dal 2016 — e' la piu' citata ed e' quella con cui bisogna stare piu'
+attenti: e' un solo strumento, un solo periodo, e la leva a 3x fa il grosso del
+numero. Ha esattamente la forma dei risultati che in questo progetto abbiamo
+gia' smontato quattro volte.
+
+### Conclusione operativa
+
+- **L'ORB alla Crabel e' morto**, e non solo sull'oro: sull'S&P 500 perde da
+  almeno il 2011, e l'autore stesso lo dice. Non ci si costruisce un bot.
+- **Il meccanismo che l'ORB sfruttava non e' l'apertura in se': e' la notizia
+  che arriva quando il mercato e' chiuso.** Per questo oggi sopravvive dove la
+  notizia c'e' — le singole azioni in giornata di news — e muore dove il
+  prezzo si forma 24 ore su 24 (oro, e ormai anche gli indici).
+- Se l'utente vuole comunque un ORB **da mettere in produzione**, l'unica
+  versione documentata e replicabile e' la 3: azioni americane, filtro sul
+  volume relativo dei primi 5 minuti, stop a 0,1 ATR, uscita a fine sessione,
+  venti nomi al giorno. E' un'altra infrastruttura (serve il dato azionario
+  intraday su migliaia di titoli, non un solo simbolo), e va **verificata da
+  noi** prima di crederci, perche' il paper e' 2016-2023 e non ha fuori
+  campione.
