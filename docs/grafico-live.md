@@ -4,6 +4,16 @@
 sopra i livelli del progetto. Questa e' la guida operativa: cosa guardare, in
 che ordine, e come si apre un'operazione.
 
+> **Da leggere prima di operare (04/08/2026).** Le regole descritte qui sono
+> state misurate sul 2020-2026. Sullo storico esteso al 2009 la stessa identica
+> strategia **perde**: -39,3 R su 382 operazioni, 3 anni positivi su 11,
+> perdita massima 47,8 R invece di 17,6. Tre verifiche successive — filtro di
+> regime, rinuncia allo short, taratura invertita — sono tutte negative, e solo
+> l'1% delle configurazioni scelte sul 2020-2026 resta positivo sul periodo
+> vecchio. Appendici AU-AY in `docs/studies/rr-intraday-study.md`. Questa guida
+> resta valida come descrizione di **cosa fa la strategia e come si legge il
+> grafico**; non e' piu' una raccomandazione a metterci soldi sopra.
+
 ## Avviarlo
 
 Serve MT5 **aperto e connesso**: i prezzi arrivano da li'.
@@ -31,6 +41,75 @@ occupata, e' il server. Per vederlo da fuori, in una seconda finestra:
 | tabella in basso | tutte le zone attive, ordinate per distanza |
 
 Passa il mouse su una banda per il nome e i prezzi; **clic per fissarlo**.
+
+### Muoversi sul grafico
+
+| gesto | effetto |
+|---|---|
+| **rotellina** | zoom, tenendo fermo il punto sotto il puntatore |
+| **trascinare** | scorre avanti e indietro nel tempo |
+| **doppio clic** o «torna a ora» | riporta la vista sull'ultima candela |
+| pulsanti M1 … H6 | cambia timeframe (la vista si riporta a ora) |
+
+Il bordo destro **non e' incollato all'ultima candela**: resta un po' di spazio
+vuoto, come su TradingView, cosi' si vede dove sta andando il prezzo. Se hai
+scorso indietro, l'arrivo di una candela nuova non ti sposta la vista.
+
+**M1 non serve a operare** — l'ingresso si valuta su M6 — serve solo a vedere
+con precisione dove sta il prezzo adesso rispetto a un livello, per esempio se
+e' appena dentro o appena fuori una zona.
+
+## I livelli: cosa sono e a cosa servono davvero
+
+Ci sono **tre famiglie di livelli** sul grafico, e fanno tre mestieri diversi.
+E' la confusione fra i tre che rende difficile usarli.
+
+### 1. Il VWAP giornaliero (linea viola) — questo E' il segnale
+
+E' il prezzo medio della giornata pesato per i volumi, che riparte da zero ogni
+giorno a mezzanotte UTC. **E' l'unico livello su cui si entra.** Il segnale non
+e' "il prezzo tocca il VWAP": e' il prezzo che lo tocca **e lo riprende**,
+chiudendo dall'altra parte. Vedi il punto 4 della sequenza qui sotto.
+
+Nota: e' calcolato una volta sui minuti e letto alla chiusura di ogni candela,
+quindi la linea viola e' **la stessa identica** su M6, su H2 o su H6. Cambiare
+timeframe non cambia il livello, cambia solo ogni quanto si verifica se la
+condizione e' scattata.
+
+### 2. Le zone order block (bande verdi e rosse) — questo e' un voto di qualita'
+
+Una zona nasce cosi': si prende l'ultima candela **contraria** prima di un
+movimento che rompe la struttura, e si segna la fascia di prezzo fra il minimo
+della sua ombra e la sua apertura (simmetrico per le ribassiste). E' la zona
+dove chi ha spinto il mercato aveva ancora ordini non riempiti.
+
+- **banda chiara** = la zona piena;
+- **parte scura dentro la banda** = la **zona raffinata**, cioe' la fetta dove
+  la base della candela OB e quella della candela successiva si sovrappongono.
+  E' l'unica parte che porta vantaggio misurato: fuori da li' la zona piena
+  vale quanto non averla.
+
+**Come si usano: NON come punto d'ingresso.** Misurato e respinto: entrare al
+tocco di una zona da' 48 celle su 48 negative (appendice W), e mettere un
+ordine limite dentro la zona aspettando il ritracciamento seleziona proprio le
+operazioni che stanno fallendo (-0,387 R contro +2,040, appendice AA).
+
+Si usano **dopo** che il segnale VWAP e' scattato, per rispondere a una sola
+domanda: *questa occasione e' migliore della media?* Se il prezzo d'ingresso
+cade dentro una zona **raffinata e concorde** (verde per un BUY, rossa per un
+SELL), e' l'occasione migliore che la strategia produca. Se non ci cade,
+l'operazione resta valida lo stesso.
+
+La colonna **distanza** nella tabella dice quanto manca al prezzo per arrivare
+alla zona: positiva = il prezzo e' oltre (per una BUY, sopra la zona);
+serve solo a capire quali zone sono vicine, non e' un ordine di entrare.
+
+### 3. Il profilo volume (barre a sinistra) — questo non decide niente
+
+Dice dove il mercato ha lavorato oggi: la riga chiara tratteggiata e' il prezzo
+piu' scambiato, le fasce schiarite sono i vuoti dove il prezzo e' passato di
+corsa. **Non e' un segnale**: provato come discriminante, non separa nulla
+(p 0,85). Sta li' perche' aiuta a capire cosa e' successo, non a decidere.
 
 ## La sequenza per entrare
 
@@ -61,6 +140,16 @@ quella candela M6**, al prezzo che c'e' in quel momento.
 **dentro una zona raffinata concorde**, e' l'occasione migliore che questa
 strategia produca. Se non ci sei dentro, l'operazione resta valida — la zona
 non e' obbligatoria, e' un indicatore di qualita'.
+
+### Le cinque condizioni in una riga
+
+> orario 07-19 UTC · H6 e H2 dalla stessa parte · M33 e H12 dalla stessa parte
+> e M12 dalla parte opposta · il prezzo riprende il VWAP su M6 dopo essersene
+> allontanato di 4 $ · (la zona raffinata dice solo se l'occasione e' buona)
+
+Le prime quattro sono **obbligatorie e vanno verificate in quest'ordine**,
+perche' le prime tre si leggono in un secondo dalla barra in alto e la quarta
+richiede di guardare il grafico. La quinta non e' una condizione: e' un voto.
 
 ## Stop, obiettivo, gestione
 
