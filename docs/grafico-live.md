@@ -30,7 +30,10 @@ occupata, e' il server. Per vederlo da fuori, in una seconda finestra:
 
 | elemento | cosa dice |
 |---|---|
-| barra in alto | bid, spread del momento, struttura di ogni timeframe |
+| barra in alto | bid, spread, VWAP, numero di segnali, struttura di ogni TF |
+| pannelli LONG / SHORT | le cinque condizioni adesso, si o no una per una |
+| pannello CONFLUENZE | livelli entro mezzo ATR dal prezzo, con quanto valgono |
+| triangoli | segnali passati: pieno = conferme ufficiali, vuoto = campione largo |
 | bande verdi | zone BUY (sotto il prezzo), rosse: zone SELL (sopra) |
 | parte scura dentro la banda | **zona raffinata**: e' quella che conta |
 | linea gialla tratteggiata | il bid adesso |
@@ -58,6 +61,71 @@ scorso indietro, l'arrivo di una candela nuova non ti sposta la vista.
 **M1 non serve a operare** — l'ingresso si valuta su M6 — serve solo a vedere
 con precisione dove sta il prezzo adesso rispetto a un livello, per esempio se
 e' appena dentro o appena fuori una zona.
+
+## I tre pannelli in alto
+
+### LONG e SHORT: le cinque condizioni, adesso
+
+Sono le stesse cinque della sequenza qui sotto, valutate sull'**ultima candela
+M6 chiusa** — non su quella in corso, che cambierebbe idea a ogni tick. Ogni
+riga dice si/no; quando sono tutte vere il riquadro si accende e compare
+**SEGNALE**.
+
+La riga «spinta dal VWAP» mostra due numeri: quanto il prezzo si e' allontanato
+dal VWAP oggi e la soglia da superare. Serve a capire **quanto manca**, non
+solo che manca. La riga «filtro di fondo D1» puo' dire «—» nei primi giorni
+dopo l'avvio, se non ci sono ancora 50 giornate di storia.
+
+Questo pannello e' la parte che serve davvero per operare: non dice soltanto se
+c'e' un segnale, dice **quale condizione manca**.
+
+### CONFLUENZE: cosa c'e' intorno al prezzo, e quanto vale
+
+Elenca i livelli entro **mezzo ATR** dal prezzo attuale, ordinati per distanza,
+ciascuno con la distanza in ATR e un peso:
+
+- **voto** — solo la zona **OB raffinata**: e' l'unica famiglia che abbia mai
+  mostrato un vantaggio misurabile (e che comunque non regge sui diciotto anni,
+  appendice BA);
+- **contesto** — tutto il resto: OB pieno fuori dalla parte raffinata, POC di
+  ieri, estremi dell'area di valore, vuoti di volume. Nessun vantaggio
+  misurato.
+
+**Le confluenze non aprono un'operazione, e il pannello lo dice.** E' una scelta
+deliberata: misurate su diciotto anni, 168.833 eventi e 720 configurazioni, non
+ne sopravvive nessuna (appendice AZ), e contate allo stesso prezzo la
+confluenza non e' nemmeno un caso raro — 167.808 eventi su 168.833 hanno gia'
+quattro famiglie sovrapposte, perche' i livelli stanno tutti dove il prezzo ha
+lavorato. Un pannello che accendesse un segnale su una confluenza mostrerebbe
+come regola qualcosa che le misure hanno bocciato.
+
+Quindi: **si entra con le cinque condizioni**; una zona raffinata concorde dice
+solo che l'occasione e' migliore della media.
+
+### I segnali sul grafico
+
+Il selettore «segnali off / ufficiali / tutti» disegna i segnali passati come
+triangoli all'altezza del prezzo d'ingresso:
+
+- **triangolo pieno** = passa anche le conferme ufficiali (M33+H12 allineati,
+  M12 contrario);
+- **triangolo vuoto** = campione largo, cioe' il segnale c'era ma le conferme
+  no.
+
+Sull'ultimo segnale vengono disegnati anche **stop** e **obiettivo**
+tratteggiati, con i prezzi.
+
+Sono ricalcolati ogni cinque minuti (la pillola in alto dice a che ora), non a
+ogni aggiornamento: ripercorrere quindici mesi di minuti costa decine di
+secondi. Per sapere cosa sta succedendo **adesso** si guarda il pannello delle
+condizioni, non i triangoli.
+
+Nota tecnica: per calcolare i segnali con le regole vere servono quindici mesi
+di storia (il filtro di fondo vuole 50 giornate, il riconoscimento dei mesi
+agitati ne pretende 250), e il terminale ne da' sei settimane. Lo script
+antepone quindi l'archivio del repository ai dati MT5. Se l'archivio manca,
+all'avvio compare un avviso: senza, i segnali sarebbero calcolati con regole
+piu' blande di quelle degli studi.
 
 ## I livelli: cosa sono e a cosa servono davvero
 
