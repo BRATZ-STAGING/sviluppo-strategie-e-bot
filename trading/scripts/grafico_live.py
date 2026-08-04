@@ -54,6 +54,11 @@ _dati = {"pronto": False, "errore": "in attesa del primo aggiornamento"}
 _lock = threading.Lock()
 _serie = {"m1": None}      # ultima serie unita, per il calcolo dei segnali
 _segnali = {"elenco": [], "ora": None, "errore": None}
+# memoria degli avvisi: serve a NON ripetere la notifica finche' la condizione
+# resta vera, e a ricordare cosa e' successo mentre non si guardava
+_avvisi = {"storico": [], "stato": {}}
+AVVISO_URL = os.environ.get("AVVISO_URL", "")   # webhook (es. bot Telegram)
+AVVISI_MAX = 40
 
 
 def storico_archivio():
@@ -267,7 +272,15 @@ def condizioni_ora(m1, vwap_m1, stati_tf, adesso, mediana=None, segnali=()):
              "ora_ok": ora_ok, "alta_volatilita": bool(alta),
              "tarabile": bool(tarabile), "oggi": quante_oggi,
              "max_giorno": T.max_operazioni_giorno, "attesa_ok": bool(attesa_ok),
-             "chiusura": T.ora_chiusura, "lati": {}}
+             "chiusura": T.ora_chiusura,
+             # gli stati grezzi servono al pannello. Senza, le condizioni 2, 3a
+             # e 3b sono tre si/no da prendere per fede. Il 3b in particolare e'
+             # un NO proprio quando l'M12 e' d'accordo col verso — il contrario
+             # di quel che l'occhio si aspetta, perche' quella condizione chiede
+             # un RITRACCIAMENTO, non una conferma. Mostrare lo stato lo spiega
+             # da solo, senza dover ricordare la regola a memoria.
+             "stati": {tf: int(s) for tf, s in struttura.items()},
+             "lati": {}}
     for nome, segno in (("long", 1), ("short", -1)):
         if segno == 1:
             tocca = bool(lo[i] <= v and cl[i] > v and cl[i] > hi[i - 1])
@@ -539,7 +552,9 @@ def calcola(storia, mediana):
     atr = float(a.iloc[-1]) if len(a) and np.isfinite(a.iloc[-1]) else float("nan")
     out["confluenze"] = confluenze_ora(bid, out["zone"],
                                        livelli_di_ieri(m1, atr), atr)
+    controlla_avvisi(out)
     with _lock:
+        out["avvisi"] = list(_avvisi["storico"][:8])
         out["segnali"] = list(_segnali["elenco"])
         out["segnali_ora"] = _segnali["ora"]
         out["segnali_errore"] = _segnali["errore"]
@@ -581,6 +596,84 @@ def profilo_sessioni(m1):
         out[nome] = [round(float(x) / massimo * 100, 2) for x in s]
     out["giorno"] = giorno.strftime("%d/%m")
     return out
+
+
+def quante_vere(c, lato):
+    """Quante delle sette condizioni sono soddisfatte, e quali mancano."""
+    L = c["lati"][lato]
+    prove = [
+        ("orario", c["ora_ok"]),
+        ("struttura H6+H2", L["struttura"]),
+        ("conferme M33+H12", L["conferme"]),
+        ("M12 non allineato", L["ritracciamento"]),
+        ("spinta dal VWAP", L["spinta_ok"]),
+        ("riprende il VWAP", L["reclaim"]),
+        ("filtro di fondo D1", bool(L["macro"])),
+        ("rischio nella banda", L["rischio_ok"]),
+        ("quota del giorno", c["oggi"] < c["max_giorno"] and c["attesa_ok"]),
+    ]
+    mancano = [n for n, v in prove if not v]
+    return len(prove) - len(mancano), len(prove), mancano
+
+
+def controlla_avvisi(out):
+    """Registra il passaggio a SEGNALE e lo manda fuori, una volta sola.
+
+    Con una cinquantina di operazioni l'anno — una ogni cinque giorni di
+    mercato — nessuno puo' stare a guardare lo schermo: l'avviso non e' un
+    ornamento, e' il modo in cui la strategia diventa usabile.
+    """
+    c = out.get("condizioni")
+    if not c:
+        return
+    for lato in ("long", "short"):
+        fatte, totali, mancano = quante_vere(c, lato)
+        pronto = bool(c["lati"][lato]["pronto"])
+        vicino = (not pronto) and fatte >= totali - 1
+        chiave = f"{lato}|{c['candela']}"
+        livello = "segnale" if pronto else ("vicino" if vicino else None)
+        if livello is None:
+            continue
+        if _avvisi["stato"].get(lato) == chiave:
+            continue                      # gia' avvisato per questa candela
+        _avvisi["stato"][lato] = chiave
+        L = c["lati"][lato]
+        avviso = {
+            "quando": pd.Timestamp.now("UTC").strftime("%d/%m %H:%M"),
+            "lato": lato, "livello": livello, "candela": c["candela"],
+            "fatte": fatte, "totali": totali, "mancano": mancano,
+            "entry": out.get("bid"), "stop": L.get("stop"),
+            "rischio": L.get("rischio"),
+        }
+        _avvisi["storico"] = ([avviso] + _avvisi["storico"])[:AVVISI_MAX]
+        manda_fuori(avviso)
+
+
+def manda_fuori(avviso):
+    """Recapita l'avviso a un webhook, se ne e' stato configurato uno.
+
+    Un webhook copre il caso che conta: ricevere la notifica sul telefono
+    senza tenere la pagina aperta. Con un bot Telegram l'URL e'
+    https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<ID>&text=
+    """
+    if not AVVISO_URL:
+        return
+    testo = (f"XAUUSD {avviso['lato'].upper()} "
+             f"{'SEGNALE' if avviso['livello'] == 'segnale' else 'quasi pronto'} "
+             f"({avviso['fatte']}/{avviso['totali']}) candela {avviso['candela']}")
+    if avviso["mancano"]:
+        testo += " · manca: " + ", ".join(avviso["mancano"])
+    if avviso.get("stop") is not None:
+        testo += f" · stop {avviso['stop']:.2f} rischio {avviso['rischio']:.2f} $"
+    try:
+        import urllib.parse
+        import urllib.request
+        url = AVVISO_URL
+        url += ("&" if "?" in url else "?") + urllib.parse.urlencode({"text": testo})
+        with urllib.request.urlopen(url, timeout=10):
+            pass
+    except Exception as e:                        # un avviso perso non ferma il grafico
+        print(f"avviso non recapitato: {e}")
 
 
 def aggiorna_sempre():
@@ -647,9 +740,17 @@ border-radius:12px;padding:10px 12px}
 font:12px var(--m);padding:3px 0;color:var(--i3)}
 .riga b{font-weight:500}
 .si1{color:var(--up)}.no1{color:var(--dn)}.nd{color:var(--i3)}
+#avvisi{display:flex;flex-direction:column;gap:6px}
+.avv{font:12px var(--m);padding:8px 12px;border-radius:9px;
+border:1px solid var(--l);background:var(--p);color:var(--i3)}
+.avv b{color:var(--i)}
+.avv.segnale{border-color:var(--up);color:var(--i)}
+.avv.segnale b{color:var(--up)}
 </style></head><body><div class="w">
 <h1>XAUUSD <span>·</span> live da MT5</h1>
 <div class="bar" id="bar"></div>
+<div class="bar"><div class="seg" id="av"></div><span class="pill" id="avstato"></span></div>
+<div id="avvisi"></div>
 <div id="cond"></div>
 <div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div>
 <div class="seg" id="sg"></div>
@@ -666,6 +767,9 @@ const TF=["M1","M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,e
 // indietro rispetto all'ultima. off negativo = spazio vuoto a destra, cosi' il
 // grafico non resta incollato al bordo.
 let vis=140,off=-8,nPrec=0,passoX=6,trascina=null,mosso=false,seg=1;
+// avvisi: 0 spenti, 1 solo i segnali, 2 anche i "quasi". Il permesso di
+// notifica va chiesto da un gesto dell utente, non all avvio.
+let avvisi=1,vistoUltimo=null,suono=null;
 // scala verticale: zy ingrandisce, oy sposta. La scala la dettano le CANDELE;
 // le zone lontane si disegnano solo dove intersecano, altrimenti su un TF
 // piccolo una zona H6 a cento dollari schiaccerebbe tutto in una striscia.
@@ -685,6 +789,46 @@ el("et").innerHTML=["nomi al passaggio","nomi sempre"].map((t,k)=>
  `<button aria-pressed="${k===etich}">${t}</button>`).join("");
 [...el("et").children].forEach((b,k)=>b.onclick=()=>{etich=k;
  [...el("et").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
+el("av").innerHTML=["avvisi off","solo segnali","anche i quasi"].map((t,k)=>
+ `<button aria-pressed="${k===avvisi}">${t}</button>`).join("");
+[...el("av").children].forEach((b,k)=>b.onclick=()=>{avvisi=k;
+ [...el("av").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));
+ if(k&&"Notification" in window&&Notification.permission==="default")
+  Notification.requestPermission().then(statoAvvisi);
+ statoAvvisi();draw();});
+function statoAvvisi(){
+ const p=("Notification" in window)?Notification.permission:"assenti";
+ el("avstato").innerHTML=avvisi===0?"avvisi spenti"
+  :(p==="granted"?"notifiche attive":"notifiche non concesse dal browser — resta il suono");}
+// un bip generato al momento: nessun file da caricare, nessuna richiesta esterna
+function bip(){try{
+ suono=suono||new (window.AudioContext||window.webkitAudioContext)();
+ const o=suono.createOscillator(),g=suono.createGain();
+ o.connect(g);g.connect(suono.destination);o.frequency.value=880;
+ g.gain.setValueAtTime(.0001,suono.currentTime);
+ g.gain.exponentialRampToValueAtTime(.25,suono.currentTime+.02);
+ g.gain.exponentialRampToValueAtTime(.0001,suono.currentTime+.6);
+ o.start();o.stop(suono.currentTime+.6);}catch(e){}}
+function mostraAvvisi(){
+ const A=D.avvisi||[];
+ // "avvisi off" deve spegnere anche l elenco, non solo il suono
+ const scelti=avvisi===0?[]:A.filter(a=>avvisi===2||a.livello==="segnale");
+ el("avvisi").innerHTML=scelti.slice(0,3).map(a=>
+  `<div class="avv ${a.livello}"><b>${a.quando} · ${a.lato.toUpperCase()} ${
+   a.livello==="segnale"?"SEGNALE":"quasi pronto"}</b> (${a.fatte}/${a.totali})`
+  +(a.mancano.length?` · manca: ${a.mancano.join(", ")}`:"")
+  +(a.stop!=null?` · stop <b>${a.stop.toFixed(2)}</b>, rischio <b>${a.rischio.toFixed(2)} $</b>`:"")
+  +`</div>`).join("");
+ if(!avvisi||!scelti.length)return;
+ const primo=scelti[0], id=primo.quando+primo.lato+primo.candela;
+ if(vistoUltimo===null){vistoUltimo=id;return;}   // al primo caricamento non suona
+ if(id===vistoUltimo)return;
+ vistoUltimo=id; bip();
+ if("Notification" in window&&Notification.permission==="granted")
+  new Notification(`XAUUSD ${primo.lato.toUpperCase()} ${
+   primo.livello==="segnale"?"SEGNALE":"quasi pronto"}`,
+   {body:(primo.mancano.length?"manca: "+primo.mancano.join(", "):"tutte le condizioni")
+    +(primo.stop!=null?` — stop ${primo.stop.toFixed(2)}`:"")});}
 el("sg").innerHTML=["segnali off","ufficiali","tutti"].map((t,k)=>
  `<button aria-pressed="${k===seg}">${t}</button>`).join("");
 [...el("sg").children].forEach((b,k)=>b.onclick=()=>{seg=k;
@@ -744,7 +888,16 @@ const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra","
 const chiave=z=>z.tf+"|"+z.lato+"|"+z.da+"|"+z.basso;
 const bollo=v=>v===null||v===undefined?'<b class="nd">—</b>'
  :v?'<b class="si1">si</b>':'<b class="no1">no</b>';
-// il pannello delle cinque condizioni, per i due lati, sull'ultima M6 chiusa
+// lo stato STRUTTURALE dei timeframe citati da una condizione, in chiaro.
+// Non e' un dettaglio estetico: sullo schermo la sigla "M12" compare due volte
+// con due significati diversi — la zona order block M12 fra le confluenze, e
+// lo stato di struttura M12 qui. Possono puntare dalla stessa parte e valere
+// il contrario, perche' il 3b vuole un ritracciamento. Scriverlo evita di
+// leggere un "no" come un errore del pannello.
+const stati=tf=>tf.map(t=>{const s=(D.condizioni.stati||{})[t];
+ return '<b class="'+(s>0?"si1":s<0?"no1":"nd")+'">'+t+" "
+   +(s>0?"su":s<0?"giu":"—")+"</b>";}).join(" ");
+// il pannello delle condizioni, per i due lati, sull'ultima M6 chiusa
 function pannello(){
  const C=D.condizioni;
  if(!C){el("cond").innerHTML="";return;}
@@ -753,9 +906,10 @@ function pannello(){
   const righe=[
    ["1 · orario della candela",bollo(C.ora_ok)
      +(C.alta_volatilita?' <b class="nd">· mese agitato</b>':"")],
-   ["2 · struttura H6+H2",bollo(L.struttura)],
-   ["3a · conferme M33+H12",bollo(L.conferme)],
-   ["3b · M12 non allineato",bollo(L.ritracciamento)],
+   ["2 · struttura H6+H2",stati(["H6","H2"])+" "+bollo(L.struttura)],
+   ["3a · conferme M33+H12",stati(["M33","H12"])+" "+bollo(L.conferme)],
+   ["3b · M12 <b class='nd'>deve ritracciare</b>",
+     stati(["M12"])+" "+bollo(L.ritracciamento)],
    ["4a · spinta dal VWAP","<b>"+L.spinta.toFixed(2)+" / "+L.soglia.toFixed(2)
      +" $</b> "+bollo(L.spinta_ok)],
    ["4b · riprende il VWAP",bollo(L.reclaim)],
@@ -812,6 +966,7 @@ function draw(){
   Object.entries(D.struttura).map(([k,v])=>{const[s,c]=stat(v);
    return `<span class="pill">${k} <b class="${c}">${s}</b></span>`}).join("");
  pannello();
+ mostraAvvisi();
  const s=D.serie[tf];if(!s)return;
  const cv=el("c"),x=cv.getContext("2d"),dpr=devicePixelRatio||1;
  const W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
@@ -979,7 +1134,7 @@ function draw(){
    <td>${z.dist>0?"+":""}${z.dist.toFixed(2)}</td><td>${z.da}</td><td>${z.scade}</td></tr>`).join("")
    :`<tr><td colspan="7" style="text-align:center;color:var(--i3)">nessuna zona attiva</td></tr>`);
 }
-addEventListener("resize",draw);tira();
+addEventListener("resize",draw);statoAvvisi();tira();
 </script></body></html>"""
 
 
