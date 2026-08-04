@@ -3332,3 +3332,115 @@ che era l'ipotesi da provare.
 Con AU-AY questo chiude il quadro: non c'e' un pezzo di questa famiglia di
 strategie che sopravviva alla storia lunga. Quello che regge e' il metodo di
 misura, che ha appena bocciato il proprio risultato migliore.
+
+## Appendice BB: gli order block ridefiniti come li usa l'utente
+
+Obiezione dell'utente al modo in cui li segnavamo: una zona non deve morire
+dopo trenta candele, deve restare buona **finche' non viene toccata**; e una
+gia' toccata, se il prezzo ci torna una seconda o terza volta, non e' piu' un
+order block ma un supporto o una resistenza. Il tocco e' la **chiusura dentro
+la zona**, non l'ombra: su un timeframe grande e' una conferma piu' forte.
+
+Misurato su **1.228.881 tocchi** in diciotto anni (M33, M66, H2, H6; quattro
+definizioni di tocco; stop 0,25-1 ATR; obiettivi 1:2-1:10; uscita serale),
+ciascuno col suo placebo — la stessa zona spostata a caso di 0,2-0,6 ATR.
+
+### Prima: un errore mio, trovato e corretto
+
+La prima versione registrava l'evento all'**apertura** della candela invece
+che alla chiusura: si entrava al prezzo di chiusura e poi si ripercorreva la
+candela stessa sapendo gia' come finiva. Su H6 sono sei ore di futuro
+regalate, e il risultato era spettacolare — **+0,98 R/op, 73% di operazioni
+vinte, 11 anni positivi su 11**. L'indizio che l'ha smascherato: **il placebo
+faceva il 73,5%**, identico. Una zona spostata a caso non puo' funzionare
+come una vera; se lo fa, non e' la zona che funziona. Corretto, e bloccato da
+un test che verifica l'invariante (l'istante di un evento e' la chiusura
+della candela il cui prezzo e' quello d'ingresso).
+
+### 1. La scadenza a 30 candele buttava via zone buone? No
+
+| eta' al tocco | R/op | placebo | anni positivi |
+|---|---|---|---|
+| 0-5 candele | -0,041 | -0,047 | 3/11 |
+| 6-15 | -0,029 | -0,022 | 3/11 |
+| 16-30 | -0,041 | -0,046 | 2/11 |
+| 31-60 | -0,017 | -0,024 | 3/11 |
+| 61-120 | -0,024 | -0,026 | 3/11 |
+| **oltre 120** | **-0,094** | -0,099 | **0/11** |
+
+Le zone vecchie non rendono quanto le fresche: rendono **peggio**, e la
+fascia oltre le 120 candele non ha un solo anno positivo su undici. Tenerle
+vive piu' a lungo aggiunge occasioni scadenti, non occasioni perse.
+
+### 2. Il primo tocco vale piu' del secondo e del terzo? No
+
+| tocco | R/op | placebo | operazioni |
+|---|---|---|---|
+| primo | -0,041 | -0,061 | 5.978 |
+| secondo | -0,041 | -0,057 | 2.171 |
+| terzo | -0,081 | +0,009 | 908 |
+| quarto o oltre | -0,064 | -0,076 | 1.045 |
+
+Nessuna progressione: il secondo tocco vale come il primo, il terzo e' il
+peggiore. **Una zona ritoccata non diventa un supporto migliore.**
+
+### 3. Quale definizione di tocco? Non cambia niente
+
+| definizione | R/op | placebo | differenza |
+|---|---|---|---|
+| chiusura sul TF della zona | -0,047 | -0,056 | +0,009 |
+| chiusura su M12 | -0,045 | -0,048 | +0,003 |
+| chiusura su M6 | -0,050 | -0,046 | -0,004 |
+| ombra | -0,039 | -0,051 | +0,011 |
+
+La chiusura dentro, che doveva essere la conferma piu' forte, non batte
+l'ombra. Tutte e quattro stanno a un passo dal proprio placebo.
+
+### 4. La zona rotta si ribalta in supporto/resistenza? No
+
+Su **circa 180.000 tocchi per definizione** dopo l'invalidazione, operati al
+contrario: da -0,023 a -0,031 R/op, con differenze dal placebo fra +0,000 e
++0,005. Il supporto rotto non diventa resistenza in modo utilizzabile.
+
+### Il quadro completo
+
+720 celle (timeframe x definizione x tocco x stop x obiettivo). Positive e
+sopra il placebo sul 2009-2019: **22**. Ancora positive sul 2020-2026: **5**.
+Il 3% che passa il primo filtro e il 23% che sopravvive al secondo sono
+esattamente quello che darebbe il caso, e la migliore rende +0,036 R/op su
+292 operazioni.
+
+## Appendice BC: perche' il win rate non e' una leva
+
+Richiesta dell'utente: una strategia con **oltre il 50% di operazioni vinte a
+RR 1:1,5-1:2**. La misura dice che la prima meta' e' facile e non serve a
+niente. Decomposizione degli esiti sugli stessi 15.974 tocchi (zone OB,
+chiusura sul TF, tutte le fasce):
+
+| stop | RR | stop pieno | obiettivo preso | uscita serale | vinte | R/op | media vinta | media persa |
+|---|---|---|---|---|---|---|---|---|
+| 0,25 ATR | 1:2 | 42,1% | 14,2% | 43,7% | **41,8%** | -0,07 | +1,02 | -0,85 |
+| 0,50 ATR | 1:2 | 20,3% | 3,6% | 76,1% | **47,5%** | -0,04 | +0,55 | -0,57 |
+| 1,00 ATR | 1:2 | 5,4% | **0,2%** | 94,5% | **48,8%** | -0,03 | +0,28 | -0,32 |
+
+Allargando lo stop la quota di operazioni vinte sale da 41,8% a 48,8% — ma
+l'obiettivo 1:2 viene raggiunto nello **0,2% dei casi** invece che nel 14%, e
+il risultato resta negativo. Le "vinte" diventano semplicemente chiusure
+serali in leggero utile: la vincita media scende da +1,02 a +0,28 R e la
+perdita media da -0,85 a -0,32.
+
+**Il win rate si porta dove si vuole** stringendo o allargando lo stop, o
+uscendo prima: e' una conseguenza della geometria, non una proprieta' del
+vantaggio. Infatti il placebo ha le stesse quote (40,6% / 47,1% / 48,3%): una
+zona finta produce lo stesso win rate di una vera.
+
+A RR 1:2, delle 180 celle misurate **9 superano il 50% di operazioni vinte e
+nessuna di quelle 9 ha risultato positivo**.
+
+Il conto teorico dice che a 1:2 basterebbe il 33,3% di vinte per pareggiare,
+e a 1:1,5 il 40%: sembrano soglie gia' superate. Non lo sono, perche' quel
+conto vale solo se ogni operazione finisce a +RR o a -1R. Con l'uscita serale
+la maggior parte finisce in mezzo, e allora l'unico numero che conta e' **R
+per operazione**. Un obiettivo sensato non e' "oltre il 50% di vinte" ma
+"R/op stabilmente sopra zero al netto di spread e swap", e la quota di vinte
+che ne esce e' quello che e'.

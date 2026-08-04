@@ -66,7 +66,15 @@ repository.
 
 - Non committare CSV/tick nel repo (solo Parquet M1 annuali + codice + docs).
 - Non fidarsi di risultati "troppo belli": cercare lookahead (è già successo
-  con la confluenza asia, vedi `docs/studies/rr-intraday-study.md` §2).
+  con la confluenza asia, vedi `docs/studies/rr-intraday-study.md` §2, e con
+  l'istante degli eventi sui livelli, appendice BB).
+- **Il placebo che va bene quanto il vero e' un ALLARME, non una conferma**:
+  se una zona spostata a caso rende come una vera, non e' la zona che
+  funziona. E' cosi' che si e' scoperto il lookahead dell'appendice BB.
+- Negli studi sui livelli, l'istante di un evento e' la **chiusura** della
+  candela, mai l'apertura: registrare l'apertura significa entrare al prezzo
+  di chiusura e ripercorrere la candela sapendo gia' come finisce, e il
+  vantaggio finto cresce col timeframe. Bloccato da `test_eventi_livelli.py`.
 - Non fare grid-mining di filtri: ipotesi pre-registrate e verifica per anno.
 - Push frequenti: i container sono effimeri, il lavoro non pushato muore.
 
@@ -175,6 +183,22 @@ non a un'altra variante di questa.
   placebo +0,003 R/op. Le **confluenze** non selezionano: contate allo stesso
   prezzo, 167.808 eventi su 168.833 hanno gia' quattro famiglie sovrapposte,
   perche' i livelli stanno tutti dove il prezzo ha lavorato. Appendice AZ.
+- **Order block ridefiniti come li usa l'utente** (validi finche' non toccati
+  invece che 30 candele, tocco = chiusura dentro invece che ombra, conteggio
+  dei tocchi, ribaltamento in supporto/resistenza dopo l'invalidazione):
+  1.228.881 tocchi su 18 anni, tutte e quattro le domande NEGATIVE. Le zone
+  oltre 120 candele rendono **peggio** (-0,094 R/op, 0 anni positivi su 11),
+  non meglio; il secondo tocco vale come il primo e il terzo e' il peggiore;
+  la chiusura dentro non batte l'ombra; i tocchi dopo l'invalidazione operati
+  al contrario danno -0,023/-0,031 con differenza dal placebo fra 0,000 e
+  0,005. Su 720 celle, 22 passano la ricerca e 5 sopravvivono: quello che
+  darebbe il caso. Appendice BB.
+- **Puntare a un win rate sopra il 50%**: e' una leva finta. Allargando lo
+  stop la quota di vinte sale dal 41,8% al 48,8%, ma l'obiettivo 1:2 passa da
+  14,2% a **0,2%** e il risultato resta negativo; il placebo ha le stesse
+  quote. A RR 1:2, delle 180 celle misurate 9 superano il 50% di vinte e
+  **nessuna** ha risultato positivo. L'unico numero che conta e' R/op.
+  Appendice BC.
 - **Soglie normalizzate all'ATR invece che in dollari** (ipotesi
   pre-registrata per spiegare il crollo fuori campione): respinta. Sul
   2009-2019 peggiora da -39,3 a -67,1 R con il riferimento ufficiale e a
