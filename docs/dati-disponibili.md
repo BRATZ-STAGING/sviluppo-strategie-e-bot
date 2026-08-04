@@ -110,3 +110,83 @@ Le tre fonti non sono interscambiabili.
 
 Un confronto fra due backtest su fonti diverse non vale niente. Prima si fissa
 la fonte, poi si confrontano le varianti.
+
+## Verifica dello storico 2009-2019 contro una fonte indipendente (04/08/2026)
+
+Domanda giusta e che mancava: gli anni aggiunti sono corretti? I controlli
+fatti al momento del download — il convertitore che riproduce un giorno gia'
+in archivio, la copertura per anno, due punti noti — erano **interni** o
+aneddotici. Nessuno confrontava con un'altra banca dati.
+
+Il proxy di questo ambiente blocca quasi tutti gli host (stooq, FRED, Yahoo,
+lbma.org.uk: 403 sulla CONNECT). Passa `raw.githubusercontent.com`, e li' c'e'
+il **prezzo LBMA** — il fixing ufficiale di Londra, che non ha niente a che
+vedere con Dukascopy.
+
+### Confronto con il fixing LBMA, 210 mesi
+
+| | |
+|---|---|
+| periodo | 2009-01 → 2026-06 |
+| differenza mediana | **+0,34 $ (+0,023%)** |
+| differenza media | +0,25 $, scarto tipo 3,23 $ |
+| correlazione | **0,999991** |
+| mesi oltre l'1% | **0 su 210** |
+| scostamento massimo | 0,73% (maggio 2025) |
+
+E soprattutto, diviso per periodo:
+
+| | mesi | mediana | scarto medio | massimo |
+|---|---|---|---|---|
+| **2009-2019** | 132 | +0,026% | **0,091%** | 0,652% |
+| 2020-2026 | 78 | +0,018% | 0,104% | 0,726% |
+
+**Gli anni vecchi aderiscono a LBMA leggermente MEGLIO di quelli nuovi.**
+(La differenza residua e' attesa: LBMA e' la media dei fixing giornalieri,
+l'archivio la media di tutti i minuti.)
+
+### Gli eventi noti, con l'ora
+
+La media mensile valida il livello, non la struttura intraday. Sei giornate
+che chiunque puo' verificare:
+
+| giorno | apertura | massimo | ora | minimo | ora | escursione |
+|---|---|---|---|---|---|---|
+| 2011-09-06 record dell'epoca | 1897,6 | **1920,7** | 06:29 | 1863,0 | 17:51 | 57,7 |
+| 2013-04-15 crollo di aprile | 1489,9 | 1495,5 | 00:28 | **1334,6** | 20:16 | **160,9** |
+| 2016-06-24 Brexit | 1267,3 | **1358,2** | **03:52** | 1264,0 | 00:18 | 94,2 |
+| 2016-11-09 elezioni USA | 1273,4 | **1337,3** | **05:10** | 1268,8 | 00:59 | 68,5 |
+| 2020-03-16 liquidazione Covid | 1557,9 | 1560,7 | 00:06 | **1451,1** | 13:03 | 109,6 |
+| 2020-08-06 massimo 2020 | 2036,3 | **2074,8** | 22:21 | 2034,4 | 00:01 | 40,4 |
+
+Tutti presenti, con la grandezza giusta e **all'ora giusta**: il picco Brexit
+alle 03:52 UTC quando arrivavano gli spogli, quello delle elezioni alle 05:10
+seguito dal crollo, il minimo Covid nel pomeriggio americano.
+
+### La struttura oraria
+
+Escursione mediana al minuto, per ora UTC, nei due periodi:
+
+| ora | 2009-2019 | 2020-2026 | rapporto |
+|---|---|---|---|
+| 04 (fondo asiatico) | 0,170 | 0,310 | 1,82 |
+| 07-08 (apertura Londra) | 0,306 | 0,620 | 2,03 |
+| **13-14 (sovrapposizione Londra-NY)** | **0,510** | **1,120** | 2,20 |
+| 17 | 0,325 | 0,554 | 1,70 |
+| 21 (rollover) | **0,159** | **0,257** | 1,62 |
+
+Stessa forma esatta — massimo alle 13-14, secondo picco all'apertura di
+Londra, minimo alle 21 — con il periodo recente semplicemente due volte piu'
+mosso a ogni ora. Un archivio sbagliato o disallineato non riprodurrebbe la
+struttura delle sessioni ora per ora.
+
+### Conclusione
+
+I dati 2009-2019 reggono il confronto con una fonte indipendente e
+autorevole, e non sono meno affidabili di quelli 2020-2026 gia' in uso. **Il
+risultato negativo su quegli anni non e' un problema di dati.**
+
+Resta un limite: LBMA e' mensile, quindi valida il livello e (insieme agli
+eventi e alla struttura oraria) la coerenza intraday, ma non e' un confronto
+minuto per minuto. Per quello servirebbe una seconda fonte tick, che da questo
+ambiente non e' raggiungibile.
