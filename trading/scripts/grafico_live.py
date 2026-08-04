@@ -59,6 +59,16 @@ _segnali = {"elenco": [], "ora": None, "errore": None}
 _avvisi = {"storico": [], "stato": {}}
 AVVISO_URL = os.environ.get("AVVISO_URL", "")   # webhook (es. bot Telegram)
 AVVISI_MAX = 40
+# Registro dei segnali in avanti. E' l'unica verifica che resta: il 2009-2019
+# e' stato escluso per decisione e il 2023-2026 e' servito a scegliere le
+# celle, quindi ogni numero degli studi e' ormai dentro il campione. Da qui in
+# poi ogni segnale viene scritto su disco con l'istante in cui e' stato VISTO,
+# non quello in cui lo si rilegge: fra sei mesi sara' un fuori campione vero,
+# piccolo ma non contaminato. Il file e' JSON per riga cosi' sopravvive a un
+# processo ucciso a meta' scrittura.
+REGISTRO = os.environ.get(
+    "REGISTRO_SEGNALI",
+    os.path.join(ROOT, "..", "dati_grezzi", "registro_segnali.jsonl"))
 
 
 def storico_archivio():
@@ -646,7 +656,48 @@ def controlla_avvisi(out):
             "rischio": L.get("rischio"),
         }
         _avvisi["storico"] = ([avviso] + _avvisi["storico"])[:AVVISI_MAX]
+        registra(avviso, c, lato, out)
         manda_fuori(avviso)
+
+
+def registra(avviso, c, lato, out):
+    """Scrive il segnale sul registro in avanti, una riga per evento.
+
+    Registra il PREZZO DEL MOMENTO e tutte le condizioni cosi' come erano: fra
+    sei mesi si potra' ricostruire ogni operazione senza fidarsi della memoria
+    e senza ricalcolarla su dati che nel frattempo potrebbero essere stati
+    corretti. E' la differenza fra un fuori campione e un aneddoto.
+
+    Vengono registrati anche i "vicino" (una condizione mancante): servono a
+    misurare quanto costa davvero ciascuna condizione, che e' una domanda a cui
+    lo storico non puo' rispondere perche' li' le condizioni sono gia' imposte.
+
+    Scrive in append e non solleva mai: se il disco e' pieno o il percorso non
+    esiste, il grafico deve continuare a funzionare. Un registro monco e' un
+    problema; un grafico che si spegne mentre il mercato e' aperto lo e' di piu'.
+    """
+    L = c["lati"][lato]
+    riga = {
+        "visto": pd.Timestamp.now("UTC").isoformat(),
+        "candela": c["candela"], "lato": lato, "livello": avviso["livello"],
+        "bid": out.get("bid"), "ask": out.get("ask"),
+        "spread": (None if out.get("ask") is None or out.get("bid") is None
+                   else round(out["ask"] - out["bid"], 3)),
+        "entry": avviso["entry"], "stop": L.get("stop"),
+        "rischio": L.get("rischio"), "spinta": L.get("spinta"),
+        "soglia": L.get("soglia"), "banda": L.get("banda"),
+        "fatte": avviso["fatte"], "totali": avviso["totali"],
+        "mancano": avviso["mancano"],
+        "stati": c.get("stati", {}), "vwap": c.get("vwap"),
+        "alta_volatilita": c.get("alta_volatilita"),
+        "oggi": c.get("oggi"), "versione": "8d61523",
+    }
+    try:
+        os.makedirs(os.path.dirname(REGISTRO), exist_ok=True)
+        with open(REGISTRO, "a") as f:
+            f.write(json.dumps(riga, default=str) + "\n")
+    except OSError as e:                              # noqa: BLE001
+        print(f"registro non scritto: {e}", file=sys.stderr)
 
 
 def manda_fuori(avviso):
