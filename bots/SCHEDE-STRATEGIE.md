@@ -196,3 +196,103 @@ sono 52 punti di conto per la strategia in uso e 87 per la B.
 - Ricordare che le tre sono **fortemente correlate** (stesso segnale
   d'ingresso, cambia solo l'uscita): farle girare insieme non e'
   diversificazione, e' la stessa scommessa in triplice copia.
+
+---
+
+# AGGIORNAMENTO 04/08/2026 — prima di avviare, leggere questo
+
+Una giornata di verifiche ha cambiato tre cose di questo documento. Le regole
+d'ingresso e di gestione descritte sopra **non cambiano**: cambiano i numeri
+attesi, l'avvertenza, e quale delle strategie conviene davvero.
+
+## 1. Il costo era sottostimato
+
+Le tabelle sopra usano lo spread della taratura, **0,30 $**. Misurato su
+**6,1 milioni di tick** denaro-lettera (appendice BN):
+
+| anno | 2021 | 2022 | 2023 | 2024 | **2025** | **2026** |
+|---|---|---|---|---|---|---|
+| spread vero $ | 0,349 | 0,395 | 0,334 | 0,384 | **0,632** | **0,631** |
+
+Lo spread e' **raddoppiato dal 2025**. La forma oraria esiste ma e' piccola:
+minimo 0,330 alle 15 UTC, massimo 0,456 alle 22, il 38% di escursione.
+
+## 2. I numeri veri delle quattro strategie (2020-2026, 333 operazioni)
+
+| strategia | R totale | R/op | vinte% | DD R | **R/DD** | anni+ | anno peggiore | mesi+ | perdite di fila |
+|---|---|---|---|---|---|---|---|---|---|
+| in uso 1:10, pareggio +3R, EOD | +214,7 | 0,64 | 21,3% | 20,8 | 10,33 | 6/7 | **−3,6 R** | 44,9% | **23** |
+| A · 1:8, pareggio +3R, chiude venerdi' | +206,2 | 0,62 | 16,8% | 26,3 | 7,84 | **7/7** | +7,5 R | 43,5% | **24** |
+| **B · 1:8, trail MFE−2 da +3R, weekend se >+1R** | **+174,6** | 0,52 | 38,4% | **12,6** | **13,85** | **7/7** | **+11,9 R** | **55,1%** | **12** |
+| **1:2 secco, niente pareggio, EOD** (nuova) | +86,6 | 0,26 | **46,9%** | 12,3 | 7,02 | 6/7 | −2,6 R | 52,2% | **7** |
+
+La correzione del costo vale **il 4%** del totale (in uso: da +223,4 a +214,7).
+E' poco, e il motivo e' importante: lo **stop strutturale cresce da solo** con
+la volatilita' — mediana 4,2 $ nel 2020, 14,8 $ nel 2026 — quindi il costo
+relativo resta al 9,8% invece di salire. Una strategia a stop fisso non ha
+questa protezione: con 3 $ fissi il costo e' passato dal 10% al 21%.
+
+## 3. Quale avviare: **la B**, non quella in uso
+
+Su ogni misura che conta per un conto da far vedere a qualcuno, la B vince:
+
+| | in uso | **B** |
+|---|---|---|
+| anni positivi | 6/7 | **7/7** |
+| anno peggiore | −3,6 R | **+11,9 R** (nessun anno in perdita) |
+| perdita massima | 20,8 R | **12,6 R** |
+| rendimento per unita' di perdita | 10,33 | **13,85** |
+| mesi positivi | 44,9% | **55,1%** |
+| perdite consecutive | 23 | **12** |
+
+Rende il 19% in meno in R assoluti e li restituisce tutti in sopportabilita'.
+
+**Dimensionamento per un 6% annuo**: rischio **0,24% per operazione**, che
+porta la perdita massima attesa al **3,0% del conto**. Per un 10% annuo:
+rischio 0,40%, perdita massima 5,0%.
+
+La **1:2 secca** e' l'alternativa se serve il tasso di vincite piu' alto
+(46,9% contro 38,4%) e la striscia di perdite piu' corta (7 contro 12): costa
+un anno negativo su sette e un drawdown doppio a parita' di rendimento.
+
+## 4. L'avvertenza va rafforzata, non ammorbidita
+
+La scheda diceva che avviarle e' "una scommessa sul fatto che il regime del
+2020-2026 continui". Le misure di oggi rendono quella frase piu' scoperta:
+
+- **il regime non e' mai cambiato** (appendice BW). In rapporto al prezzo,
+  ATR giornaliero 1,351% nel 2009-2019 contro 1,393% nel 2020-2026; spread
+  relativo identico; quota di escursione notturna e persistenza sovrapposte
+  per oltre il 90%. L'unica cosa cambiata e' il **prezzo dell'oro**, da 950 a
+  4.676 $;
+- **non era un problema di unita' di misura** (appendice BX). Riscrivere tutte
+  le soglie in ATR stabilizza le occasioni fra le epoche (da 17-80 l'anno a
+  41-64) ma **non restituisce il vantaggio**: il 2009-2019 resta a +0,046 R/op
+  lordo contro +0,72 del 2023-2026;
+- **non e' la tendenza di fondo**: condizionando sulla pendenza a 200 giorni,
+  la fascia "sale forte" rende −0,001 netto nel 2009-2019 e +0,580 nel
+  2020-2026.
+
+Cioe': **il vantaggio compare nel 2020 e nessuna grandezza misurabile del
+mercato cambia insieme a lui.** La spiegazione piu' parsimoniosa resta che la
+regola sia stata trovata cercando dentro il 2020-2026.
+
+Questo non impedisce di avviarla. Impone due cose:
+1. dimensionare sulla perdita massima del **periodo cattivo** (51,7 R per la
+   strategia in uso, 87,4 per la B), non su quella del periodo buono;
+2. avere una **regola di spegnimento** decisa prima di partire — per esempio
+   fermarsi a −15 R, che e' oltre il drawdown peggiore del periodo buono e
+   dentro quello del periodo cattivo.
+
+## 5. Il registro in avanti e' attivo
+
+`grafico_live.py` scrive ora ogni segnale su `registro_segnali.jsonl`: istante
+in cui e' stato **visto**, bid e ask reali, entry, stop, rischio, stato di
+struttura di tutti i timeframe, quali condizioni erano vere. Registra anche i
+"vicino" (una condizione mancante), che servono a misurare quanto vale
+ciascuna condizione — cosa che lo storico non puo' dire, perche' li' le
+condizioni sono gia' imposte.
+
+Facendolo girare sul VPS accanto ai bot, fra sei mesi ci sara' **l'unico fuori
+campione non contaminato** che questo progetto possa ancora produrre. Vale piu'
+di qualunque altro studio sugli stessi dati.
