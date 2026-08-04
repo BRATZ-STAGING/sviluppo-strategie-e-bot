@@ -3851,3 +3851,100 @@ gia' smontato quattro volte.
   intraday su migliaia di titoli, non un solo simbolo), e va **verificata da
   noi** prima di crederci, perche' il paper e' 2016-2023 e non ha fuori
   campione.
+
+---
+
+## Appendice BK: l'ORB completo di Crabel, e perche' il 9% della letteratura e' un numero LORDO
+
+L'utente contesta l'appendice BJ con un argomento giusto: *"la strategia
+originale prevede un rendimento annuo circa 9%"*. Aveva ragione su due cose e
+la revisione le conferma entrambe.
+
+### Errore 1: avevo implementato meta' strategia
+
+Il libro si chiama *Day Trading with **Short Term Price Patterns** and Opening
+Range Breakout*. La rottura dello Stretch e' il grilletto; i pattern di
+contrazione sono la **selezione**. In BJ avevo preso la rottura tutti i giorni,
+cioe' Crabel senza la parte che decide quando operare. Aggiunti i quattro
+pattern del libro, misurati sulla giornata precedente (`shift(1)`, mai sul
+giorno in corso): NR4, NR7, inside day, ID/NR4.
+
+### Errore 2: il costo era nascosto dentro un numero fisso
+
+Il rischio mediano e' **6,5 punti indice**. Mezzo punto di costo tondo e' il
+**7,8% del rischio**. Con 235 operazioni l'anno, un'ipotesi sui costi non e' un
+dettaglio: e' la strategia. Rifatto tutto riportando LORDO e NETTO a tre
+livelli (0,25 = spread di un tick sull'E-mini senza slittamento; 0,35 =
+realistico con commissione; 0,50 = pessimista).
+
+### Il fatto centrale: il vantaggio lordo esiste, ed e' proprio ~9-12% annuo
+
+| | ricerca 2011-14 | verifica 2015-18 |
+|---|---|---|
+| tutti i giorni, **lordo** | **+0,060 R/op** (931 op) | **+0,042 R/op** (966 op) |
+| tutti i giorni, netto 0,25 | +0,017 | +0,007 |
+| tutti i giorni, netto 0,35 | −0,000 | −0,007 |
+| tutti i giorni, netto 0,50 | −0,026 | −0,029 |
+
+A 235 operazioni l'anno e rischio 1% per operazione, il lordo vale
+**+14,1% annuo in ricerca e +9,9% in verifica**. Ecco da dove viene il ~9%
+della letteratura: **e' sostanzialmente il risultato lordo**. Il pareggio cade
+a ~0,32 punti tondi. Sopra quella soglia non resta niente.
+
+Questo cambia il verdetto di BJ: non e' vero che l'ORB sull'S&P "non c'e'". Il
+segnale c'e' ed e' stabile su 1.897 operazioni e due periodi separati. E'
+**della stessa taglia dei costi di esecuzione**, ed e' un'altra cosa.
+
+### Ipotesi A: i pattern selezionano? Solo NR4, e non abbastanza
+
+Lordo, uscita a fine sessione:
+
+| | ricerca | verifica |
+|---|---|---|
+| tutti | +0,060 | +0,042 |
+| **NR4** | **+0,116** | **+0,082** |
+| NR7 | +0,093 | −0,014 |
+| ID | +0,017 | −0,028 |
+| ID/NR4 | +0,087 | −0,088 |
+
+NR4 **raddoppia** il vantaggio lordo e lo fa in entrambi i periodi. Gli altri
+tre funzionano in ricerca e crollano in verifica: sono rumore. Netto 0,35 NR4
+resta +0,056 / +0,033 (65 operazioni l'anno, ~3,5% e ~2,2% annuo all'1%).
+
+**Ma il placebo non lo assolve.** Cinquemila selezioni casuali della stessa
+numerosita': NR4 batte solo il **79,7%** dei casuali in ricerca e il **71,2%**
+in verifica. Tradotto: una selezione a caso di 250 giorni fa altrettanto bene
+una volta su quattro. E anno per anno NR4 fa **5 positivi su 9**, con il 2011
+(+16,4 R) che da solo vale piu' di tutto il resto messo insieme.
+
+Verdetto onesto: NR4 punta nella direzione giusta — la contrazione precede
+l'espansione, il gross raddoppia, e questo e' coerente su due periodi — ma
+**non e' distinguibile dal caso** con questa numerosita'. Su quattro pattern
+provati, uno sopravvive: e' esattamente cio' che ci si aspetta pescando.
+
+### Ipotesi C: l'obiettivo 1:1 (proposta dell'utente) e' peggio
+
+Costo 0,35, verifica: tutti i giorni **−0,049 R/op con 1:1** contro −0,007 con
+uscita a fine sessione; NR4 **−0,055 con 1:1** contro +0,033. Zero anni
+positivi su quattro per l'1:1 in verifica, su ogni selezione.
+
+Conferma quello che dice la letteratura accademica: l'ORB e' una scommessa sul
+**momentum che prosegue fino alla chiusura**, non una regola a bersaglio.
+Tagliare a 1:1 elimina la coda lunga che paga tutte le perdite. Ipotesi C
+confermata, proposta 1:1 respinta.
+
+### Conclusione, corretta rispetto a BJ
+
+1. **L'ORB sull'S&P 500 e' reale in lordo** (+0,05 R/op su 1.897 operazioni,
+   stabile sui due periodi) e vale ~10-14% annuo all'1% di rischio. Il ~9%
+   della letteratura non e' un errore: e' quel numero.
+2. **Ma e' interamente dentro i costi.** Pareggio a 0,32 punti tondi. Sopra,
+   zero; a 0,50, perdita netta. Un bot su questo non ha margine di sicurezza:
+   basta un tick di slittamento sugli ordini stop per azzerarlo.
+3. **I pattern di Crabel non lo salvano in modo dimostrabile.** Solo NR4
+   sopravvive ai due periodi, ma non batte il caso e dipende da un anno.
+4. Se si vuole insistere, la strada NON e' un altro filtro: e' **abbassare il
+   costo in rapporto al rischio**. Due modi soli: uno strumento con Stretch
+   piu' largo a parita' di spread, oppure entrare in limite invece che in stop
+   (Crabel operava nel mercato a voce, dove la microstruttura era un'altra).
+   Sono ipotesi da misurare, non conclusioni.
