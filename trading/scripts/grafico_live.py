@@ -17,6 +17,7 @@ vantaggio (appendice AJ, +1,342 R/op su sette anni). Una zona NON e' un
 segnale da sola (appendice W) e non va usata come ordine limite in attesa
 (appendice AA): serve il segnale della strategia con la struttura concorde.
 """
+import glob
 import json
 import os
 import sys
@@ -29,20 +30,66 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from framework.data import TIMEFRAMES, resample_tf                # noqa: E402
+from framework.data import TIMEFRAMES, load_m1, resample_tf       # noqa: E402
+from framework.segnali import filtro_macro, genera                # noqa: E402
 from framework.structure import trend_state_series                # noqa: E402
 from framework.taratura import UFFICIALE as T                     # noqa: E402
+from framework.volatility import daily_atr                        # noqa: E402
 from framework.vwap import anchored_vwap                          # noqa: E402
 
 from export_lab import zone_ob                                    # noqa: E402
 
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 TF_ZONE = ["M6", "M12", "M33", "M66", "H2", "H3", "H6", "H12"]
 VALIDITA = 30              # candele di vita di una zona, come negli studi
-BARRE_M1 = 60_000          # ~6 settimane: basta per struttura e zone
+BARRE_M1 = 60_000          # ~6 settimane dal terminale: basta per zone e struttura
+MESI_STORIA = 15           # mesi di archivio da anteporre, per il contesto
 AGGIORNA = 3.0             # secondi fra un ricalcolo e l'altro
+SEGNALI_OGNI = 300         # secondi fra due ricalcoli dei segnali passati
+SEGNALI_MAX = 60           # quanti segnali passati tenere
 
 _dati = {"pronto": False, "errore": "in attesa del primo aggiornamento"}
 _lock = threading.Lock()
+_serie = {"m1": None}      # ultima serie unita, per il calcolo dei segnali
+_segnali = {"elenco": [], "ora": None, "errore": None}
+
+
+def storico_archivio():
+    """Gli ultimi mesi dell'archivio, per dare CONTESTO al calcolo dal vivo.
+
+    Il terminale da' sei settimane di minuti: bastano per zone e struttura,
+    non per il resto. Il filtro di fondo vuole 50 giornate D1, l'ATR ne vuole
+    14, e il riconoscimento dei mesi ad alta volatilita' ne pretende 250 prima
+    di rispondere qualcosa di diverso da "normale". Senza questo pezzo di
+    archivio il grafico mostrerebbe segnali calcolati con regole piu' blande
+    di quelle degli studi, che e' il modo migliore per fidarsi di un numero
+    sbagliato.
+    """
+    cartella = os.path.join(ROOT, "data", "XAUUSD_M1")
+    if not os.path.isdir(cartella):
+        return None
+    anni = sorted(int(os.path.basename(f)[10:14])
+                  for f in glob.glob(os.path.join(cartella, "XAUUSD_M1_*.parquet")))
+    if not anni:
+        return None
+    try:
+        d = load_m1(cartella, years=anni[-2:])
+    except Exception:
+        return None
+    taglio = d.index[-1] - pd.DateOffset(months=MESI_STORIA)
+    return d[d.index >= taglio]
+
+
+def unisci(storia, vivo):
+    """Archivio davanti, terminale dietro; in mezzo si taglia sul primo minuto
+    del terminale, che e' la fonte piu' fedele per il periodo che copre."""
+    if storia is None or storia.empty:
+        return vivo
+    pezzo = storia[storia.index < vivo.index[0]]
+    if pezzo.empty:
+        return vivo
+    return pd.concat([pezzo[vivo.columns], vivo])
 
 
 def leggi_mt5():
@@ -71,12 +118,188 @@ def leggi_mt5():
     return simbolo, df, bid, ask
 
 
-def calcola():
-    simbolo, m1, bid, ask = leggi_mt5()
+def condizioni_ora(m1, vwap_m1, struttura, adesso):
+    """Le cinque condizioni della strategia, adesso, per i due lati.
+
+    Si valutano sull'ultima candela M6 CHIUSA: quella in corso cambierebbe
+    idea a ogni tick e non e' su quella che si decide. E' lo stesso conto che
+    fa ``segnali.genera``, rifatto qui su una sola barra perche' rigenerare
+    tutta la storia a ogni aggiornamento costerebbe mezzo minuto.
+    """
+    m6 = resample_tf(m1, T.tf_ingresso)
+    if len(m6) < 3:
+        return None
+    i = len(m6) - 2                       # -1 e' la candela ancora aperta
+    barra = m6.index[i]
+    giorno = barra.normalize()
+    passo = pd.Timedelta(TIMEFRAMES[T.tf_ingresso])
+    v = float(vwap_m1.reindex([barra + passo - pd.Timedelta("1min")],
+                              method="ffill").iloc[0])
+    macro = filtro_macro(m1, T.media_macro).get(giorno, None)
+    del_giorno = m6[m6.index.normalize() == giorno]
+    prima = del_giorno[del_giorno.index < barra]
+    hi, lo, cl = m6.high.values, m6.low.values, m6.close.values
+    soglie = T.soglie()                   # in dollari: il regime alto lo dira'
+    fuori = {"vwap": round(v, 2), "candela": barra.strftime("%d/%m %H:%M"),
+             "ora_ok": bool(T.ora_inizio <= adesso.hour < T.ora_fine),
+             "chiusura": T.ora_chiusura, "lati": {}}
+    for nome, segno in (("long", 1), ("short", -1)):
+        if segno == 1:
+            tocca = bool(lo[i] <= v and cl[i] > v and cl[i] > hi[i - 1])
+            spinta = float(prima.high.max() - v) if len(prima) else 0.0
+        else:
+            tocca = bool(hi[i] >= v and cl[i] < v and cl[i] < lo[i - 1])
+            spinta = float(v - prima.low.min()) if len(prima) else 0.0
+        strut = all(struttura.get(tf, 0) == segno for tf in T.tf_struttura)
+        conf = all(struttura.get(tf, 0) == segno for tf in T.conferme)
+        ritr = all(struttura.get(tf, 0) == -segno for tf in T.ritracciamento)
+        fuori["lati"][nome] = {
+            "struttura": bool(strut), "conferme": bool(conf),
+            "ritracciamento": bool(ritr),
+            "macro": None if macro is None else bool(macro == (segno == 1)),
+            "reclaim": tocca, "spinta": round(spinta, 2),
+            "spinta_ok": bool(spinta >= soglie["impulso"]),
+            "soglia": round(soglie["impulso"], 2),
+            "pronto": bool(fuori["ora_ok"] and strut and conf and ritr
+                           and tocca and spinta >= soglie["impulso"]
+                           and macro == (segno == 1))}
+    return fuori
+
+
+# Cosa vale ciascuna famiglia, secondo le misure: e' l'unica cosa che
+# distingue una confluenza su cui si entra da una che e' solo contesto.
+PESO = {
+    "ob raffinato": ("voto", "l'unica che abbia mai mostrato un vantaggio "
+                             "(non regge sui 18 anni, appendice BA)"),
+    "ob pieno": ("contesto", "fuori dalla parte raffinata vale quanto niente"),
+    "poc ieri": ("contesto", "nessun vantaggio misurato (appendice AZ)"),
+    "area valore": ("contesto", "nessun vantaggio misurato (appendice AZ)"),
+    "vuoto ieri": ("contesto", "nessun vantaggio misurato (appendice AZ)"),
+}
+
+
+def livelli_di_ieri(m1, atr):
+    """POC, estremi dell'area di valore e vuoti della giornata precedente."""
+    giorni = m1.index.normalize()
+    unici = giorni.unique()
+    if len(unici) < 2 or not np.isfinite(atr) or atr <= 0:
+        return []
+    d = m1[giorni == unici[-2]]
+    if len(d) < 200:
+        return []
+    passo = atr * 0.05
+    tipico = ((d.high + d.low + d.close) / 3).values
+    vol = d.volume.values.astype(float)
+    vol[~np.isfinite(vol) | (vol <= 0)] = 1.0
+    liv = np.round(tipico / passo).astype(np.int64)
+    unici_l, inv = np.unique(liv, return_inverse=True)
+    somme = np.zeros(len(unici_l))
+    np.add.at(somme, inv, vol)
+    prezzi = unici_l * passo
+    ordine = np.argsort(somme)[::-1]
+    dentro = prezzi[ordine[:np.searchsorted(np.cumsum(somme[ordine]),
+                                            .7 * somme.sum()) + 1]]
+    fuori = [("poc ieri", float(prezzi[somme.argmax()]), float(prezzi[somme.argmax()])),
+             ("area valore", float(dentro.min()), float(dentro.min())),
+             ("area valore", float(dentro.max()), float(dentro.max()))]
+    soglia = somme.max() * .15
+    ini = None
+    for i, p in enumerate(prezzi):
+        basso = somme[i] < soglia
+        if basso and ini is None:
+            ini = float(p)
+        if not basso and ini is not None:
+            if prezzi[i - 1] - ini >= atr * .10:
+                fuori.append(("vuoto ieri", ini, float(prezzi[i - 1])))
+            ini = None
+    return fuori
+
+
+def confluenze_ora(bid, zone, ieri, atr):
+    """I livelli vicini al prezzo adesso, con quanto valgono davvero.
+
+    Risponde alla domanda "con quali confluenze si entra": la risposta
+    misurata e' che NESSUNA apre un'operazione da sola (appendice AZ, 720
+    configurazioni, zero sopravvissuti). Qui si dice cosa c'e' intorno e come
+    va pesato, non si inventa un segnale che i numeri non sostengono.
+    """
+    if not np.isfinite(atr) or atr <= 0:
+        return None
+    vicino = atr * 0.5
+    vicini = []
+    for z in zone:
+        for tipo, b, t in (("ob raffinato", z["rbasso"], z["ralto"]),
+                           ("ob pieno", z["basso"], z["alto"])):
+            if b is None or t is None:
+                continue
+            d = 0.0 if b <= bid <= t else (b - bid if bid < b else bid - t)
+            if abs(d) <= vicino:
+                vicini.append({"famiglia": tipo, "tf": z["tf"], "lato": z["lato"],
+                               "da": round(b, 2), "a": round(t, 2),
+                               "dist": round(d, 2), "dist_atr": round(d / atr, 2)})
+                break                       # la raffinata batte la piena
+    for fam, b, t in ieri:
+        d = 0.0 if b <= bid <= t else (b - bid if bid < b else bid - t)
+        if abs(d) <= vicino:
+            vicini.append({"famiglia": fam, "tf": "D1", "lato": 0,
+                           "da": round(b, 2), "a": round(t, 2),
+                           "dist": round(d, 2), "dist_atr": round(d / atr, 2)})
+    vicini.sort(key=lambda x: abs(x["dist"]))
+    for v in vicini:
+        v["peso"], v["perche"] = PESO.get(v["famiglia"], ("contesto", ""))
+    return {"atr": round(float(atr), 2), "raggio": round(vicino, 2),
+            "vicini": vicini,
+            "voti": sum(1 for v in vicini if v["peso"] == "voto"),
+            "contesto": sum(1 for v in vicini if v["peso"] == "contesto")}
+
+
+def aggiorna_segnali():
+    """Ricalcola i segnali passati, in disparte dal ciclo dei tre secondi.
+
+    ``genera`` ripercorre tutta la serie: su quindici mesi di minuti sono
+    decine di secondi, troppo per il ciclo veloce. Qui gira per conto suo e
+    deposita il risultato; il pannello delle condizioni, che e' quello che
+    serve per operare adesso, resta invece aggiornato a ogni giro.
+    """
+    while True:
+        with _lock:
+            m1 = _serie["m1"]
+        if m1 is not None and len(m1) > 5000:
+            try:
+                ops = genera(m1, T)
+                elenco = []
+                for o in ops[-SEGNALI_MAX * 4:]:
+                    ufficiale = (all(o[f"c_{tf}"] for tf in T.conferme)
+                                 and all(not o[f"c_{tf}"] for tf in T.ritracciamento))
+                    elenco.append({
+                        "t": int(pd.Timestamp(o["time"]).timestamp() * 1000),
+                        "lato": 1 if o["lato"] == "long" else -1,
+                        "entry": round(o["entry"], 2), "stop": round(o["stop"], 2),
+                        "obiettivo": round(
+                            o["entry"] + (o["entry"] - o["stop"]) * T.obiettivo, 2),
+                        "rischio": round(o["rischio"], 2),
+                        "ufficiale": bool(ufficiale),
+                        "quando": pd.Timestamp(o["time"]).strftime("%d/%m %H:%M")})
+                with _lock:
+                    _segnali["elenco"] = elenco[-SEGNALI_MAX:]
+                    _segnali["ora"] = pd.Timestamp.now("UTC").strftime("%H:%M")
+                    _segnali["errore"] = None
+            except Exception as e:
+                with _lock:
+                    _segnali["errore"] = str(e)
+        time.sleep(SEGNALI_OGNI)
+
+
+def calcola(storia):
+    simbolo, vivo, bid, ask = leggi_mt5()
+    m1 = unisci(storia, vivo)
+    with _lock:
+        _serie["m1"] = m1
     out = {"simbolo": simbolo, "bid": bid, "ask": ask,
            "spread": round(ask - bid, 3),
            "ora": pd.Timestamp.now("UTC").strftime("%H:%M:%S"),
-           "ultima_candela": m1.index[-1].strftime("%d/%m %H:%M"),
+           "ultima_candela": vivo.index[-1].strftime("%d/%m %H:%M"),
+           "storia_da": m1.index[0].strftime("%d/%m/%Y"),
            "serie": {}, "zone": [], "struttura": {}, "pronto": True}
     # il VWAP e' ancorato alla giornata: si calcola una volta sui minuti e si
     # legge alla chiusura di ogni candela, cosi' e' lo STESSO su ogni grafico
@@ -119,6 +342,16 @@ def calcola():
                 "dist": round(bid - r.alto if r.lato == 1 else r.basso - bid, 2)})
     out["zone"].sort(key=lambda x: abs(x["dist"]))
     out["profilo"] = profilo_sessioni(m1)
+    out["condizioni"] = condizioni_ora(m1, vwap_m1, out["struttura"],
+                                       pd.Timestamp.now("UTC"))
+    a = daily_atr(m1, 14)
+    atr = float(a.iloc[-1]) if len(a) and np.isfinite(a.iloc[-1]) else float("nan")
+    out["confluenze"] = confluenze_ora(bid, out["zone"],
+                                       livelli_di_ieri(m1, atr), atr)
+    with _lock:
+        out["segnali"] = list(_segnali["elenco"])
+        out["segnali_ora"] = _segnali["ora"]
+        out["segnali_errore"] = _segnali["errore"]
     return out
 
 
@@ -160,9 +393,16 @@ def profilo_sessioni(m1):
 
 
 def aggiorna_sempre():
+    storia = storico_archivio()          # si legge una volta sola: non cambia
+    if storia is None:
+        print("ATTENZIONE: archivio non trovato, i segnali useranno solo le "
+              "sei settimane del terminale e le regole saranno piu' blande")
+    else:
+        print(f"contesto dall'archivio: {storia.index[0]:%d/%m/%Y} "
+              f"({len(storia):,} candele)".replace(",", "."))
     while True:
         try:
-            d = calcola()
+            d = calcola(storia)
         except Exception as e:                       # il terminale puo' chiudersi
             d = {"pronto": False, "errore": str(e)}
         with _lock:
@@ -195,10 +435,21 @@ th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--l)}
 th{color:var(--i3);font-weight:500;text-align:right}td:first-child,th:first-child{text-align:left}
 .buy{color:var(--up)}.sell{color:var(--dn)}
 .note{color:var(--i3);font-size:12px}
+.chk{display:flex;gap:10px;flex-wrap:wrap}
+.lato{flex:1 1 320px;background:var(--p);border:1px solid var(--l);
+border-radius:12px;padding:10px 12px}
+.lato h2{margin:0 0 8px;font:600 13px var(--m);letter-spacing:.02em}
+.lato.si{border-color:var(--up);box-shadow:0 0 0 1px var(--up) inset}
+.riga{display:flex;justify-content:space-between;gap:10px;
+font:12px var(--m);padding:3px 0;color:var(--i3)}
+.riga b{font-weight:500}
+.si1{color:var(--up)}.no1{color:var(--dn)}.nd{color:var(--i3)}
 </style></head><body><div class="w">
 <h1>XAUUSD <span>·</span> live da MT5</h1>
 <div class="bar" id="bar"></div>
+<div id="cond"></div>
 <div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div>
+<div class="seg" id="sg"></div>
 <div class="seg"><button id="ora">torna a ora</button></div>
 <span class="pill">rotellina = zoom · trascina = scorri · doppio clic = ora</span></div>
 <canvas id="c"></canvas>
@@ -211,7 +462,7 @@ const TF=["M1","M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,e
 // finestra visibile: quante candele si vedono e di quante il bordo destro sta
 // indietro rispetto all'ultima. off negativo = spazio vuoto a destra, cosi' il
 // grafico non resta incollato al bordo.
-let vis=140,off=-8,nPrec=0,passoX=6,trascina=null,mosso=false;
+let vis=140,off=-8,nPrec=0,passoX=6,trascina=null,mosso=false,seg=1;
 const VUOTE=()=>Math.floor(vis*0.45);          // quanto si puo' andare oltre l'ultima
 const el=i=>document.getElementById(i);
 el("tf").innerHTML=TF.map(t=>`<button aria-pressed="${t===tf}">${t}</button>`).join("");
@@ -225,6 +476,10 @@ el("et").innerHTML=["nomi al passaggio","nomi sempre"].map((t,k)=>
  `<button aria-pressed="${k===etich}">${t}</button>`).join("");
 [...el("et").children].forEach((b,k)=>b.onclick=()=>{etich=k;
  [...el("et").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
+el("sg").innerHTML=["segnali off","ufficiali","tutti"].map((t,k)=>
+ `<button aria-pressed="${k===seg}">${t}</button>`).join("");
+[...el("sg").children].forEach((b,k)=>b.onclick=()=>{seg=k;
+ [...el("sg").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
 // il puntatore decide quali nomi mostrare; il clic li fissa
 const cv0=el("c");
 const aOra=()=>{off=-8;draw();};
@@ -249,6 +504,48 @@ cv0.addEventListener("click",()=>{if(mosso||!D||!D.zone)return;   // trascinare 
  D.zone.forEach((z,i)=>{if(z._sotto){fissate.has(i)?fissate.delete(i):fissate.add(i);}});
  draw();});
 const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra",""];
+const bollo=v=>v===null||v===undefined?'<b class="nd">—</b>'
+ :v?'<b class="si1">si</b>':'<b class="no1">no</b>';
+// il pannello delle cinque condizioni, per i due lati, sull'ultima M6 chiusa
+function pannello(){
+ const C=D.condizioni;
+ if(!C){el("cond").innerHTML="";return;}
+ el("cond").innerHTML='<div class="chk">'+["long","short"].map(n=>{
+  const L=C.lati[n];
+  const righe=[
+   ["1 · orario 07-19 UTC",bollo(C.ora_ok)],
+   ["2 · struttura H6+H2",bollo(L.struttura)],
+   ["3a · conferme M33+H12",bollo(L.conferme)],
+   ["3b · M12 contrario",bollo(L.ritracciamento)],
+   ["4a · spinta dal VWAP","<b>"+L.spinta.toFixed(2)+" / "+L.soglia.toFixed(2)
+     +" $</b> "+bollo(L.spinta_ok)],
+   ["4b · riprende il VWAP",bollo(L.reclaim)],
+   ["5 · filtro di fondo D1",bollo(L.macro)],
+  ].map(([a,b])=>`<div class="riga"><span>${a}</span><span>${b}</span></div>`).join("");
+  return `<div class="lato${L.pronto?" si":""}"><h2>${n.toUpperCase()}`
+   +(L.pronto?' · <span class="si1">SEGNALE</span>':"")
+   +`</h2>${righe}</div>`;}).join("")+conflu()+'</div>';}
+
+// quali confluenze contano e quali no: la risposta misurata e' che nessuna
+// apre un'operazione da sola, quindi qui si pesa, non si segnala
+function conflu(){
+ const K=D.confluenze;
+ if(!K)return "";
+ const v=K.vicini.length?K.vicini.map(z=>{
+  const c=z.peso==="voto"?"si1":"nd";
+  const l=z.lato===1?"BUY":z.lato===-1?"SELL":"—";
+  return `<div class="riga"><span>${z.tf} ${z.famiglia} <b class="${
+   z.lato===1?"buy":z.lato===-1?"sell":""}">${l}</b></span>`
+   +`<span><b>${z.dist_atr.toFixed(2)} ATR</b> · <b class="${c}">${z.peso}</b></span></div>`;
+  }).join("")
+  :'<div class="riga"><span>nessun livello entro il raggio</span><span></span></div>';
+ return `<div class="lato"><h2>CONFLUENZE · ${K.voti} voto/i, ${K.contesto
+  } di contesto</h2>${v}<div class="riga" style="margin-top:6px">`
+  +`<span>raggio ${K.raggio.toFixed(2)} $ (mezzo ATR di ${K.atr.toFixed(2)})</span>`
+  +`</div><p class="note" style="margin:8px 0 0">Le confluenze <b>non aprono</b> `
+  +`un'operazione: misurate su 18 anni e 720 configurazioni, zero sopravvissute `
+  +`(appendice AZ). Si entra con le cinque condizioni qui accanto; una zona `
+  +`<b>raffinata concorde</b> dice solo che l'occasione e' migliore della media.</p></div>`;}
 async function tira(){try{const r=await fetch("/api/dati");D=await r.json();draw();}
 catch(e){}finally{setTimeout(tira,3000);}}
 function draw(){
@@ -257,9 +554,13 @@ function draw(){
  b.innerHTML=`<span class="pill">bid <b>${D.bid.toFixed(2)}</b></span>
   <span class="pill">spread <b>${D.spread.toFixed(2)} $</b></span>
   <span class="pill">candela ${D.ultima_candela}</span>
-  <span class="pill">agg. ${D.ora} UTC</span>`+
+  <span class="pill">agg. ${D.ora} UTC</span>
+  <span class="pill">VWAP <b>${D.condizioni?D.condizioni.vwap.toFixed(2):"—"}</b></span>
+  <span class="pill">segnali ${D.segnali?D.segnali.length:0}${
+    D.segnali_ora?" · "+D.segnali_ora:" · in calcolo"}</span>`+
   Object.entries(D.struttura).map(([k,v])=>{const[s,c]=stat(v);
    return `<span class="pill">${k} <b class="${c}">${s}</b></span>`}).join("");
+ pannello();
  const s=D.serie[tf];if(!s)return;
  const cv=el("c"),x=cv.getContext("2d"),dpr=devicePixelRatio||1;
  const W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
@@ -349,6 +650,33 @@ function draw(){
   const yo=Math.round(Y(s.o[i])),yc=Math.round(Y(s.c[i]));
   x.fillRect(Math.round(X(i)-bw/2),Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
 
+ // --- segnali della strategia: triangolo all'ingresso ----------------------
+ if(seg&&D.segnali&&D.segnali.length){
+  const scelti=D.segnali.filter(g=>seg===2||g.ufficiale);
+  scelti.forEach(g=>{
+   let k=0,lo2=0,hi2=s.t.length-1;          // la barra che contiene il segnale
+   while(lo2<=hi2){const md=(lo2+hi2)>>1;
+    if(s.t[md]<=g.t){k=md;lo2=md+1;}else hi2=md-1;}
+   if(k<a0-1||k>a1+1)return;
+   const xc=Math.round(X(k)),yv=Math.round(Y(g.entry)),up=g.lato===1;
+   const h2=up?-1:1, col=up?"#4EA57F":"#C25A46";
+   x.beginPath();
+   x.moveTo(xc,yv+6*h2);x.lineTo(xc-5,yv+13*h2);x.lineTo(xc+5,yv+13*h2);
+   x.closePath();
+   if(g.ufficiale){x.fillStyle=col;x.fill();}
+   else{x.strokeStyle=col;x.lineWidth=1;x.stroke();}
+   g._x=xc;g._y=yv;});
+  // il segnale piu' recente mostra anche stop e obiettivo
+  const ult=scelti[scelti.length-1];
+  if(ult&&ult._x!==undefined){
+   [[ult.stop,"#C25A46","stop"],[ult.obiettivo,"#4EA57F","1:"+Math.round(
+     Math.abs((ult.obiettivo-ult.entry)/(ult.entry-ult.stop)))]].forEach(([p,c,t2])=>{
+    if(p<lo||p>hi)return;const y2=Math.round(Y(p))+.5;
+    x.strokeStyle=c;x.lineWidth=1;x.setLineDash([1,3]);
+    x.beginPath();x.moveTo(ult._x,y2);x.lineTo(pl+pw,y2);x.stroke();x.setLineDash([]);
+    x.fillStyle=c;x.font=F;x.textAlign="left";x.textBaseline="bottom";
+    x.fillText(t2+" "+p.toFixed(2),ult._x+4,y2-2);});}}
+
  const yb=Math.round(Y(D.bid))+.5;
  x.strokeStyle="#C99A3E";x.lineWidth=1;x.setLineDash([4,3]);
  x.beginPath();x.moveTo(pl,yb);x.lineTo(pl+pw,yb);x.stroke();x.setLineDash([]);
@@ -409,6 +737,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     porta = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
     threading.Thread(target=aggiorna_sempre, daemon=True).start()
+    threading.Thread(target=aggiorna_segnali, daemon=True).start()
     print(f"grafico live su http://127.0.0.1:{porta}  (CTRL+C per fermare)")
     HTTPServer(("127.0.0.1", porta), Handler).serve_forever()
 
