@@ -4554,3 +4554,97 @@ anni scelti dopo aver visto i dati non e' un 6% annuo: e' una curva bella.
 In entrambi i casi la strada per un prodotto stabile non passa da questa
 regola. Passa da un ingresso che sopravviva a diciotto anni — e in questo
 progetto, sull'oro, non ne e' ancora stato trovato uno.
+
+---
+
+## Appendice BV: la confluenza fra zone — e un placebo che regge dove le ipotesi vere cadono
+
+Idea dell'utente: *"di questi ventisettemila dobbiamo scremare. Prendere per
+buoni solo quelli che hanno piu' di un riferimento: un ritraccio su M12, poi
+vedere se magari anche su M33 o H2."*
+
+Domanda giusta al momento giusto: e' esattamente il "cambiare l'insieme delle
+occasioni" che l'appendice BP indicava, e con 17.403 eventi la potenza c'e'.
+42.208 zone raffinate su sei timeframe (M6 -> H6). Per ogni ritracciamento si
+contano le ALTRE zone dello stesso lato **gia' attive** e sovrapposte in
+prezzo. Le zone nate dopo il tocco non contano: sarebbero futuro.
+
+### Ipotesi A — quanti timeframe distinti in confluenza
+
+| fascia | op ric. | op ver. | lordo ric. | lordo ver. |
+|---|---|---|---|---|
+| 0 (isolata) | 5.185 | 6.120 | +0,023 | +0,043 |
+| 1 tf | 2.370 | 2.631 | +0,034 | +0,058 |
+| 2 tf | 444 | 483 | **−0,121** | +0,188 |
+| 3+ tf | 102 | 68 | −0,023 | +0,290 |
+
+Migliore in ricerca: 1 tf. In verifica: 3+ tf. **Non regge.**
+
+### Ipotesi B — il timeframe piu' grande in confluenza
+
+Migliore in ricerca **M12** (+0,092), in verifica **M66** (+0,248). H2 e H6, i
+timeframe che l'intuizione vorrebbe piu' pesanti, sono **negativi in ricerca**
+(−0,118 e −0,148). **Non regge.**
+
+### Ipotesi C — quante zone sovrapposte
+
+| fascia | op ric. | op ver. | lordo ric. | lordo ver. |
+|---|---|---|---|---|
+| 0 | 5.136 | 6.045 | +0,021 | +0,046 |
+| 1 | 2.341 | 2.627 | +0,041 | +0,071 |
+| 2 | 482 | 534 | **−0,151** | +0,081 |
+| 3 | 129 | 72 | +0,166 | +0,151 |
+| 4+ | 13 | 24 | −0,652 | +0,455 |
+
+**Non regge.**
+
+### Il placebo, invece, REGGE
+
+| fascia | lordo ricerca | lordo verifica |
+|---|---|---|
+| **q1** | **+0,084** | **+0,140** |
+| q2 | −0,072 | −0,003 |
+| q3 | +0,062 | +0,074 |
+| q4 | −0,004 | +0,016 |
+
+Un **numero casuale**, diviso in quarti e trattato identicamente alle tre
+ipotesi vere, ha il quarto migliore nello stesso posto in entrambi i periodi.
+Nessuna delle tre ipotesi vere ci riesce.
+
+Non e' ironia statistica: e' la risposta. Con quattro fasce la probabilita' che
+l'argmax coincida per caso e' 1 su 4, e in questo studio ci sono riuscite le
+fasce casuali e non quelle vere. **La confluenza fra zone non porta
+informazione misurabile su questo campione.**
+
+### L'unica cosa che merita una nota
+
+La fascia "3 zone sovrapposte" e' positiva in **entrambi** i periodi, sia lorda
+(+0,166 / +0,151) sia netta (+0,031 / +0,012). Sono 201 operazioni in tutto.
+Va detto perche' e' l'unico numero interessante — e va detto anche perche' non
+convince:
+
+- **la sequenza non e' monotona**: 0 e 1 sono positive, **2 e' la peggiore di
+  tutte** (−0,151 in ricerca), 3 e' buona, 4+ oscilla da −0,652 a +0,455. Se
+  la confluenza fosse un meccanismo, il rendimento crescerebbe con essa. Un
+  andamento che sale, crolla, risale e impazzisce e' la firma del rumore;
+- **le celle alte sono minuscole**: il +0,290 dei "3+ tf" in verifica sta su
+  **68 operazioni**, il +0,455 dei "4+" su **24**;
+- il placebo ha appena mostrato che in questo campione una fascia casuale
+  produce +0,140 di apparente vantaggio senza sapere niente.
+
+### E comunque il netto e' negativo ovunque
+
+Vantaggio lordo medio **+0,038 R/op**, netto medio **−0,137**. Con lo stop a
+2 $ oltre la zona (mediana ~2,5 $) e lo spread vero di 0,63 $ del 2025-2026, il
+costo e' il **17-25% del rischio**. Anche la fascia migliore delle diciotto
+misurate resta sotto zero al netto, tranne "3 zone" che fa +0,03 su 201
+operazioni — cioe' niente.
+
+### Conclusione
+
+L'idea della confluenza e' ragionevole, e' la prima cosa che un occhio esperto
+guarda, ed e' stata misurata con il campione piu' grande che il progetto
+abbia mai usato per una domanda del genere. **Non c'e'.** E' anche il terzo
+studio indipendente che arriva alla stessa conclusione sulle zone order block
+(AZ con 720 configurazioni, BQ con 27.127 ritracciamenti, BV con la
+confluenza): le zone raffinate non selezionano.
