@@ -3595,3 +3595,132 @@ distinguerle dal rumore, e comunque sotto qualunque soglia operativa.
 Conclusione invariata: **i livelli non funzionano come ingresso**, in nessuna
 delle 720 configurazioni, ne' sul periodo di ricerca ne' su quello di
 verifica.
+
+## Appendice BH: ricognizione da zero su 18 anni, e cosa dice la letteratura sull'ORB
+
+Campagna con undici agenti in parallelo: quattro a mappare la struttura grezza
+dei diciotto anni senza proporre niente, sei a provare famiglie di ipotesi
+pre-registrate, uno a cercare online cosa si sa davvero dell'Opening Range
+Breakout. Vincolo comune: dividere sempre 2009-2019 (ricerca) da 2020-2026
+(verifica), sottrarre i costi, e riportare la scomposizione degli esiti con il
+controllo di assurdita' (uno stop vicino deve essere colpito piu' spesso di un
+obiettivo lontano).
+
+### La mappa: cinque fatti solidi
+
+**1. La gobba di volatilita' e' il fatto piu' robusto del mercato.** Escursione
+mediana al minuto: minimo alle 04 UTC (0,170 $ nel 2009-19, 0,310 $ nel
+2020-26), massimo alle 13 UTC (0,510 $ e 1,120 $). Rapporto **3,12x e 3,44x**.
+Ampiezza dell'ora intera: 10,11 $ alle 13 contro 2,90 $ alle 04.
+
+**2. L'orologio del mercato e' LOCALE, non UTC.** Rapporto picco/mediana del
+profilo a blocchi di 5 minuti: UTC 2,318 — New York 2,496 — Londra 2,492
+(2009-19); UTC 2,700 — New York 2,906 — Londra 2,877 (2020-26). L'orologio
+locale e' piu' nitido in **entrambi** i periodi. Caso da manuale: in UTC
+l'apertura di Londra da' due picchi gemelli alle 07:00 e alle 08:00; sull'ora
+di Londra ne da' **uno solo**, alle 08:00 locali.
+
+> Conseguenza per il progetto: le sessioni del framework (asia 0-7, london
+> 7-12, ny 12-21 UTC) e la candela D1 a mezzanotte UTC **tagliano la giornata
+> nel posto sbagliato**. Schedulare in UTC spalma ogni evento su due ore e
+> dimezza il contrasto fra ora calda e ora fredda. La giornata vera va da
+> 18:00 a 17:00 di New York.
+
+**3. Nessuna ora e' direzionale.** Rapporto di varianza sui rendimenti
+standardizzati sotto 1 in **21 ore su 24** in entrambi i periodi. Le uniche
+che arrivano a 1 sono le 12-14 UTC. Trappola in cui l'agente e' caduto e da
+cui e' uscito: senza standardizzare, le 11 UTC sembravano l'ora piu'
+direzionale (VR 1,67) — era solo la finestra che sconfinava nelle 12-13, tre
+volte piu' agitate.
+
+**4. Dopo un impulso il prezzo CONTRASTA, non continua** — in tutte e 14 le
+celle fascia x periodo, senza una sola eccezione. Ma il vantaggio lordo e'
+**sempre piu' piccolo dello spread**: con |X| >= 0,20 ATR il lordo vale +0,121
+R contro un costo di 0,370 R. **R netto negativo in tutte e 42 le
+combinazioni.** E ha tre invarianze insieme — indifferente alla velocita'
+dell'impulso, indifferente all'orizzonte, vivo solo entro 0,10 ATR
+dall'ingresso — che sono la firma della microstruttura, non di un
+comportamento del mercato.
+
+**5. Una sola deriva sopravvive al placebo: la riapertura giornaliera delle
+18:00 ET.** I 120 minuti successivi rendono +2,89 bp (t=7,5) nel 2009-19 e
++2,90 bp (t=4,7) nel 2020-26, positiva in tutti e quattro i sotto-periodi. Il
+placebo ancorato 6 ore prima o 3 dopo da' +1,10/+1,12 bp nel periodo vecchio e
+-0,06/-0,65 nel nuovo. In dollari vale +0,37 e +0,56 $ contro 0,30 $ di spread
+nominale — cioe' **il vantaggio e' dell'ordine di UNO spread**, e lo spread
+vero al rollover e' molto piu' largo di quello medio. Unico spunto rimasto in
+piedi, e va misurato con lo spread di quella finestra prima di crederci.
+
+### Le sei ipotesi: tutte respinte
+
+| ipotesi | 2009-2019 | 2020-2026 | anni positivi |
+|---|---|---|---|
+| opening range breakout | **-0,118** (2.813 op) | -0,005 (1.673) | 5/18 |
+| ORB con filtri di contesto | -0,030 (1.342) | -0,015 (875) | 7/18 |
+| ritorno alla media dopo impulso | -0,162 (20.393) | -0,122 (13.320) | **0/18** |
+| estremi del giorno precedente | -0,017 (1.046) | -0,013 (690) | 7/18 |
+| persistenza pura | -0,120 (6.426) | -0,043 (3.967) | 2/18 |
+| calendario | -0,104 (525) | +0,063 (316) | 6/18 |
+
+Nessuna e' arrivata alla fase di demolizione, e in ognuna la scomposizione e'
+fisicamente sana (stop colpito piu' spesso dell'obiettivo): stavolta non
+c'erano artefatti da smascherare, c'era solo assenza di vantaggio.
+
+### Cosa si sa dell'ORB, davvero
+
+**Esiste letteratura seria, ed e' positiva ma vecchia e circoscritta.**
+Formalizzata da Toby Crabel (1990) sui futures. Misurata da Holmberg,
+Lonnbark e Lundstrom (*Finance Research Letters* 2013) su petrolio e S&P 500:
+rendimenti sopra i costi. Il meccanismo economico ha un nome ed e' pubblicato
+sul *Journal of Financial Economics*: **momentum intraday** (Gao, Han, Li,
+Zhou 2018) — la prima mezz'ora predice l'ultima, ed e' **piu' forte nei giorni
+volatili, ad alto volume e con dati macro**. Lundstrom quantifica: 150-200
+punti base al giorno di differenza fra terzile alto e basso di volatilita'.
+
+**Ma tre cose vanno nella direzione opposta.**
+
+1. **L'unico studio recente costruito per falsificare non trova niente.**
+   Mesfin (2026), 947 giorni di MNQ 2021-2025, quattordici famiglie di segnali
+   fra cui l'ORB, walk-forward con costi realistici: nessun segnale supera i
+   criteri, il vantaggio lordo (0,07-1,50 punti) non copre i costi.
+2. **L'inventore dice che e' rotta, e spiega perche'.** Crabel, 2025: l'ORB e'
+   nel periodo peggiore dagli anni Sessanta, e la causa e' strutturale — i
+   mercati 24 ore hanno cancellato il riferimento su cui era costruita.
+   *"C'e' cosi' tanto volume nelle sessioni 24 ore che e' impossibile
+   determinare quale sia l'apertura."*
+3. **Sull'oro e sul forex non esiste NESSUNO studio serio.** Zero. La *London
+   Breakout* — rottura del range asiatico all'apertura di Londra, che e' la
+   versione oro/forex — e' materiale da blog di broker, senza eccezione.
+
+**L'obiezione decisiva per il nostro caso.** L'ORB non e' una regola
+geometrica: sfrutta un fatto istituzionale. Alle 9:30 di New York, dopo
+diciassette ore in cui l'informazione si e' accumulata senza poter essere
+scambiata, tutti gli ordini arrivano insieme su un prezzo unico osservato da
+tutti. **L'oro spot non ha niente di tutto questo**: scambia in continuo, non
+c'e' asta di apertura, non c'e' gap informativo da smaltire. Applicare l'ORB
+all'oro vuol dire **scegliere un'ora e chiamarla apertura** — e le candidate
+sono quattro (Londra, COMEX, mezzanotte UTC, apertura del broker), cioe'
+quattro strategie diverse fra cui scegliere dopo aver visto i risultati e'
+data snooping travestito da definizione.
+
+C'e' anche la conferma empirica diretta: uno studio sui futures cinesi su oro
+e argento (*Global Finance Journal* 2025) misura che **prima** dell'aggiunta
+della sessione notturna era la prima mezz'ora diurna a predire l'ultima;
+**dopo**, il predittore diventa la prima mezz'ora notturna. L'apertura che
+conta e' quella dove arriva l'informazione nuova, e si sposta quando cambia
+l'orario di negoziazione.
+
+### Conclusione della campagna
+
+Il test empirico e la letteratura dicono la stessa cosa, arrivandoci da
+strade diverse: **l'ORB sull'oro parte senza il meccanismo che lo fa
+funzionare altrove**, e infatti misurato da' -0,118 R/op sul periodo di
+ricerca con 5 anni positivi su 18.
+
+Restano due cose utili, nessuna delle quali e' una strategia:
+
+- **la correzione dell'orologio** (sessioni e giornata da ridefinire in ora
+  locale, non UTC), che e' un miglioramento del framework valido comunque;
+- **la deriva della riapertura delle 18:00 ET**, unico effetto sopravvissuto
+  al placebo, da misurare con lo spread vero di quella finestra prima di
+  farci qualunque ipotesi.
