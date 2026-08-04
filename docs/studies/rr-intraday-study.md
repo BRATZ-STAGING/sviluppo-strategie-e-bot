@@ -4382,3 +4382,109 @@ cambiato**: CLAUDE.md avverte che toccare un numero della taratura cambia
 tutti gli studi gia' scritti, e la scelta e' dell'utente. Il costo vero e' qui
 documentato e il ricalcolo sopra dice quanto pesa: 5,7% sulla strategia
 ufficiale, e da due a quattro volte tanto su qualunque variante a stop stretto.
+
+---
+
+## Appendice BR: il criterio giusto — 6% annuo, drawdown piccolo, buon rate
+
+L'utente ha cambiato la domanda, e la nuova e' molto migliore della vecchia:
+*"non mi interessa moltiplicare i conti. Voglio una strategia stabile con un
+buon rate, poche perdite, drawdown basso. La banca da' il 4% annuo: se diamo
+il 5, 6, 7% va benissimo."*
+
+Fino a qui avevo ottimizzato R per operazione e R/DD, che sono le misure per
+massimizzare. Per un prodotto da clienti la misura e' un'altra: **quanto
+drawdown costa un 6% annuo**, e quanto e' sopportabile la strada. Entra in
+gioco la **taglia della posizione**, che finora era fissa all'1% e non era una
+variabile.
+
+L'aritmetica ribalta il problema: con 48 operazioni l'anno e +0,27 R/op, per
+fare il 6% basta rischiare lo **0,47% per operazione**. Un rendimento del 6%
+non richiede un vantaggio grande — richiede un vantaggio POSITIVO e un
+drawdown piccolo.
+
+Ogni gestione e' quindi **riscalata perche' renda esattamente il 6% annuo**, e
+poi confrontata a parita' di rendimento. Costi: spread vero dell'appendice BN,
+anno per anno.
+
+### Campione ufficiale (48 operazioni l'anno), tutte al 6% annuo
+
+| gestione | vinte% | rischio/op | **DD max** | anno peggiore | anni+ | mesi+ | **perdite di fila** |
+|---|---|---|---|---|---|---|---|
+| ufficiale 1:10, pareggio +3R | 13,5% | 0,20% | **4,3%** | −1,8% | 6/7 | 40,6% | **25** |
+| **tutto a 1:2** | **45,7%** | 0,47% | 5,7% | **−1,5%** | 6/7 | **53,6%** | **7** |
+| tutto a 1:3, pareggio +1R | 23,4% | 0,79% | 15,4% | −2,7% | 5/7 | 43,5% | 16 |
+| meta' 1:2 + meta' 1:10 | 45,7% | 1,44% | 12,7% | −3,9% | 5/7 | 49,3% | 7 |
+| meta' 1:1,5 + meta' 1:10 | 49,0% | 8,33% | 89,3% | −36,8% | 4/7 | 43,5% | 7 |
+| tutto a 1:1 | 55,6% | 7,65% | **124,6%** | −34,2% | 4/7 | 44,9% | 7 |
+| meta' 1:1 + meta' 1:10 | 55,6% | — in perdita — | | | | | |
+| tre scaglioni 1/1,5/2 | 54,4% | — in perdita — | | | | | |
+
+### La verifica su due periodi separati — l'unica cosa che rende difendibile una scelta
+
+Otto gestioni provate: sceglierne una guardando la tabella sarebbe pescare, ed
+e' l'errore che l'appendice BP ha appena tarato. Ricerca 2020-2022 contro
+verifica 2023-2026, campione ufficiale:
+
+| gestione | ricerca R/op | ricerca anni+ | verifica R/op | verifica anni+ | R/DD ric. | R/DD ver. |
+|---|---|---|---|---|---|---|
+| ufficiale 1:10 | +0,510 | 3/3 | +0,701 | 3/4 | 3,14 | 6,78 |
+| **tutto a 1:2** | **+0,419** | **3/3** | **+0,174** | **3/4** | **6,43** | **2,83** |
+| tutto a 1:3 | +0,101 | 2/3 | +0,199 | 3/4 | 0,68 | 2,61 |
+| meta' 1:2 + 1:10 | +0,128 | 3/3 | +0,061 | 2/4 | 2,74 | 1,39 |
+| tutto a 1:1 | +0,042 | 2/3 | −0,000 | 2/4 | 0,34 | −0,01 |
+| tre scaglioni | −0,060 | 0/3 | −0,033 | 0/4 | −0,70 | −0,70 |
+
+E sul campione largo (184 operazioni l'anno), dove ogni altra gestione a
+obiettivo vicino e' negativa in entrambi i periodi:
+
+| gestione | ricerca R/op | verifica R/op |
+|---|---|---|
+| **tutto a 1:2** | **+0,046** | **+0,068** |
+| tutto a 1:1 | −0,068 | −0,021 |
+| tre scaglioni | −0,087 | −0,062 |
+| meta' 1:2 + 1:10 | −0,044 | −0,012 |
+
+**L'1:2 e' l'unico obiettivo vicino che sopravvive**, su due campioni e due
+periodi indipendenti. Non e' il migliore delle otto scelto dopo: e' l'unico
+che regge quando si divide.
+
+### Perche' proprio 1:2, e perche' non 1:1
+
+Il rate alto si compra con il rapporto rischio/rendimento. Sotto 1:2 il
+vantaggio evapora prima che il rate ripaghi: l'1:1 ha il 55,6% di vincite ma
++0,02 R/op, quindi per fare il 6% servirebbe rischiare il **7,65% a
+operazione** e il drawdown salirebbe al 124%. Sopra 1:2 il rate crolla (23%
+a 1:3, 13% a 1:10) senza che il rendimento per unita' di drawdown migliori
+abbastanza da compensare la sopportabilita'.
+
+**1:2 e' il punto in cui si smette di pagare il rate troppo caro.**
+
+### Il candidato, e cosa promette davvero
+
+**Campione ufficiale, obiettivo 1:2, rischio 0,47% per operazione:**
+
+| | |
+|---|---|
+| rendimento | **6% annuo** |
+| drawdown massimo | **5,7%** |
+| anno peggiore | **−1,5%** |
+| anni positivi | 6 su 7 |
+| mesi positivi | **53,6%** |
+| operazioni vincenti | **45,7%** |
+| perdite consecutive peggiori | **7** (cioe' −3,3% di conto) |
+| operazioni l'anno | 48, una ogni cinque giorni di mercato |
+
+Sette perdite di fila contro le venticinque dell'ufficiale e' la differenza
+fra un cliente che resta e uno che se ne va, anche a parita' di euro persi.
+
+### I due avvertimenti che vanno detti prima di venderlo
+
+1. **Il vantaggio si e' gia' dimezzato fra i due periodi**: +0,419 R/op in
+   ricerca, +0,174 in verifica. Se continua a scendere, il 6% diventa 3-4%.
+   La taglia dello 0,47% e' calibrata sulla media dei sette anni, non sul
+   periodo recente: sul solo 2023-2026 lo stesso rischio rende circa il 4%.
+2. **L'ingresso resta quello gia' bocciato fuori campione.** La verifica
+   2009-2019 di questo stesso ingresso aveva dato −39,3 R. Cambiare la
+   gestione non ripara l'ingresso: rende la strada piu' sopportabile, non piu'
+   vera. Il test dell'1:2 sul 2009-2019 e' in appendice BS.
