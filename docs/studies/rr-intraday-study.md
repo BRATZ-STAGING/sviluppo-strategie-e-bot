@@ -4758,12 +4758,25 @@ vantaggio lordo rende molto di piu' sull'indice che sull'oro**.
 
 ### Da fare prima di crederci
 
-Lo scarico e' **incompleto**: `scarica_indice.py` usa `curl --fail-early`, e
-quando un blocco fallisce i giorni restanti vengono marcati `.empty` e non si
-ritentano piu'. Mancano interi mesi, 2015, 2022, e un lato di 2024-2026. Con
-500-700 operazioni l'errore standard e' ±0,05 R/op: **esattamente la taglia di
-tutto quello che si sta misurando**. Prima di qualunque decisione va rifatto
-lo scarico senza `--fail-early`.
+Lo scarico e' **incompleto**, per due difetti di `scarica_indice.py` (corretti
+nel codice, non rilanciati):
+
+1. `curl --fail-early` abortiva l'intero blocco al primo errore, e i giorni
+   rimasti a zero byte venivano marcati `.empty` **per sempre**. Cosi' si sono
+   persi in blocco BID 2022, 2024 e 2026 e ASK 2025 (312+ marcatori, zero
+   file). Per recuperarli vanno **cancellati i marcatori** di quegli anni e
+   rifatto lo scarico: la cache e' riavviabile, i giorni buoni non si
+   riscaricano.
+2. `decodifica()` cancella i file troncati «perche' si riscarichino al giro
+   dopo», ma il giro dopo non c'era: quei giorni sparivano dal parquet
+   dell'anno pur essendo disponibili sul feed. Da qui i mesi mancanti nel 2013,
+   2017, 2018, 2020, 2022 e 2023. Ora scarica e decodifica girano due volte, e
+   un giorno si dichiara vuoto solo dopo il secondo tentativo.
+
+Conta, perche' con 500-700 operazioni l'errore standard e' **±0,05 R/op**:
+esattamente la taglia di tutto quello che si sta misurando. Un campione pieno
+— circa 250 giornate l'anno per quindici anni — dimezzerebbe l'incertezza, ed
+e' l'unica cosa che puo' trasformare questi numeri in una decisione.
 
 ---
 
