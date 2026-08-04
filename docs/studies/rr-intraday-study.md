@@ -4123,3 +4123,67 @@ lordo resta fra −0,04 e +0,05 ovunque. La leva non e' li'.
 
 Resta l'ingresso — ed e' esattamente cio' che misurano le appendici BP
 (conferme fini su M1/M3) e BQ (i ritracciamenti in zona).
+
+---
+
+## Appendice BP: cinque conferme fini su M1/M3, e il placebo che le batte tutte
+
+Richiesta dell'utente: *"miglioriamo la selezione, ma dentro M3 ed M1 trova
+nuovi livelli, altri tipi di conferme o indicatori"*.
+
+Cinque famiglie, ciascuna con un meccanismo dichiarato prima di misurare, piu'
+un **placebo** (un numero casuale trattato identicamente). Le operazioni sono
+sempre le stesse 1.290 con la gestione ufficiale invariata: cambia solo cosa
+si tiene. Ogni misura si divide in terzi; una famiglia conta solo se il terzo
+migliore in **ricerca 2020-2022** e' ancora il migliore in **verifica
+2023-2026**.
+
+### Il risultato, per intero
+
+| famiglia | migliore in ricerca | migliore in verifica | regge? |
+|---|---|---|---|
+| 1 volume relativo (le "Stocks in Play") | basso (+0,387) | alto (+0,599) | no |
+| 2 contrazione precedente (Crabel intraday) | medio (+0,232) | alto (+1,032) | no |
+| 3 distanza dal VWAP | medio (+0,386) | medio (+0,643) | **si** |
+| 4 livello ovvio vicino | alto (+0,391) | basso (+0,709) | no |
+| 5 l'M3 ha girato davvero | si (+0,223) | no (+0,917) | no |
+| **0 placebo (numero casuale)** | **medio (+0,495)** | basso (+0,975) | no |
+
+### La riga che conta e' quella del placebo
+
+Il placebo, che per costruzione non sa nulla, ha prodotto in ricerca una
+separazione fra terzi **piu' grande di ogni famiglia vera**: +0,495 contro
++0,387 del volume relativo e +0,386 della distanza dal VWAP. Non e' un
+aneddoto, e' la taratura dello strumento: **con 1.290 operazioni divise in tre
+fasce e due periodi, mezzo R per operazione di apparente separazione nasce dal
+nulla.**
+
+Ne segue che la famiglia 3, l'unica che "regge", non e' una scoperta. Con
+cinque famiglie e tre fasce, per puro caso ci si aspetta che **1,7 famiglie**
+ripetano il terzo migliore. Ne ha ripetuto una. E' esattamente la frequenza
+del caso.
+
+### Cosa e' e cosa non e' questo risultato
+
+Non e' "gli indicatori non servono". E' una cosa piu' precisa e piu' utile:
+**questo campione non e' abbastanza grande per rispondere alla domanda.** Per
+distinguere un filtro che alza il rendimento di 0,15 R/op dal rumore
+servirebbero alcune migliaia di operazioni, non milletrecento. Provare altre
+dieci famiglie sullo stesso campione non porterebbe informazione: porterebbe
+solo altri dieci sorteggi, e prima o poi uno "regge".
+
+E' anche la ragione per cui la strada giusta non e' cercare conferme sulle
+operazioni che gia' abbiamo, ma **cambiare l'insieme delle occasioni** — che
+e' quello che fa l'appendice BQ, dove i ritracciamenti in zona producono
+decine di migliaia di eventi invece di milletrecento.
+
+### Una nota tecnica che e' costata una misura
+
+La famiglia 1 alla prima esecuzione aveva prodotto **zero dati**, senza
+errore: il riferimento del volume orario era costruito con un groupby annidato
+che restituiva un indice non interrogabile, e ogni ricerca tornava NaN. Uno
+studio che stampa "troppo pochi dati" e va avanti e' innocuo; uno che avesse
+stampato una tabella basata su un decimo delle operazioni non lo sarebbe
+stato. Il riferimento ora e' una tabella giorni x ore con il rolling sui
+giorni dentro ciascuna ora, che e' anche il confronto giusto: senza dividere
+per ora si misurerebbe solo che le 14 UTC sono piu' attive delle 3.

@@ -137,7 +137,7 @@ def main():
             fuori_ok = (m6_cl[jj] > r.ralto) if r.lato == 1 else (m6_cl[jj] < r.rbasso)
             tocca = (m6_lo[jj] <= r.ralto) if r.lato == 1 else (m6_hi[jj] >= r.rbasso)
             if tocca and fuori_ok:
-                t_chiu = pd.Timestamp(m6_idx[jj], unit="ns", tz="UTC") + TIMEFRAMES["M6"]
+                t_chiu = pd.Timestamp(m6_idx[jj], unit="ns", tz="UTC") + pd.Timedelta(TIMEFRAMES["M6"])
                 p_chiu = float(m6_cl[jj])
                 break
         eventi.append({"tf": r.tf, "lato": int(r.lato),
