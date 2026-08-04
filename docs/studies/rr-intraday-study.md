@@ -4289,3 +4289,96 @@ Il vantaggio misurabile di questo progetto resta dov'era: nella regola
 ufficiale, con obiettivo lontano e poche operazioni. Ogni tentativo di
 trasformarla in uno scalp riduce il vantaggio piu' velocemente di quanto
 aumenti la frequenza.
+
+---
+
+## Appendice BN: lo spread vero dell'oro, ora per ora — e una correzione alla taratura
+
+Richiesta dell'utente (la "strada 1" dell'appendice BM): misurare lo spread
+vero invece di ipotizzarlo, per sapere se esiste una finestra della giornata
+in cui uno scalp a pochi punti sia almeno pagabile.
+
+Campione sistematico: 64 giornate distribuite su 2021-2026, quattro per
+trimestre, 1.536 file orari, **6,1 milioni di tick** denaro-lettera da
+Dukascopy. Niente stime: e' il dato.
+
+### Ipotesi A: la forma oraria c'e', ma e' piccola
+
+| ora UTC | spread mediano | ora UTC | spread mediano |
+|---|---|---|---|
+| 07-11 (Londra) | 0,351-0,360 | 20 | 0,374 |
+| 12-13 | 0,365-0,370 | 21 | 0,417 |
+| **14-15 (sovrapposizione)** | **0,330-0,340** | **22** | **0,456** |
+| 16-19 (New York) | 0,344-0,358 | 23 | 0,420 |
+| 00-06 (Asia) | 0,360-0,390 | | |
+
+L'ora migliore (15 UTC) e la peggiore (22 UTC) distano il **38%**. La forma
+esiste ed e' quella attesa — minimo nella sovrapposizione Londra-New York,
+massimo nella pausa serale — ma e' un'increspatura, non un cambio di regime.
+
+### Ipotesi C: CONFERMATA, e con forza — lo spread e' RADDOPPIATO
+
+| anno | 2021 | 2022 | 2023 | 2024 | **2025** | **2026** |
+|---|---|---|---|---|---|---|
+| spread medio $ | 0,349 | 0,395 | 0,334 | 0,384 | **0,632** | **0,631** |
+
+Dal 2023 al 2025 lo spread e' passato da 0,33 a 0,63 $. Non e' rumore: sono
+milioni di tick per anno, ed e' coerente con l'esplosione di volatilita' gia'
+documentata (escursione M1 mediana da 0,45 a 2,27 $).
+
+### Ipotesi B: RESPINTA senza margine
+
+La soglia scritta prima di misurare era 0,120 $ — il livello sotto il quale
+uno stop di 3 $ diventa pagabile. Le cinque ore piu' economiche del 2025-2026:
+
+| ora UTC | spread | % di uno stop da 3 $ | vantaggio lordo necessario per pareggiare |
+|---|---|---|---|
+| 20 | 0,480 | 16,0% | 0,160 R/op |
+| 14 | 0,510 | 17,0% | 0,170 R/op |
+| 10 | 0,514 | 17,1% | 0,171 R/op |
+| 11 | 0,525 | 17,5% | 0,175 R/op |
+| 08 | 0,527 | 17,6% | 0,176 R/op |
+
+Il minimo e' **0,480 $, quattro volte la soglia**. Non esiste nessuna ora del
+giorno in cui uno stop di 3 $ sull'oro sia pagabile: nella migliore si parte
+con il 16% di handicap, e il vantaggio lordo misurato in BM e BQ e' 0,04-0,05.
+**La strada 1 e' chiusa, e l'utente aveva ragione a dire che non era quella a
+migliorare la strategia.**
+
+### La correzione alla taratura, ed e' la parte importante
+
+La taratura usa **0,30 $** di spread. Il vero e' 0,33-0,40 fino al 2024 e
+**0,63 dal 2025**. Ogni numero del progetto e' quindi calcolato con un costo
+ottimistico, e dal 2025 lo e' del doppio. Ricalcolando la strategia ufficiale
+(campione largo, 1.290 operazioni) con lo spread vero anno per anno:
+
+| anno | stop mediano $ | spread vero | con 0,30 $ | con spread vero | differenza |
+|---|---|---|---|---|---|
+| 2021 | 3,58 | 0,349 | −25,2 | −28,1 | −2,9 |
+| 2022 | 3,85 | 0,395 | +93,0 | +87,6 | −5,4 |
+| 2023 | 3,54 | 0,334 | +52,4 | +50,0 | −2,5 |
+| 2024 | 4,43 | 0,384 | +15,0 | +10,9 | −4,1 |
+| 2025 | **7,40** | 0,632 | +239,2 | +228,3 | −10,9 |
+| 2026 | **14,76** | 0,631 | +77,1 | +74,7 | −2,5 |
+| **totale** | | | **+497,9 R** | **+469,7 R** | **−28,2 R** |
+
+**La strategia ufficiale perde solo il 5,7%.** Il motivo si legge nella colonna
+dello stop mediano: lo stop strutturale e' **cresciuto da solo** da 4,2 $ nel
+2020 a 14,8 $ nel 2026, seguendo la volatilita'. Cosi' il costo reale resta il
+**9,8% del rischio** invece del 7,6% ipotizzato — un peggioramento, non un
+disastro.
+
+E' esattamente il contrario di quel che succede a uno scalp a punti fissi: uno
+stop di 3 $ non cresce, quindi il suo costo e' passato dal 10% al **21%** del
+rischio fra il 2023 e il 2026. **Lo stop strutturale si difende dallo spread
+da solo; quello a punti fissi no.** E' la ragione tecnica, misurata, per cui
+tutte le varianti scalp di oggi perdono e l'ufficiale no.
+
+### Raccomandazione, non applicata
+
+Il valore `spread = 0,30` in `taratura.py` andrebbe portato a un valore
+dipendente dall'anno (o almeno a 0,45 come media del periodo). **Non l'ho
+cambiato**: CLAUDE.md avverte che toccare un numero della taratura cambia
+tutti gli studi gia' scritti, e la scelta e' dell'utente. Il costo vero e' qui
+documentato e il ricalcolo sopra dice quanto pesa: 5,7% sulla strategia
+ufficiale, e da due a quattro volte tanto su qualunque variante a stop stretto.
