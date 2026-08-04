@@ -296,3 +296,51 @@ condizioni sono gia' imposte.
 Facendolo girare sul VPS accanto ai bot, fra sei mesi ci sara' **l'unico fuori
 campione non contaminato** che questo progetto possa ancora produrre. Vale piu'
 di qualunque altro studio sugli stessi dati.
+
+---
+
+## 6. Tutte e quattro insieme: misurato, e non conviene
+
+Richiesta dell'utente: avviarle tutte e quattro. La domanda che nessuna scheda
+si era posta e' se quattro **diversifichino**. Misurato su tutte le 333
+operazioni (`trading/scripts/portafoglio_quattro.py`):
+
+### Non sono quattro strategie, e' una strategia con quattro uscite
+
+| correlazione | in uso | A | B | 1:2 |
+|---|---|---|---|---|
+| **in uso** | 1,000 | 0,876 | 0,683 | 0,547 |
+| **A** | 0,876 | 1,000 | 0,782 | 0,570 |
+| **B** | 0,683 | 0,782 | 1,000 | 0,707 |
+| **1:2** | 0,547 | 0,570 | 0,707 | 1,000 |
+
+Nel **52,6%** delle operazioni perdono **tutte e quattro**. Nel 15% guadagnano
+tutte e quattro. Condividono lo stesso ingresso: aprono nello stesso minuto,
+sullo stesso strumento, nella stessa direzione.
+
+### A parita' di rendimento, quattro insieme e' PEGGIO della sola B
+
+| obiettivo | solo B | tutte e quattro |
+|---|---|---|
+| 6% annuo | rischio 0,24%/op, **DD 3,03%** | 0,062%/op ciascuna, DD 3,20% |
+| 12% annuo | rischio 0,48%/op, **DD 6,06%** | 0,123%/op ciascuna, DD 6,41% |
+| 24% annuo | rischio 0,96%/op, **DD 12,13%** | 0,246%/op ciascuna, DD 12,81% |
+
+La diversificazione vale **zero**, anzi meno di zero: a ogni livello di
+rendimento la sola B ha il drawdown piu' piccolo. E lo fa con **una posizione
+alla volta invece di quattro**, cioe' con un quarto della complessita'
+operativa e un quarto delle cose che possono rompersi.
+
+**Per avere piu' rendimento la strada e' aumentare la taglia della B, non
+aggiungere le altre tre.**
+
+### L'errore da non fare in nessun caso
+
+Avviarle con la taglia scritta nelle rispettive schede (in uso 0,20% · A 0,20%
+· B 0,24% · 1:2 0,48%) significa rischiare **1,12% del conto a ogni segnale**,
+non il 6% annuo che ciascuna promette: il risultato e' **24% annuo con 13,7%
+di perdita massima**. Puo' anche andare bene, ma va scelto, non subito.
+
+Per restare al 6% annuo con tutte e quattro attive, ogni taglia va **divisa
+per quattro**: in uso 0,049% · A 0,051% · B 0,060% · 1:2 0,121%, per un rischio
+totale di 0,28% a segnale.
