@@ -190,3 +190,45 @@ Resta un limite: LBMA e' mensile, quindi valida il livello e (insieme agli
 eventi e alla struttura oraria) la coerenza intraday, ma non e' un confronto
 minuto per minuto. Per quello servirebbe una seconda fonte tick, che da questo
 ambiente non e' raggiungibile.
+
+### Secondo riscontro: confronto GIORNALIERO e ORARIO (04/08/2026)
+
+Il confronto con LBMA valida il livello ma e' mensile. Una caccia con agenti
+paralleli ha trovato otto fonti indipendenti raggiungibili su
+`raw.githubusercontent.com`; la piu' utile e' `ejtraderLabs/historical-data`,
+un feed di broker con XAUUSD giornaliero e orario dal 2012 al 2022 — cioe' in
+pieno nel periodo sotto esame.
+
+**Giornaliero, 2.399 giornate (2012-2022):**
+
+| | scarto mediano | p95 | oltre 5 $ |
+|---|---|---|---|
+| chiusura | 0,32 $ | 1,35 $ | 2 giorni (0,1%) |
+| **massimo** | **0,06 $** | 0,31 $ | 4 giorni (0,2%) |
+| **minimo** | **0,07 $** | 0,76 $ | 8 giorni (0,3%) |
+
+Correlazione ≥ 0,9999 in ogni singolo anno. Il dato piu' forte sono massimo e
+minimo: sono gli **estremi intraday**, e coincidono a sei centesimi. La
+chiusura scarta un po' di piu' solo perche' dipende dal minuto esatto in cui
+cade il confine di giornata.
+
+**Orario, 52.214 ore (2013-2021):** scarto mediano 0,105 $, correlazione
+0,9999720. Il 10% di ore oltre i 2 $ ha una spiegazione precisa, ed e' un
+riscontro in piu' invece che un problema: lo scostamento migliore e'
+
+| mese | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| server | +2 | +2 | +2 | **+3** | +3 | +3 | +3 | +3 | +3 | +3 | +2 | +2 |
+
+cioe' **esattamente il calendario dell'ora legale**. Usando per ogni mese il
+suo scostamento, lo scarto mediano scende a **0,048 $ all'ora**, con **zero
+mesi sopra 0,5 $ su 108**.
+
+Che una fonte indipendente riproduca il passaggio dell'ora legale mese per
+mese non e' una coincidenza: e' la prova che le due serie descrivono lo stesso
+mercato e che i timestamp dell'archivio sono davvero UTC.
+
+**Verdetto**: lo storico 2009-2019 e' validato su tre livelli — mensile contro
+il fixing ufficiale LBMA, giornaliero e orario contro un feed di broker
+indipendente. Il risultato negativo della strategia su quegli anni non e' un
+problema di dati.
