@@ -108,11 +108,17 @@ def eventi_tf(m1, tf, atr_di_giorno, finto, rng):
     z = zone_grezze(tfd, tf)
     if z.empty:
         return []
-    serie = {"chiusura tf": tfd, "ombra": tfd,
-             "chiusura M12": resample_tf(m1, "M12"),
-             "chiusura M6": resample_tf(m1, "M6")}
-    pronte = {k: (v.index, v.close.values, v.high.values, v.low.values)
-              for k, v in serie.items()}
+    # ATTENZIONE: ogni definizione guarda una serie diversa, e ognuna ha il
+    # suo passo. Serve per sapere QUANDO la candela si chiude: e' li' che si
+    # conosce il prezzo di chiusura, ed e' da li' che l'operazione puo'
+    # partire. Prenderla dall'apertura significherebbe entrare al prezzo di
+    # chiusura e poi ripercorrere la candela stessa sapendo gia' come finisce.
+    serie = {"chiusura tf": (tfd, TIMEFRAMES[tf]),
+             "ombra": (tfd, TIMEFRAMES[tf]),
+             "chiusura M12": (resample_tf(m1, "M12"), TIMEFRAMES["M12"]),
+             "chiusura M6": (resample_tf(m1, "M6"), TIMEFRAMES["M6"])}
+    pronte = {k: (v.index, v.close.values, v.high.values, v.low.values,
+                  pd.Timedelta(passo)) for k, (v, passo) in serie.items()}
     giorni = {k: v[0].normalize() for k, v in pronte.items()}
     ore = {k: v[0].hour for k, v in pronte.items()}
 
@@ -126,7 +132,7 @@ def eventi_tf(m1, tf, atr_di_giorno, finto, rng):
 
     fuori = []
     for definizione in DEFINIZIONI:
-        tempi, cl, hi, lo = pronte[definizione]
+        tempi, cl, hi, lo, passo = pronte[definizione]
         gg, oo = giorni[definizione], ore[definizione]
         for _, zona in z.iterrows():
             for k, verso, dopo, n, eta in tocchi_di(zona, tempi, cl, hi, lo,
@@ -139,7 +145,8 @@ def eventi_tf(m1, tf, atr_di_giorno, finto, rng):
                 fuori.append({
                     "tf": tf, "definizione": definizione,
                     "dopo_invalidazione": dopo, "tocco": min(n, 4), "eta": eta,
-                    "lato": verso, "time": pd.Timestamp(tempi[k]),
+                    "lato": verso,
+                    "time": pd.Timestamp(tempi[k]) + passo,
                     "entry": float(cl[k]), "atr": float(a_)})
     return fuori
 

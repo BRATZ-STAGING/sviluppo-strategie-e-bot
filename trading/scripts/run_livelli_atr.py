@@ -205,8 +205,13 @@ def eventi_tf(tfd, tf, bande_giorno, atr_bar, ob):
                 if q is not None and (tempi[i] - q) / np.timedelta64(1, "m") < ATTESA:
                     continue
                 ultimo[(fam, modo, seg)] = tempi[i]
+                # l'istante e' la CHIUSURA della candela, non l'apertura: e'
+                # allora che si conosce il prezzo d'ingresso. Con l'apertura
+                # l'operazione ripercorrerebbe la candela stessa sapendo gia'
+                # come finisce, e il vantaggio cresce col timeframe.
                 out.append({"tf": tf, "famiglia": fam, "modo": modo,
-                            "lato": seg, "barra": i, "time": idx[i],
+                            "lato": seg, "barra": i,
+                            "time": idx[i] + pd.Timedelta(TIMEFRAMES[tf]),
                             "entry": float(cl[i]), "atr": float(a_)})
             if cl[i] > t and cl[i - 1] <= t:
                 rotture[chiave] = i

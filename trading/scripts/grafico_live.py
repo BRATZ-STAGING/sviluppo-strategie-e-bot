@@ -619,8 +619,20 @@ background:var(--p);color:var(--i3)}.pill b{color:var(--i)}
 .seg button{border:0;background:none;color:var(--i3);font:12px var(--m);
 padding:5px 10px;border-radius:6px;cursor:pointer}
 .seg button[aria-pressed=true]{background:var(--br);color:var(--g);font-weight:600}
-canvas{display:block;width:100%;height:520px;background:var(--p);
-border:1px solid var(--l);border-radius:12px;cursor:grab;touch-action:none}
+canvas{display:block;width:100%;height:min(520px,58vh);background:var(--p);
+border:1px solid var(--l);border-radius:12px;cursor:grab;touch-action:none;
+user-select:none;-webkit-user-select:none}
+@media(max-width:700px){
+ .w{padding:8px;gap:8px}
+ h1{font-size:14px}
+ canvas{height:min(420px,52vh)}
+ .pill{font-size:10px;padding:3px 7px}
+ .seg button{font-size:11px;padding:6px 9px}
+ .lato{flex-basis:100%}
+ .riga{font-size:11px}
+ .avvolgi{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ table{min-width:560px}
+}
 table{width:100%;border-collapse:collapse;font:12px var(--m)}
 th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--l)}
 th{color:var(--i3);font-weight:500;text-align:right}td:first-child,th:first-child{text-align:left}
@@ -642,9 +654,9 @@ font:12px var(--m);padding:3px 0;color:var(--i3)}
 <div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div>
 <div class="seg" id="sg"></div>
 <div class="seg"><button id="ora">torna a ora</button></div>
-<span class="pill">rotellina = zoom · trascina = scorri · doppio clic = ora</span></div>
+<span class="pill">rotellina o due dita = zoom · trascina = scorri · MAIUSC+rotellina = scala verticale · doppio tocco = ora</span></div>
 <canvas id="c"></canvas>
-<table id="tab"></table>
+<div class="avvolgi"><table id="tab"></table></div>
 <p class="note">La colonna <b>raffinata</b> e' la parte che porta il vantaggio misurato.
 Una zona non e' un segnale da sola e non va usata come limite in attesa: serve il
 segnale della strategia con la struttura concorde.</p>
@@ -654,6 +666,12 @@ const TF=["M1","M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,e
 // indietro rispetto all'ultima. off negativo = spazio vuoto a destra, cosi' il
 // grafico non resta incollato al bordo.
 let vis=140,off=-8,nPrec=0,passoX=6,trascina=null,mosso=false,seg=1;
+// scala verticale: zy ingrandisce, oy sposta. La scala la dettano le CANDELE;
+// le zone lontane si disegnano solo dove intersecano, altrimenti su un TF
+// piccolo una zona H6 a cento dollari schiaccerebbe tutto in una striscia.
+let zy=1,oy=0,ppp=1;
+const punt=new Map();      // puntatori attivi: uno = scorri, due = pizzica
+let pinch=null;
 const VUOTE=()=>Math.floor(vis*0.45);          // quanto si puo' andare oltre l'ultima
 const el=i=>document.getElementById(i);
 el("tf").innerHTML=TF.map(t=>`<button aria-pressed="${t===tf}">${t}</button>`).join("");
@@ -673,26 +691,52 @@ el("sg").innerHTML=["segnali off","ufficiali","tutti"].map((t,k)=>
  [...el("sg").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
 // il puntatore decide quali nomi mostrare; il clic li fissa
 const cv0=el("c");
-const aOra=()=>{off=-8;draw();};
+const aOra=()=>{off=-8;zy=1;oy=0;draw();};
 el("ora").onclick=aOra; cv0.addEventListener("dblclick",aOra);
-cv0.addEventListener("mousemove",e=>{
+// Un solo insieme di gestori per mouse e dito: i Pointer Events li unificano,
+// e senza questo sul telefono non si poteva ne' zoomare ne' scorrere.
+//   un puntatore  -> scorre in orizzontale e in verticale
+//   due puntatori -> pizzica: la distanza in x cambia le candele viste,
+//                    quella in y l'ingrandimento verticale
+const dueDita=()=>{const[a,b]=[...punt.values()];
+ return {dx:Math.max(Math.abs(a.x-b.x),1),dy:Math.max(Math.abs(a.y-b.y),1)};};
+cv0.addEventListener("pointerdown",e=>{
+ // la cattura del puntatore puo' fallire (eventi sintetici, puntatore gia'
+ // rilasciato): se solleva, il resto del gestore non partirebbe e il grafico
+ // resterebbe immobile. Non e' essenziale, quindi si prova e si tira dritto.
+ try{cv0.setPointerCapture(e.pointerId);}catch(_){}
+ punt.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(punt.size===1){trascina={x:e.clientX,y:e.clientY,off:off,oy:oy};mosso=false;
+  cv0.style.cursor="grabbing";}
+ else if(punt.size===2){const d=dueDita();pinch={...d,vis:vis,zy:zy};trascina=null;}});
+cv0.addEventListener("pointermove",e=>{
  curY=e.clientY-cv0.getBoundingClientRect().top;
- if(trascina){const dx=e.clientX-trascina.x;
-  if(Math.abs(dx)>2)mosso=true;
-  off=trascina.off+Math.round(dx/passoX);}
+ if(punt.has(e.pointerId))punt.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pinch&&punt.size>=2){const d=dueDita();
+  vis=Math.round(pinch.vis*pinch.dx/d.dx);
+  zy=pinch.zy*d.dy/pinch.dy; mosso=true;}
+ else if(trascina){const dx=e.clientX-trascina.x, dy=e.clientY-trascina.y;
+  if(Math.abs(dx)>2||Math.abs(dy)>2)mosso=true;
+  off=trascina.off+Math.round(dx/passoX);
+  oy=trascina.oy+dy*ppp;}
  draw();});
-cv0.addEventListener("mousedown",e=>{trascina={x:e.clientX,off:off};mosso=false;
- cv0.style.cursor="grabbing";});
-addEventListener("mouseup",()=>{trascina=null;cv0.style.cursor="grab";});
-cv0.addEventListener("mouseleave",()=>{curY=null;draw();});
-// zoom tenendo fermo il punto sotto il puntatore, come su TradingView
+const finito=e=>{punt.delete(e.pointerId);
+ if(punt.size<2)pinch=null;
+ if(punt.size===0){trascina=null;cv0.style.cursor="grab";}};
+cv0.addEventListener("pointerup",finito);
+cv0.addEventListener("pointercancel",finito);
+cv0.addEventListener("pointerleave",e=>{if(!punt.size)curY=null;draw();});
+// rotellina: orizzontale, tenendo fermo il punto sotto il puntatore; con
+// MAIUSC o CTRL agisce sulla scala verticale
 cv0.addEventListener("wheel",e=>{e.preventDefault();
+ if(e.shiftKey||e.ctrlKey){zy*=e.deltaY>0?1/1.18:1.18;draw();return;}
  const r=cv0.getBoundingClientRect();
  const fx=Math.min(Math.max((e.clientX-r.left-8)/Math.max(r.width-70,1),0),1);
  const nv=Math.round(vis*(e.deltaY>0?1.18:1/1.18));
  off=Math.round(off-(nv-vis)*(1-fx)); vis=nv; draw();},{passive:false});
 cv0.addEventListener("click",()=>{if(mosso||!D||!D.zone)return;   // trascinare non fissa
- D.zone.forEach((z,i)=>{if(z._sotto){fissate.has(i)?fissate.delete(i):fissate.add(i);}});
+ D.zone.forEach(z=>{const k=chiave(z);
+  if(z._sotto){fissate.has(k)?fissate.delete(k):fissate.add(k);}});
  draw();});
 const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra",""];
 // identita' STABILE di una zona: l'elenco viene riordinato per distanza a ogni
@@ -761,7 +805,8 @@ function draw(){
     D.segnali_ora?" · "+D.segnali_ora:" · in calcolo"}</span>`+
   (D.buco?`<span class="pill" style="border-color:var(--dn)">buco di <b class="no1">${
     D.buco} giorni</b> fra archivio e terminale</span>`:"")+
-  `<span class="pill">server UTC${D.scarto_server>=0?"+":""}${D.scarto_server}</span>`+
+  (D.scarto_server===undefined||D.scarto_server===null?"":
+   `<span class="pill">server UTC${D.scarto_server>=0?"+":""}${D.scarto_server}</span>`)+
   (D.segnali_errore?`<span class="pill" style="border-color:var(--dn)">segnali: <b class="no1">${
     D.segnali_errore}</b></span>`:"")+
   Object.entries(D.struttura).map(([k,v])=>{const[s,c]=stat(v);
@@ -783,10 +828,14 @@ function draw(){
  const zs=D.zone;
  let lo=Math.min(...s.l.slice(a0,a1+1)),hi=Math.max(...s.h.slice(a0,a1+1));
  if(!isFinite(lo)||!isFinite(hi)){lo=D.bid-5;hi=D.bid+5;}
- zs.forEach(z=>{if(z.basso>lo-200&&z.alto<hi+200){lo=Math.min(lo,z.basso);hi=Math.max(hi,z.alto);}});
- const pad=(hi-lo)*.06||1;lo-=pad;hi+=pad;
+ // la scala la dettano le CANDELE, non le zone: allargarla per contenere una
+ // zona lontana schiacciava le candele in una striscia, ed e' proprio quello
+ // che succede sui timeframe piccoli, dove sono attive zone di H2 e H6.
+ // Le zone fuori campo si segnalano al bordo invece di deformare tutto.
+ const centro=(lo+hi)/2, semi=((hi-lo)/2||1)*1.06/zy;
+ lo=centro-semi+oy; hi=centro+semi+oy;
  const pl=8,pr=62,pt=10,pb=8,pw=W-pl-pr,ph=H-pt-pb;
- passoX=pw/vis;
+ passoX=pw/vis; ppp=(hi-lo)/ph;          // dollari per pixel, serve al dito
  const X=i=>pl+(i-i0+.5)*passoX, Y=p=>pt+(hi-p)/(hi-lo)*ph;
  const F="11px "+getComputedStyle(document.body).getPropertyValue("--m");
 
@@ -819,7 +868,8 @@ function draw(){
     x.font=F;x.textAlign="left";x.textBaseline="bottom";x.fillStyle="#8E877E";
     x.fillText("volume massimo "+poc.toFixed(2),pl+4,yp-2);
     x.textAlign="left";x.textBaseline="top";
-    x.fillText("profilo "+P.giorno+" · asia londra ny sera",pl+4,pt+4);}}}
+    x.fillText(pw<560?"profilo "+P.giorno
+               :"profilo "+P.giorno+" · asia londra ny sera",pl+4,pt+4);}}}
 
  // --- scala dei prezzi: passo tondo, cosi' si legge quanto vale un movimento
  {const gr=[.1,.2,.5,1,2,5,10,20,50,100,200,500];
@@ -832,15 +882,27 @@ function draw(){
    x.fillStyle="#6E675F";x.fillText(p.toFixed(p0<1?2:(p0<10?1:0)),pl+pw+6,y);}}
 
  // --- zone: bande, senza etichetta (le etichette vanno a destra, in fondo) --
- zs.forEach(z=>{const y1=Y(z.alto),y2=Y(z.basso),up=z.lato===1;
+ const taglia=(y1,y2)=>{const a=Math.max(Math.min(y1,y2),pt),
+   b=Math.min(Math.max(y1,y2),pt+ph); return b<a?null:[a,b];};
+ let sopra=0,sotto=0;
+ zs.forEach(z=>{const up=z.lato===1;
+  if(z.basso>hi){sopra++;z._sotto=false;return;}
+  if(z.alto<lo){sotto++;z._sotto=false;return;}
+  const y1=Y(z.alto),y2=Y(z.basso),t=taglia(y1,y2);
+  if(!t){z._sotto=false;return;}
   x.fillStyle=up?"rgba(78,165,127,.10)":"rgba(194,90,70,.10)";
-  x.fillRect(pl,Math.min(y1,y2),pw,Math.abs(y2-y1));
-  if(z.rbasso!==null){const r1=Y(z.ralto),r2=Y(z.rbasso);
-   x.fillStyle=up?"rgba(78,165,127,.32)":"rgba(194,90,70,.32)";
-   x.fillRect(pl,Math.min(r1,r2),pw,Math.max(Math.abs(r2-r1),1.5));}
-  z._sotto = curY!==null && curY>=Math.min(y1,y2)-2 && curY<=Math.max(y1,y2)+2;
+  x.fillRect(pl,t[0],pw,t[1]-t[0]);
+  if(z.rbasso!==null){const r=taglia(Y(z.ralto),Y(z.rbasso));
+   if(r){x.fillStyle=up?"rgba(78,165,127,.32)":"rgba(194,90,70,.32)";
+    x.fillRect(pl,r[0],pw,Math.max(r[1]-r[0],1.5));}}
+  z._sotto = curY!==null && curY>=t[0]-2 && curY<=t[1]+2;
   if(z._sotto){x.strokeStyle=up?"#4EA57F":"#C25A46";x.lineWidth=1;
-   x.strokeRect(pl+.5,Math.min(y1,y2)+.5,pw-1,Math.max(Math.abs(y2-y1)-1,1));}});
+   x.strokeRect(pl+.5,t[0]+.5,pw-1,Math.max(t[1]-t[0]-1,1));}});
+ // quante zone restano fuori dallo schermo, sopra e sotto
+ x.font=F;x.textAlign="center";x.textBaseline="top";x.fillStyle="#6E675F";
+ if(sopra)x.fillText("\u25b2 "+sopra+" zone sopra",pl+pw/2,pt+2);
+ if(sotto){x.textBaseline="bottom";
+  x.fillText("\u25bc "+sotto+" zone sotto",pl+pw/2,pt+ph-2);}
 
  if(s.v){x.strokeStyle=getComputedStyle(document.body).getPropertyValue("--vw");
   x.lineWidth=1.6;x.beginPath();let pen=false;
