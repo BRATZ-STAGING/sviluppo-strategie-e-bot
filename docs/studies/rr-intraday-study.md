@@ -4187,3 +4187,105 @@ stampato una tabella basata su un decimo delle operazioni non lo sarebbe
 stato. Il riferimento ora e' una tabella giorni x ore con il rolling sui
 giorni dentro ciascuna ora, che e' anche il confronto giusto: senza dividere
 per ora si misurerebbe solo che le 14 UTC sono piu' attive delle 3.
+
+---
+
+## Appendice BQ: i ritracciamenti in zona, 27.127 occasioni — e cosa dicono davvero
+
+Richiesta dell'utente: *"cercare una strategia per prendere i vari
+ritracciamenti buy e sell durante la giornata"*, con lo stop 2-3 punti oltre
+la zona e l'obiettivo fino a 10 $.
+
+Tutte le zone order block **raffinate** su M6, M12, M33, M66, H2 — 41.710
+zone, 27.127 ritracciamenti effettivi fra le 7 e le 21 UTC, sette anni, due
+lati, nessun filtro macro. E' l'insieme di occasioni che l'appendice BP
+diceva servire: ventun volte piu' grande del campione da 1.290.
+
+### Le sei celle, tutto il periodo
+
+| cella | op | op/giorno | stop $ | costo %R | **lordo R/op** | netto R/op | stop% | obiett.% |
+|---|---|---|---|---|---|---|---|---|
+| tocco · stop 2 $ · obiettivo 10 $ | 17.162 | 10,2 | 2,26 | 12,6% | **+0,040** | −0,086 | 78,9 | 19,6 |
+| tocco · stop 1 respiro · obiettivo 10 $ | 15.302 | 9,2 | 1,18 | 27,2% | +0,034 | −0,238 | 85,7 | 12,9 |
+| chiusura · stop 2 $ · obiettivo 10 $ | 13.960 | 8,3 | 3,12 | 9,3% | −0,011 | −0,104 | 73,3 | 25,6 |
+| chiusura · stop 1 respiro · obiettivo 10 $ | 13.651 | 8,2 | 2,02 | 17,7% | −0,030 | −0,207 | 79,5 | 19,6 |
+| chiusura · stop 2 $ · obiettivo 1:2 | 13.960 | 8,3 | 3,12 | 9,3% | −0,017 | −0,111 | 66,5 | 32,4 |
+| chiusura · stop 2 $ · obiettivo 1:10 | 13.960 | 8,3 | 3,12 | 9,3% | +0,018 | −0,075 | 86,7 | 7,0 |
+
+Controllo di assurdita': superato in tutte e sei le celle — lo stop vicino e'
+colpito molto piu' spesso dell'obiettivo lontano (66-87% contro 7-32%). Non
+c'e' futuro nel calcolo.
+
+### Ipotesi C: CONFERMATA — le occasioni ci sono
+
+**8-10 ritracciamenti al giorno.** La frequenza non e' mai stata il problema.
+
+### Ipotesi A: RESPINTA — e questa e' la notizia
+
+Il vantaggio LORDO dei ritracciamenti in zona raffinata sta fra **−0,030 e
++0,040 R/op**. Il campione largo dell'appendice BM, senza nessuna zona, stava
+a **+0,049**. **La zona raffinata non seleziona niente.**
+
+Va detto con chiarezza perche' contraddice l'appendice AJ, dove la zona
+raffinata valeva +1,342 R/op: quel numero era misurato su **63 operazioni**,
+ed erano zone che coincidevano ANCHE col segnale VWAP e con tutte le
+condizioni ufficiali. L'appendice BP ha appena tarato quanto rumore ci sia in
+un campione piccolo: mezzo R per operazione di separazione apparente nasce dal
+nulla con 1.290 operazioni. Con 63 il margine e' molto piu' largo.
+
+Fra le due misure — 63 operazioni con +1,342 e 27.127 con +0,04 — la seconda
+e' quella da credere. La conclusione onesta e' che **l'appendice AJ misurava
+la congiunzione (zona + segnale + condizioni), non la zona**, e che una parte
+di quel +1,342 era rumore.
+
+Conseguenza operativa diretta: entrare su una zona raffinata perche' e' una
+zona raffinata non ha vantaggio dimostrabile. Cio' che eventualmente vale e'
+la **coincidenza** con il resto, ed e' rara per costruzione.
+
+### Ipotesi B: RESPINTA — aspettare la chiusura M6 costa piu' di quel che salva
+
++0,040 lordo con l'ingresso al tocco contro **−0,011** con l'ingresso alla
+chiusura della prima M6 fuori dalla zona. L'attesa evita qualche coltello che
+cade, ma il prezzo d'entrata peggiora di piu' di quanto la selezione migliori.
+Contro l'intuizione, e contro l'ipotesi che avevo scritto prima di guardare.
+
+### Per timeframe della zona
+
+| tf | op | op/giorno | lordo R/op | netto R/op |
+|---|---|---|---|---|
+| M6 | 7.210 | 4,3 | −0,022 | −0,120 |
+| M12 | 3.865 | 2,5 | **+0,019** | −0,074 |
+| M33 | 1.571 | 1,5 | −0,013 | −0,099 |
+| M66 | 847 | 1,2 | −0,021 | −0,100 |
+| H2 | 467 | 1,1 | −0,063 | −0,137 |
+
+Nessun timeframe si stacca. L'M12 e' il meno peggio in lordo e resta negativo
+in netto: la differenza fra M12 e H2 (0,08 R/op) e' dentro il rumore misurato
+in BP.
+
+### L'unica cosa che si ripete
+
+In verifica 2023-2026, la cella con **obiettivo 1:10** e' l'unica con lordo
+apprezzabile (+0,091) e l'unica che chiude in pari al netto (+0,003 R/op, 3
+anni positivi su 4). E' lo stesso fatto che ricorre in tutto il progetto e in
+tutte le appendici di oggi: **gli obiettivi lontani battono quelli vicini**,
+perche' il vantaggio di questo mercato sta nella coda, non nella frequenza.
+Non e' un risultato tradeable — +0,003 R/op e' zero — ma e' l'ennesima
+conferma della stessa direzione.
+
+### Conclusione
+
+Il ritracciamento in zona, preso come regola generale, **non e' una strategia**:
+il vantaggio lordo e' zero e i costi lo rendono negativo. Le tre strade
+tentate oggi si chiudono tutte con la stessa aritmetica:
+
+- **BM** (gestione): il costo e' il doppio del vantaggio;
+- **BO** (stop e obiettivi in volatilita'): stabilizza la regola ma non crea
+  vantaggio;
+- **BP** (conferme fini): il campione non distingue un filtro dal caso;
+- **BQ** (piu' occasioni): le occasioni ci sono, il vantaggio no.
+
+Il vantaggio misurabile di questo progetto resta dov'era: nella regola
+ufficiale, con obiettivo lontano e poche operazioni. Ogni tentativo di
+trasformarla in uno scalp riduce il vantaggio piu' velocemente di quanto
+aumenti la frequenza.
