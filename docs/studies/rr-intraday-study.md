@@ -5005,3 +5005,96 @@ una positiva in entrambe le epoche e' **esattamente la frequenza del caso**, e
 le appendici BP, BU e BV hanno appena mostrato tre volte che in questo
 progetto il placebo produce separazioni di questa taglia da solo. Va rimisurata
 come ipotesi a se', pre-registrata, non raccolta da una tabella.
+
+---
+
+## Appendice BZ: la scalp dentro il solo 2020-2026, col criterio del cliente
+
+Decisione dell'utente: ripartire dal 2020-2026 e cercare li' la strategia
+scalp. Nessuna idea nuova: si rimette insieme cio' che le appendici di oggi
+hanno gia' misurato, giudicandolo finalmente col criterio dell'appendice BR —
+non "chi rende di piu'" ma "chi arriva al 6% annuo col buco piu' piccolo".
+
+### Il fatto che risponde alla domanda
+
+Campione ufficiale, netto R/op, ricerca 2020-2022 contro verifica 2023-2026:
+
+| stop $ | ore mediane | costo %R | ricerca | verifica |
+|---|---|---|---|---|
+| **3** | 0,6 | 14,8% | +0,157 | **−0,006** |
+| **4** | 1,2 | 11,1% | +0,248 | **−0,025** |
+| **5** | 1,8 | 8,9% | +0,424 | **−0,060** |
+| 6 | 2,4 | 7,4% | +0,303 | +0,017 |
+| 8 | 3,5 | 5,5% | +0,336 | +0,219 |
+| 10 | 5,3 | 4,4% | +0,367 | +0,275 |
+| 12 | 7,4 | 3,7% | +0,437 | +0,270 |
+| 14 | 11,2 | 3,2% | +0,420 | +0,216 |
+| 16 | 17,4 | 2,8% | +0,362 | +0,126 |
+
+**Lo scalp vero — stop da 3 a 5 dollari — funzionava fino al 2022 e ha smesso.**
+Positivo in tutti e tre gli anni di ricerca, negativo in tutti e quattro quelli
+di verifica. Non e' un'opinione sul periodo lungo: e' dentro il periodo che
+l'utente ha scelto.
+
+Il perche' e' nella colonna dei costi. Lo spread e' raddoppiato nel 2025
+(appendice BN: 0,33 -> 0,63 $) e su uno stop di 3 $ vale il 15-21% del rischio.
+Il vantaggio lordo dell'ingresso non e' cambiato abbastanza da compensarlo.
+**Lo scalp non e' morto per il mercato: e' morto per il costo.**
+
+Il confine e' netto e cade fra **5 e 6 dollari** di stop, cioe' fra un'ora e
+mezza e due ore e mezza di durata.
+
+### L'altopiano che invece regge
+
+Dai 6 ai 16 dollari tutte le celle sono positive in entrambi i sottoperiodi,
+con entrambi gli obiettivi: dodici celle su diciotto. Un **altopiano largo** e'
+piu' difendibile di un massimo puntuale — se il risultato fosse caso, le celle
+adiacenti non sarebbero d'accordo fra loro.
+
+Riscalate perche' rendano il 6% annuo sul 2020-2026:
+
+| cella | rischio/op | **DD max** | anno peggiore | anni+ | mesi+ | perdite di fila | ore mediane | oltre 1 giorno | rend/DD |
+|---|---|---|---|---|---|---|---|---|---|
+| **stop 12 $ · 1:2** | 0,37% | **5,25%** | −2,28% | **6/7** | 52,1% | **9** | 7,4 | 19,5% | **1,14** |
+| **stop 8 $ · 1:3** | 0,26% | 5,49% | −2,28% | 5/7 | **53,5%** | 14 | 4,9 | 13,3% | 1,09 |
+| stop 10 $ · 1:2 | 0,40% | 5,79% | −2,56% | 4/7 | 50,7% | 7 | 5,3 | 14,5% | 1,04 |
+| stop 14 $ · 1:2 | 0,41% | 7,09% | −3,74% | 5/7 | 52,1% | 16 | 11,2 | 28,4% | 0,85 |
+| stop 8 $ · 1:2 | 0,47% | 10,87% | −5,16% | 5/7 | 50,7% | 10 | 3,5 | 10,1% | 0,55 |
+| stop 6 $ · 1:2 | 0,92% | 16,61% | −12,40% | 4/7 | 42,3% | 12 | 2,4 | 1,8% | 0,36 |
+
+Il campione **largo** (136 operazioni l'anno) va escluso: ogni sua cella ha
+drawdown fra il 35% e il 48% a parita' di 6% annuo (rend/DD 0,13-0,17). Piu'
+operazioni non vuol dire curva piu' liscia se le operazioni in piu' sono
+peggiori.
+
+### Il prezzo, dichiarato
+
+A queste larghezze **non e' uno scalp**. Durata mediana da 2,4 a 17 ore, e dal
+2% al 37% delle posizioni tenute oltre la giornata di mercato. La cosa che
+funziona sul 2020-2026 e' un'operazione intraday lunga, non uno scalp — e va
+chiamata col suo nome.
+
+### Il limite che questo studio NON puo' superare
+
+Con il 2009-2019 escluso per decisione, e il 2023-2026 usato per filtrare le
+celle "positive in entrambi", **non resta nessun fuori campione**. Ogni numero
+qui sopra e' dentro il campione su cui la scelta e' stata fatta. L'altopiano e'
+la miglior prova disponibile — celle adiacenti che concordano sono una forma
+debole di robustezza — ma non e' una verifica.
+
+L'unica verifica rimasta e' **in avanti**. Il grafico dal vivo ha gia' il
+sistema di avvisi: puo' registrare i segnali man mano che arrivano, e fra sei
+mesi ci sara' un fuori campione vero, piccolo ma onesto.
+
+### Confronto con il candidato dell'appendice BR
+
+BR proponeva lo stop **strutturale** con obiettivo 1:2: 6% annuo, DD 5,7%,
+45,7% di vincite, **7 perdite di fila**, 53,6% di mesi positivi, 6/7 anni.
+Le due migliori celle di qui (stop 12 $ · 1:2 e stop 8 $ · 1:3) hanno drawdown
+simile e mesi positivi simili, ma **piu' perdite consecutive** (9 e 14 contro
+7) e una quota di posizioni notturne che BR non ha.
+
+Fra i due, **lo stop strutturale resta preferibile**: fa lo stesso lavoro senza
+un parametro in dollari da tarare, e lo stop segue la volatilita' da solo —
+che e' esattamente la proprieta' che l'appendice BN ha misurato come decisiva
+(il costo relativo resta al 9,8% invece di salire al 21%).
