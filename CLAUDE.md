@@ -166,6 +166,15 @@ non a un'altra variante di questa.
   vantaggio sparisce. La candidata migliore scende da +172,3 a +163,0 R,
   sotto la configurazione in vigore. Il rollover cade alle 21 UTC: chiudere
   a fine giornata costa zero swap. Appendici AO, AP, AQ.
+- **I livelli come INGRESSO, tutti, in unita' di ATR** (ob pieno e raffinato,
+  POC di ieri, estremi dell'area di valore, vuoti di volume; M33/M66/H2/H6;
+  reazione, rottura, retest; stop 0,25-1 ATR; obiettivi 1:2-1:10): 168.833
+  eventi su diciotto anni, **720 configurazioni, zero sopravvissuti** alla
+  scrematura pre-registrata. R/op medio fra -0,15 e -0,22 per OGNI famiglia in
+  ENTRAMBI i periodi, vinte al 48% (testa o croce), vantaggio mediano sul
+  placebo +0,003 R/op. Le **confluenze** non selezionano: contate allo stesso
+  prezzo, 167.808 eventi su 168.833 hanno gia' quattro famiglie sovrapposte,
+  perche' i livelli stanno tutti dove il prezzo ha lavorato. Appendice AZ.
 - **Soglie normalizzate all'ATR invece che in dollari** (ipotesi
   pre-registrata per spiegare il crollo fuori campione): respinta. Sul
   2009-2019 peggiora da -39,3 a -67,1 R con il riferimento ufficiale e a
@@ -200,25 +209,23 @@ non a un'altra variante di questa.
   frequenza chiesta (1-5/settimana) si ottiene, il vantaggio no. L'OB e' un
   filtro sul segnale validato, non un ingresso. Appendice W.
 
-## Order block: primo risultato positivo (appendice P)
+## Order block: il risultato positivo NON regge sui 18 anni (appendice BA)
 
 Definiti come l'utente li usa: zona dal minimo dell'ombra all'apertura per le
 rialziste, simmetrica per le ribassiste; causali dalla chiusura della candela
-che rompe. Su **M33** gli ingressi dentro una zona attiva e concorde rendono
-**+0,640 R/op contro +0,087** (probabilita' 0,3% che sia caso, meglio in 6 anni
-su 7, e migliora fuori campione). Robusto a ogni margine provato, e presente
-**anche sulle operazioni che le conferme scartano**, quindi aggiunge
-informazione invece di ripetere quella esistente.
+che rompe. Sul 2020-2026 la **zona raffinata** (basi di OB e candela
+successiva che combaciano) sembrava l'unico vantaggio solido del progetto:
++1,106 R/op nel testa-a-testa, verificato indipendentemente.
 
-**Zona raffinata** (basi di OB e candela successiva che combaciano): sul
-campione largo aggiunge davvero (+1,106 R/op nel testa-a-testa dentro la zona
-piena, p 0,005, verificato indipendentemente); sulla regola completa punta
-uguale ma 30 operazioni non bastano (appendice V). Il **volume profile** come
-segnale invece non discrimina nulla (p 0,85): resta solo visivo nel lab.
+**Rimisurato sui diciotto anni non c'e' piu'.** Su M33 il segno si ribalta
+fra i periodi (+0,400 sul 2009-2019, -0,595 sul 2020-2026); su cinque
+timeframe su sei la differenza fra dentro e fuori e' negativa. Il motivo e'
+nei conteggi: sul campione ufficiale, **in diciotto anni**, gli ingressi
+dentro una zona raffinata sono 20 su M12, 12 su M33, 5 su M66, 4 su H2, 4 su
+H3, 3 su H6. Il risultato migliore del progetto poggiava su qualche decina di
+operazioni.
 
-**Non ancora adottato**: va misurato come filtro sul risultato complessivo, e va
-escluso che sia un travestimento dell'impulso minimo. Codice in
-`trading/scripts/run_order_block.py`.
+Codice in `trading/scripts/run_order_block.py` e `run_ob_18anni.py`.
 
 ## Aperti / da fare (non perdere)
 

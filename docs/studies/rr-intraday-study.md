@@ -3226,3 +3226,109 @@ regola buona da una fortunata**.
    motore causale, spread e swap reali, gap pagati alla riapertura, placebo e
    permutazioni. Serve applicarlo a un'idea nuova, non a un'altra variante di
    questa.
+
+## Appendice AZ: tutti i livelli come INGRESSO, 18 anni, 720 configurazioni
+
+Richiesta: usare i livelli del progetto — order block, vuoti di volume,
+massimi di volume — con l'ATR a compensare la volatilita', e trovare una
+combinazione vincente. Ogni famiglia diventa una banda misurata in ATR, cosi'
+la stessa regola vale con l'oro a 1.000 e a 5.000 dollari.
+
+| | |
+|---|---|
+| famiglie | ob pieno, ob raffinato, POC di ieri, estremi area di valore, vuoti |
+| timeframe | M33, M66, H2, H6 |
+| modi | reazione, rottura, retest (tutti decisi alla chiusura della candela) |
+| stop | 0,25 · 0,5 · 1,0 ATR giornaliero |
+| obiettivi | 1:2 · 1:3 · 1:5 · 1:10, uscita a fine giornata |
+| eventi | **168.833 veri**, 124.225 placebo, 2009-2026 |
+
+Protocollo fissato prima di guardare i numeri: ricerca sul 2009-2019,
+verifica sul 2020-2026, ogni cella con il proprio placebo (lo stesso livello
+spostato a caso di 0,2-0,6 ATR: resta dove il prezzo passa, ma non e' piu' il
+livello).
+
+### Il risultato
+
+| | |
+|---|---|
+| celle misurabili (>= 80 operazioni) | 708 |
+| con R/op > 0 sul periodo di ricerca | **8 (1%)** |
+| positive su ENTRAMBI i periodi | **4** |
+| vantaggio sul placebo, mediana | **+0,003 R/op** |
+| che passano la scrematura pre-registrata | **0** |
+
+R/op medio di TUTTE le celle, per famiglia:
+
+| famiglia | 2009-2019 | 2020-2026 |
+|---|---|---|
+| ob pieno | -0,200 | -0,171 |
+| ob raffinato | -0,202 | -0,162 |
+| poc ieri | -0,194 | -0,157 |
+| va ieri | -0,181 | -0,148 |
+| vuoto ieri | -0,221 | -0,173 |
+
+**Nessuna famiglia, su nessun timeframe, con nessuno stop e nessun obiettivo.**
+Le quattro celle positive su entrambi i periodi sono la stessa (M66, ob pieno,
+retest) contata per quattro obiettivi che non vengono mai raggiunti, e rende
++0,0008 e +0,0088 R/op: tre ordini di grandezza sotto il costo dello spread.
+La percentuale di operazioni vinte si ferma al 48%, cioe' testa o croce.
+
+### Le confluenze non selezionano niente
+
+Domanda: quando piu' famiglie si accendono insieme, va meglio? Contate come
+famiglie diverse **allo stesso prezzo** (entro 0,25 ATR) e nella stessa
+mezz'ora, la risposta e' che la confluenza non e' un caso speciale ma **lo
+stato normale**: 167.808 eventi su 168.833 hanno gia' quattro famiglie
+sovrapposte. I livelli di famiglie diverse stanno uno sull'altro quasi
+sempre, perche' sono tutti costruiti intorno a dove il prezzo ha lavorato. I
+mille casi rari a bassa confluenza non vanno meglio degli altri.
+
+Nota metodologica, due tarature del placebo imparate sbagliando: lo
+spostamento va estratto UNA volta per livello (a ogni barra la banda balla e
+le condizioni sulla barra precedente non si formano mai), e deve essere
+PICCOLO — a 0,5-2 ATR il livello finto finisce fuori dal range della giornata
+e il placebo produce un quarto degli eventi, rendendo il confronto inutile.
+
+## Appendice BA: e la zona raffinata come filtro? Anche quella sparisce
+
+L'appendice AZ prova i livelli come ingresso. Ma il risultato positivo del
+progetto (appendici P e AJ) era un'altra cosa: la zona raffinata come **voto
+di qualita' su un segnale gia' valido**, +1,342 R/op sul campione largo, sette
+anni su sette. Misurato pero' solo sul 2020-2026 — il periodo che l'appendice
+AY ha mostrato incapace di distinguere una regola buona da una fortunata.
+
+Rifatta sui diciotto anni, campione largo, differenza fra dentro e fuori la
+zona:
+
+| tf | zona raffinata: 2009-2019 | 2020-2026 | 2009-2026 |
+|---|---|---|---|
+| M12 | -0,286 (27 op) | -0,252 (24 op) | **-0,274** (51 op) |
+| M33 | **+0,400** (19 op) | **-0,595** (31 op) | **-0,171** (50 op) |
+| M66 | -0,419 (19 op) | — | -0,315 (31 op) |
+| H2 | — | +0,513 (15 op) | +0,065 (28 op) |
+| H3 | — | — | -0,535 (18 op) |
+| H6 | — | — | -0,339 (20 op) |
+
+**Su M33 il segno si ribalta fra i due periodi**: +0,400 prima, -0,595 dopo.
+Su diciotto anni cinque timeframe su sei danno differenza negativa, e l'unico
+positivo (H2, +0,065) sta su 28 operazioni.
+
+E il motivo per cui non ce ne eravamo accorti e' nei conteggi: sul campione
+ufficiale, in **diciotto anni**, gli ingressi che cadono dentro una zona
+raffinata sono **20 su M12, 12 su M33, 5 su M66, 4 su H2, 4 su H3, 3 su H6**.
+Il risultato piu' promettente del progetto poggiava su qualche decina di
+operazioni. Con numeri cosi' non si distingue un vantaggio dal rumore, e
+infatti allungando la storia il vantaggio non c'e' piu'.
+
+### Conclusione delle due appendici
+
+I livelli — order block pieni e raffinati, POC, area di valore, vuoti di
+volume — **non portano vantaggio misurabile su diciotto anni**, ne' come
+ingresso (720 configurazioni, zero sopravvissuti) ne' come filtro (segno che
+si ribalta, campioni da qualche decina). Anche normalizzando tutto all'ATR,
+che era l'ipotesi da provare.
+
+Con AU-AY questo chiude il quadro: non c'e' un pezzo di questa famiglia di
+strategie che sopravviva alla storia lunga. Quello che regge e' il metodo di
+misura, che ha appena bocciato il proprio risultato migliore.
