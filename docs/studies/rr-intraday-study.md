@@ -3948,3 +3948,103 @@ confermata, proposta 1:1 respinta.
    piu' largo a parita' di spread, oppure entrare in limite invece che in stop
    (Crabel operava nel mercato a voce, dove la microstruttura era un'altra).
    Sono ipotesi da misurare, non conclusioni.
+
+---
+
+## Appendice BM: lo scalp a punti fissi e l'uscita in tre scaglioni
+
+Specifica dell'utente: entrare "anche da pochi punti" (stop 3 $ / obiettivo
+5 $, oppure 5 $ / 8 $) invece dello stop strutturale; oppure **tre operazioni
+da 0,25% di rischio**, la prima a 1:1, e quando incassa le altre due a
+pareggio con obiettivi 1:1,5 e 1:2.
+
+Campione: le stesse operazioni della strategia (333 ufficiali, 1.290 nel
+campione largo), 2020-2026. Cambia solo la gestione, cosi' il confronto isola
+una variabile sola. Spread 0,30 $ come nella taratura.
+
+### Campione ufficiale (333 operazioni)
+
+| gestione | costo %R | lordo R/op | **netto R/op** | vinte% | DD R | **R/DD** | anni+ |
+|---|---|---|---|---|---|---|---|
+| **ufficiale 1:10, pareggio +3R** | 7,2% | +0,724 | **+0,652** | 13,5% | 20,8 | **10,45** | 6/7 |
+| strutturale, 3 scaglioni | 7,2% | +0,169 | +0,097 | 55,6% | **14,2** | 2,27 | 5/7 |
+| stop 3 $, obiettivo 5 $ | **10,0%** | +0,188 | +0,088 | 44,4% | 19,4 | 1,51 | 6/7 |
+| stop 5 $, obiettivo 8 $ | 6,0% | +0,156 | +0,096 | 44,4% | 21,4 | 1,49 | 6/7 |
+| stop 3 $, 3 scaglioni | 10,0% | +0,156 | +0,056 | 56,2% | 16,3 | 1,14 | 6/7 |
+| stop 5 $, 3 scaglioni | 6,0% | +0,094 | +0,034 | 53,5% | 21,4 | 0,52 | 4/7 |
+
+### Campione largo (1.290 operazioni) — qui il segno cambia
+
+| gestione | lordo R/op | **netto R/op** | netto R | anni+ |
+|---|---|---|---|---|
+| ufficiale 1:10, pareggio +3R | +0,462 | **+0,386** | +497,9 | 6/7 |
+| strutturale, 3 scaglioni | +0,076 | 0,000 | +0,2 | 3/7 |
+| stop 3 $, obiettivo 5 $ | +0,049 | **−0,051** | −65,3 | 2/7 |
+| stop 5 $, obiettivo 8 $ | +0,049 | **−0,011** | −14,7 | 2/7 |
+| stop 3 $, 3 scaglioni | +0,038 | **−0,062** | −80,4 | 2/7 |
+| stop 5 $, 3 scaglioni | +0,021 | **−0,039** | −50,4 | 3/7 |
+
+### La riga che spiega tutto
+
+Sul campione largo, lo scalp 3/5 ha vantaggio lordo **+0,049 R/op** e costo
+**+0,100 R/op**. Il costo e' il **doppio** di tutto il vantaggio. Non e' una
+questione di regolare meglio l'ingresso: con uno stop di 3 $ e uno spread di
+0,30 $ si regalano dieci punti di rischio a ogni operazione, e il vantaggio
+misurato non arriva alla meta'.
+
+Ipotesi A confermata: lo stop a punti fissi peggiora sempre, su entrambi i
+campioni e con entrambe le gestioni.
+
+### Perche' i tre scaglioni ingannano
+
+Guardare la colonna "vinte%" fa capire l'attrazione: si passa dal **13,5%** di
+operazioni vincenti al **55,6%**. Psicologicamente e' un'altra vita: piu' di
+una su due va bene. Ma il netto passa da +0,652 a +0,097 R/op, cioe' si perde
+l'**85% del rendimento**.
+
+La perdita massima in effetti scende (20,8 -> 14,2 R, -32%), quindi lo scambio
+non e' assurdo in linea di principio: e' proprio il conto che non torna.
+**R/DD passa da 10,45 a 2,27**: si paga l'85% del rendimento per il 32% del
+rischio. Ipotesi B confermata nella direzione e respinta nel merito.
+
+Il motivo e' lo stesso gia' misurato nell'appendice L (chiusura parziale a
+meta': -27%) e nell'appendice BC (il win rate non e' una leva): questa
+strategia guadagna con le poche operazioni che corrono lontano. Chiudere un
+terzo a +1R e mettere il resto a pareggio significa incassare la parte piccola
+e farsi buttare fuori a zero proprio nelle giornate che pagavano l'anno.
+
+### Ipotesi C: 3 $ non e' lo stesso numero ogni anno (stop 3 $ / obiettivo 5 $)
+
+| anno | op | stop% | netto R/op |
+|---|---|---|---|
+| 2020 | 176 | 64,8 | −0,18 |
+| 2021 | 193 | 60,6 | −0,05 |
+| 2022 | 196 | 55,1 | **+0,10** |
+| 2023 | 224 | 54,0 | **+0,13** |
+| 2024 | 189 | 61,9 | −0,08 |
+| 2025 | 218 | 63,3 | −0,12 |
+| 2026 | 94 | **70,2** | **−0,31** |
+
+Confermata. La stessa regola con lo stesso numero passa da +0,13 a −0,31 R/op
+senza che nulla sia cambiato tranne l'ampiezza delle candele. Nel 2026, con
+l'escursione mediana dell'M1 a 2,27 $, uno stop di 3 $ sta dentro **una sola
+candela**: sette operazioni su dieci muoiono di rumore. Qualunque versione di
+questa idea va scritta in **ATR**, non in dollari — la voce gia' aperta in
+CLAUDE.md.
+
+### Conclusione
+
+Lo scalp a pochi punti sull'oro non e' rifiutabile per principio, ed e' bene
+dirlo con precisione: **non funziona con questo ingresso e con questo spread**.
+Perche' possa funzionare servirebbe almeno una delle due:
+
+1. **uno spread molto piu' basso** — a 0,10 $ il costo su stop 3 $ scende dal
+   10% al 3,3% e il 3/5 sul campione ufficiale tornerebbe intorno a +0,15
+   R/op. E' una questione di broker e di orario, non di strategia;
+2. **un ingresso molto piu' selettivo di quello attuale** — il vantaggio lordo
+   dovrebbe passare da 0,05 a oltre 0,20 R/op. E' quello che fanno le zone
+   raffinate (appendice AJ: +1,342 R/op su 63 operazioni), ma sono 9
+   occasioni l'anno, non uno scalp.
+
+Il punto tre, quello che NON serve, e' cambiare la gestione: e' misurato qui e
+va nella direzione sbagliata.
