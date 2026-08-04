@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "..", "scripts"))
 
 from framework.data import TIMEFRAMES, resample_tf
-from framework.segnali import genera
+from framework.segnali import genera, stati
 from framework.taratura import UFFICIALE as T
 
 import grafico_live as G
@@ -80,6 +80,56 @@ class TestCoerenzaColMotore:
             controllate += 1
         assert controllate >= 10, f"solo {controllate} operazioni verificate"
 
+    def test_il_pannello_non_inventa_segnali(self, storico):
+        """Il verso opposto, che e' quello che sbaglia piu' facilmente.
+
+        Si scorrono molte candele M6 e ogni volta che il pannello dice
+        "pronto" deve esistere davvero l'operazione corrispondente nel motore.
+        E' questa direzione a scoprire le condizioni dimenticate: banda del
+        rischio, attesa fra due ingressi, tetto giornaliero, ora della barra.
+        """
+        ops = genera(storico, T)
+        attese = {(pd.Timestamp(o["time"]), o["lato"]) for o in ops
+                  if all(o[f"c_{tf}"] for tf in T.conferme)
+                  and all(not o[f"c_{tf}"] for tf in T.ritracciamento)}
+        m1 = storico
+        m6 = resample_tf(m1, T.tf_ingresso)
+        passo = pd.Timedelta(TIMEFRAMES[T.tf_ingresso])
+        vwap = G.vwap_motore(m1)
+        # finestra ampia ma campionata: condizioni_ora rifa' il resample della
+        # serie a ogni chiamata, e provarle tutte porterebbe il test a minuti
+        finestra = m6.index[(m6.index >= m6.index[0] + pd.Timedelta(days=150))
+                            & (m6.index < m6.index[0] + pd.Timedelta(days=300))][::6]
+        # TUTTI i segnali del motore, non solo quelli con le conferme: la
+        # quota giornaliera e l'attesa fra due ingressi il motore le conta su
+        # ogni segnale che emette, ed e' cosi' che il grafico riempie l'elenco
+        noti = [{"t": int(pd.Timestamp(o["time"]).timestamp() * 1000),
+                 "quando": pd.Timestamp(o["time"]).strftime("%d/%m %H:%M")}
+                for o in ops]
+        # la struttura si calcola UNA volta per tutta la serie: rifarla a ogni
+        # barra su fette crescenti e' quadratico e il test non finisce piu'
+        tutti = stati(m1, tuple(T.timeframes), finestra + passo, T.frattale_k)
+        bugie, accesi = [], 0
+        for pos, barra in enumerate(finestra):
+            quando = barra + passo
+            struttura = {tf: int(tutti[tf][pos]) for tf in T.timeframes}
+            # si passa la serie INTERA: tutto cio' che condizioni_ora calcola
+            # e' gia' causale (ATR e macro sono shiftati, il regime guarda solo
+            # il passato) e la barra la sceglie da "quando". Tagliare la serie
+            # a ogni giro renderebbe il test quadratico.
+            c = G.condizioni_ora(m1, vwap, struttura, quando, segnali=noti)
+            if c is None or c["candela"] != barra.strftime("%d/%m %H:%M"):
+                continue
+            for lato in ("long", "short"):
+                if c["lati"][lato]["pronto"]:
+                    accesi += 1
+                    if (quando, lato) not in attese:
+                        bugie.append((str(quando), lato))
+        assert accesi > 0, "il pannello non si e' mai acceso: prova inutile"
+        assert not bugie, (
+            f"il pannello si accende su {len(bugie)} candele che il motore "
+            f"scarta, le prime: {bugie[:3]}")
+
     def test_usa_lultima_candela_chiusa(self, storico):
         """Mai la candela in corso: cambierebbe idea a ogni tick."""
         m1 = storico.iloc[:200_000]
@@ -102,9 +152,9 @@ class TestCoerenzaColMotore:
     def test_soglie_riscalate_nei_mesi_agitati(self, storico):
         """Le soglie devono seguire l'ATR quando il motore lo fa."""
         m1 = storico.iloc[:200_000]
-        s, alta = G.soglie_ora(m1, m1.index[-1])
+        s, alta, tarabile = G.soglie_ora(m1, m1.index[-1])
         assert set(s) == {"impulso", "buffer", "rischio_min", "rischio_max"}
-        if not alta:
+        if not alta or not tarabile:
             assert s["impulso"] == pytest.approx(T.impulso_min)
         else:
             assert s["impulso"] != pytest.approx(T.impulso_min)

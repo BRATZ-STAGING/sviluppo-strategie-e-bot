@@ -69,17 +69,34 @@ def storico_archivio():
     """
     cartella = os.path.join(ROOT, "data", "XAUUSD_M1")
     if not os.path.isdir(cartella):
-        return None
+        return None, None
     anni = sorted(int(os.path.basename(f)[10:14])
                   for f in glob.glob(os.path.join(cartella, "XAUUSD_M1_*.parquet")))
     if not anni:
-        return None
+        return None, None
     try:
         d = load_m1(cartella, years=anni[-2:])
     except Exception:
-        return None
+        return None, None
+    # La mediana ATR di riferimento va presa dagli ANNI DI CALIBRAZIONE, che
+    # negli ultimi quindici mesi non ci sono: senza, nei mesi ad alta
+    # volatilita' le soglie riscalate diventerebbero NaN e non uscirebbe piu'
+    # nessun segnale, in silenzio.
+    mediana = mediana_calibrazione(cartella)
     taglio = d.index[-1] - pd.DateOffset(months=MESI_STORIA)
-    return d[d.index >= taglio]
+    return d[d.index >= taglio], mediana
+
+
+def mediana_calibrazione(cartella):
+    """La mediana dell'ATR giornaliero sugli anni di calibrazione."""
+    try:
+        d = load_m1(cartella, years=list(range(T.calibrazione[0],
+                                               T.calibrazione[1] + 1)))
+    except Exception:
+        return None
+    a = daily_atr(d, 14)
+    m = float(a.median())
+    return m if np.isfinite(m) and m > 0 else None
 
 
 def unisci(storia, vivo):
@@ -153,7 +170,7 @@ def leggi_vwap(v, quando):
     return s
 
 
-def soglie_ora(m1, barra):
+def soglie_ora(m1, barra, mediana=None):
     """Le soglie vigenti adesso, con lo stesso conto che fa ``segnali.genera``.
 
     Nei mesi riconosciuti ad alta volatilita' le soglie non restano in dollari
@@ -162,20 +179,23 @@ def soglie_ora(m1, barra):
     250 giornate di storia: sotto quella soglia risponde "normale".
     """
     atr = daily_atr(m1, 14)
-    anni = ((atr.index.year >= T.calibrazione[0])
-            & (atr.index.year <= T.calibrazione[1]))
-    mediana = float(atr[anni].median()) if anni.any() else float("nan")
+    if mediana is None:
+        anni = ((atr.index.year >= T.calibrazione[0])
+                & (atr.index.year <= T.calibrazione[1]))
+        mediana = float(atr[anni].median()) if anni.any() else float("nan")
     mese = pd.Period(barra.strftime("%Y-%m"), "M")
     alta = high_volatility_months(atr, [mese], T.fattore_alta_volatilita)[mese]
-    if not alta or not np.isfinite(mediana) or mediana <= 0:
-        return T.soglie(), False
+    if not alta:
+        return T.soglie(), False, True
     u = atr_at(atr, pd.DatetimeIndex([barra])).iloc[0]
-    if not np.isfinite(u) or u <= 0:
-        return T.soglie(), False
-    return T.soglie(atr=float(u), mediana=mediana), True
+    if not np.isfinite(mediana) or mediana <= 0 or not np.isfinite(u) or u <= 0:
+        # senza riferimento il motore non produrrebbe NIENTE questo mese: il
+        # pannello deve dirlo, non ripiegare di nascosto sulle soglie fisse
+        return T.soglie(), True, False
+    return T.soglie(atr=float(u), mediana=mediana), True, True
 
 
-def condizioni_ora(m1, vwap_m1, struttura, adesso):
+def condizioni_ora(m1, vwap_m1, struttura, adesso, mediana=None, segnali=()):
     """Le cinque condizioni della strategia, adesso, per i due lati.
 
     Si valutano sull'ultima candela M6 CHIUSA: quella in corso cambierebbe
@@ -207,10 +227,18 @@ def condizioni_ora(m1, vwap_m1, struttura, adesso):
     # le soglie NON sono sempre in dollari: nei mesi ad alta volatilita' il
     # motore le riscala sull'ATR. Un pannello che mostrasse sempre 4,00 $
     # direbbe "manca ancora" mentre il motore ha gia' aperto, o il contrario
-    soglie, alta = soglie_ora(m1, barra)
+    soglie, alta, tarabile = soglie_ora(m1, barra, mediana)
+    # l'orario si valuta sull'APERTURA della barra decisionale, come fa il
+    # motore: guardare l'orologio sposterebbe la finestra di sei minuti e la
+    # barra 18:54, che la strategia accetta, non comparirebbe mai
+    ora_ok = bool(T.ora_inizio <= barra.hour < T.ora_fine)
+    quante_oggi, ultimo = conteggio_giorno(segnali, giorno, barra + passo)
+    attesa_ok = ultimo is None or (barra + passo - ultimo
+                                   >= pd.Timedelta(minutes=T.attesa_minuti))
     fuori = {"vwap": round(v, 2), "candela": barra.strftime("%d/%m %H:%M"),
-             "ora_ok": bool(T.ora_inizio <= adesso.hour < T.ora_fine),
-             "alta_volatilita": bool(alta),
+             "ora_ok": ora_ok, "alta_volatilita": bool(alta),
+             "tarabile": bool(tarabile), "oggi": quante_oggi,
+             "max_giorno": T.max_operazioni_giorno, "attesa_ok": bool(attesa_ok),
              "chiusura": T.ora_chiusura, "lati": {}}
     for nome, segno in (("long", 1), ("short", -1)):
         if segno == 1:
@@ -221,7 +249,21 @@ def condizioni_ora(m1, vwap_m1, struttura, adesso):
             spinta = float(v - prima.low.min()) if len(prima) else 0.0
         strut = all(struttura.get(tf, 0) == segno for tf in T.tf_struttura)
         conf = all(struttura.get(tf, 0) == segno for tf in T.conferme)
-        ritr = all(struttura.get(tf, 0) == -segno for tf in T.ritracciamento)
+        # il motore chiede che il ritracciamento NON sia allineato, non che sia
+        # per forza contrario: uno stato neutro va bene
+        ritr = all(struttura.get(tf, 0) != segno for tf in T.ritracciamento)
+        # lo stop e' strutturale e il rischio deve stare nella banda, altrimenti
+        # il motore scarta l'operazione anche con tutto il resto a posto
+        j0 = max(0, i - T.barre_stop)
+        finestra = [k for k in range(j0, i + 1)
+                    if m6.index[k].normalize() == giorno] or [i]
+        if segno == 1:
+            stop = float(min(lo[k] for k in finestra) - soglie["buffer"])
+            rischio = float(cl[i]) - stop
+        else:
+            stop = float(max(hi[k] for k in finestra) + soglie["buffer"])
+            rischio = stop - float(cl[i])
+        rischio_ok = bool(soglie["rischio_min"] <= rischio <= soglie["rischio_max"])
         fuori["lati"][nome] = {
             "struttura": bool(strut), "conferme": bool(conf),
             "ritracciamento": bool(ritr),
@@ -229,10 +271,29 @@ def condizioni_ora(m1, vwap_m1, struttura, adesso):
             "reclaim": tocca, "spinta": round(spinta, 2),
             "spinta_ok": bool(spinta >= soglie["impulso"]),
             "soglia": round(soglie["impulso"], 2),
-            "pronto": bool(fuori["ora_ok"] and strut and conf and ritr
-                           and tocca and spinta >= soglie["impulso"]
+            "stop": round(stop, 2), "rischio": round(rischio, 2),
+            "rischio_ok": rischio_ok,
+            "banda": [round(soglie["rischio_min"], 2),
+                      round(soglie["rischio_max"], 2)],
+            "pronto": bool(ora_ok and tarabile and attesa_ok
+                           and quante_oggi < T.max_operazioni_giorno
+                           and strut and conf and ritr and tocca and rischio_ok
+                           and spinta >= soglie["impulso"]
                            and macro == (segno == 1))}
     return fuori
+
+
+def conteggio_giorno(segnali, giorno, entro):
+    """Quante operazioni oggi PRIMA di ``entro``, e quando e' stata l'ultima.
+
+    Il taglio su ``entro`` non e' pignoleria: contare anche i segnali
+    successivi farebbe risultare la quota gia' esaurita e l'attesa gia'
+    violata, e il pannello resterebbe spento per sempre.
+    """
+    fine = giorno + pd.Timedelta(days=1)
+    tempi = [pd.Timestamp(s["t"], unit="ms", tz="UTC") for s in segnali]
+    oggi = [t for t in tempi if giorno <= t < fine and t < entro]
+    return len(oggi), (max(oggi) if oggi else None)
 
 
 # Cosa vale ciascuna famiglia, secondo le misure: e' l'unica cosa che
@@ -253,8 +314,15 @@ def livelli_di_ieri(m1, atr):
     unici = giorni.unique()
     if len(unici) < 2 or not np.isfinite(atr) or atr <= 0:
         return []
-    d = m1[giorni == unici[-2]]
-    if len(d) < 200:
+    # non basta "il giorno prima": il lunedi' sarebbe la domenica, che ha solo
+    # lo spezzone serale. Si prende l'ultima sessione PIENA prima di oggi.
+    d = None
+    for g in unici[-2::-1]:
+        pezzo = m1[giorni == g]
+        if len(pezzo) >= 200:
+            d = pezzo
+            break
+    if d is None:
         return []
     passo = atr * 0.05
     tipico = ((d.high + d.low + d.close) / 3).values
@@ -322,7 +390,7 @@ def confluenze_ora(bid, zone, ieri, atr):
             "contesto": sum(1 for v in vicini if v["peso"] == "contesto")}
 
 
-def aggiorna_segnali():
+def aggiorna_segnali(mediana=None):
     """Ricalcola i segnali passati, in disparte dal ciclo dei tre secondi.
 
     ``genera`` ripercorre tutta la serie: su quindici mesi di minuti sono
@@ -335,7 +403,7 @@ def aggiorna_segnali():
             m1 = _serie["m1"]
         if m1 is not None and len(m1) > 5000:
             try:
-                ops = genera(m1, T)
+                ops = genera(m1, T, mediana_atr=mediana)
                 elenco = []
                 for o in ops[-SEGNALI_MAX * 4:]:
                     ufficiale = (all(o[f"c_{tf}"] for tf in T.conferme)
@@ -359,7 +427,7 @@ def aggiorna_segnali():
         time.sleep(SEGNALI_OGNI)
 
 
-def calcola(storia):
+def calcola(storia, mediana):
     simbolo, vivo, bid, ask = leggi_mt5()
     m1, buco = unisci(storia, vivo)
     with _lock:
@@ -388,20 +456,27 @@ def calcola(storia):
             "l": [round(x, 2) for x in s.low], "c": [round(x, 2) for x in s.close],
             "v": ([None if np.isnan(x) else round(float(x), 2) for x in v]
                   if v is not None else None)}
+    # "adesso" e' l'ora vera, non la chiusura futura della candela in corso:
+    # usare quella mostrerebbe struttura e zone nate da una candela non ancora
+    # finita, cioe' informazione che dal vivo non esiste ancora
+    adesso = pd.Timestamp.now("UTC")
     for tf in TF_ZONE:
         tfd = resample_tf(m1, tf)
         passo = pd.Timedelta(TIMEFRAMES[tf])
         st = trend_state_series(tfd, T.frattale_k, passo)
+        st = st[st.index <= adesso]      # niente stati "noti" solo in futuro
         out["struttura"][tf] = int(st.iloc[-1]) if len(st) else 0
         z = zone_ob(tfd, T.frattale_k, passo)
         if z.empty:
             continue
-        adesso = tfd.index[-1] + passo
         # la scadenza va ricalcolata: zone_ob la tronca all'ultima candela,
         # quindi al bordo destro le zone appena nate sembrerebbero scadute
         scad = z.attiva_da + VALIDITA * passo
+        # invalidata_il puo' essere tutta NaT: pandas la crea senza fuso e il
+        # confronto con un istante con fuso solleverebbe TypeError
+        inval = pd.to_datetime(z.invalidata_il, utc=True, errors="coerce")
         vive = z[(z.attiva_da <= adesso) & (scad > adesso)
-                 & (z.invalidata_il.isna() | (z.invalidata_il > adesso))]
+                 & (inval.isna() | (inval > adesso))]
         for i, r in vive.iterrows():
             out["zone"].append({
                 "tf": tf, "lato": int(r.lato),
@@ -413,8 +488,10 @@ def calcola(storia):
                 "dist": round(bid - r.alto if r.lato == 1 else r.basso - bid, 2)})
     out["zone"].sort(key=lambda x: abs(x["dist"]))
     out["profilo"] = profilo_sessioni(m1)
-    out["condizioni"] = condizioni_ora(m1, vwap_m1, out["struttura"],
-                                       pd.Timestamp.now("UTC"))
+    with _lock:
+        noti = list(_segnali["elenco"])
+    out["condizioni"] = condizioni_ora(m1, vwap_m1, out["struttura"], adesso,
+                                       mediana, noti)
     a = daily_atr(m1, 14)
     atr = float(a.iloc[-1]) if len(a) and np.isfinite(a.iloc[-1]) else float("nan")
     out["confluenze"] = confluenze_ora(bid, out["zone"],
@@ -464,7 +541,7 @@ def profilo_sessioni(m1):
 
 
 def aggiorna_sempre():
-    storia = storico_archivio()          # si legge una volta sola: non cambia
+    storia, mediana = storico_archivio()   # si leggono una volta sola
     if storia is None:
         print("ATTENZIONE: archivio non trovato, i segnali useranno solo le "
               "sei settimane del terminale e le regole saranno piu' blande")
@@ -473,7 +550,7 @@ def aggiorna_sempre():
               f"({len(storia):,} candele)".replace(",", "."))
     while True:
         try:
-            d = calcola(storia)
+            d = calcola(storia, mediana)
         except Exception as e:                       # il terminale puo' chiudersi
             d = {"pronto": False, "errore": str(e)}
         with _lock:
@@ -584,16 +661,22 @@ function pannello(){
  el("cond").innerHTML='<div class="chk">'+["long","short"].map(n=>{
   const L=C.lati[n];
   const righe=[
-   ["1 · orario 07-19 UTC",bollo(C.ora_ok)
+   ["1 · orario della candela",bollo(C.ora_ok)
      +(C.alta_volatilita?' <b class="nd">· mese agitato</b>':"")],
    ["2 · struttura H6+H2",bollo(L.struttura)],
    ["3a · conferme M33+H12",bollo(L.conferme)],
-   ["3b · M12 contrario",bollo(L.ritracciamento)],
+   ["3b · M12 non allineato",bollo(L.ritracciamento)],
    ["4a · spinta dal VWAP","<b>"+L.spinta.toFixed(2)+" / "+L.soglia.toFixed(2)
      +" $</b> "+bollo(L.spinta_ok)],
    ["4b · riprende il VWAP",bollo(L.reclaim)],
    ["5 · filtro di fondo D1",bollo(L.macro)],
-  ].map(([a,b])=>`<div class="riga"><span>${a}</span><span>${b}</span></div>`).join("");
+   ["6 · rischio nella banda","<b>"+L.rischio.toFixed(2)+" $</b> ("
+     +L.banda[0].toFixed(2)+"-"+L.banda[1].toFixed(2)+") "+bollo(L.rischio_ok)],
+   ["7 · quota del giorno","<b>"+C.oggi+"/"+C.max_giorno+"</b> "
+     +bollo(C.oggi<C.max_giorno)+" · attesa "+bollo(C.attesa_ok)],
+  ].concat(C.tarabile?[]:[["mese agitato senza riferimento ATR",
+    '<b class="no1">il motore non aprirebbe</b>']])
+  .map(([a,b])=>`<div class="riga"><span>${a}</span><span>${b}</span></div>`).join("");
   return `<div class="lato${L.pronto?" si":""}"><h2>${n.toUpperCase()}`
    +(L.pronto?' · <span class="si1">SEGNALE</span>':"")
    +`</h2>${righe}</div>`;}).join("")+conflu()+'</div>';}
@@ -811,7 +894,9 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     porta = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
     threading.Thread(target=aggiorna_sempre, daemon=True).start()
-    threading.Thread(target=aggiorna_segnali, daemon=True).start()
+    _, mediana = storico_archivio()
+    threading.Thread(target=aggiorna_segnali, args=(mediana,),
+                     daemon=True).start()
     print(f"grafico live su http://127.0.0.1:{porta}  (CTRL+C per fermare)")
     HTTPServer(("127.0.0.1", porta), Handler).serve_forever()
 

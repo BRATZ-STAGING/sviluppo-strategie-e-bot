@@ -46,7 +46,8 @@ def filtro_macro(m1: pd.DataFrame, n: int) -> dict:
     return sopra.to_dict()
 
 
-def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
+def genera(m1: pd.DataFrame, t: Taratura, tf_extra=(),
+           mediana_atr: float | None = None) -> list[dict]:
     """Tutte le operazioni della variante ``t``, con i percorsi al minuto.
 
     Ogni voce contiene ingresso, stop, rischio, i percorsi ``fav``/``sfav`` in
@@ -56,6 +57,11 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
 
     ``tf_extra`` aggiunge timeframe da registrare senza usarli come filtro:
     serve agli studi che vogliono misurare conferme non ancora adottate.
+
+    ``mediana_atr`` e' la mediana ATR di riferimento per riscalare le soglie
+    nei mesi ad alta volatilita'. Di norma si ricava dagli anni di
+    calibrazione presenti nella serie; va passata quando la serie NON li
+    contiene, come nel grafico dal vivo che carica solo gli ultimi mesi.
     """
     passo = pd.Timedelta(TIMEFRAMES[t.tf_ingresso])
     base = resample_tf(m1, t.tf_ingresso)
@@ -67,9 +73,17 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
     atr = daily_atr(m1, 14)
     atr_bar = atr_at(atr, base.index).values
     anni = (atr.index.year >= t.calibrazione[0]) & (atr.index.year <= t.calibrazione[1])
-    mediana = float(atr[anni].median())
+    mediana = float(atr[anni].median()) if mediana_atr is None else float(mediana_atr)
     mesi = sorted({pd.Period(x.strftime("%Y-%m"), "M") for x in base.index})
     alta = high_volatility_months(atr, mesi, t.fattore_alta_volatilita)
+    # Senza mediana le soglie riscalate diventerebbero NaN e OGNI confronto
+    # sarebbe falso: nessuna operazione per tutti i mesi agitati, in silenzio.
+    # Meglio fermarsi e dire cosa manca.
+    if any(alta.values()) and not (mediana > 0):
+        raise ValueError(
+            f"mediana ATR non calcolabile: la serie non contiene gli anni di "
+            f"calibrazione {t.calibrazione} e ci sono mesi ad alta "
+            f"volatilita'. Passare mediana_atr esplicitamente.")
     macro = filtro_macro(m1, t.media_macro)
 
     idx = base.index
