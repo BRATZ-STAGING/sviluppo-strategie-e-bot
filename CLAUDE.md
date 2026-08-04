@@ -87,16 +87,35 @@ Risultato sul 2020-2026: +171,1R su 348 operazioni, **7 anni positivi su 7**,
 perdita massima 16%, 49.321 EUR da 10.000. Cambiare un numero qui cambia tutti
 gli studi: farlo solo dopo una verifica per anno e fuori campione.
 
-### ATTENZIONE — sul 2009-2019 la stessa taratura PERDE (appendici AU-AV)
+### ATTENZIONE — sul 2009-2019 la stessa taratura PERDE (appendici AU-AY)
 
 Undici anni mai visti, aggiunti all'archivio il 03/08/2026: **-39,3 R su 382
 operazioni, 3 anni positivi su 11, perdita massima 47,8 R** (contro 17,6 nel
 periodo di casa). Le candidate A e B fanno peggio (-47,5 e -90,8). Non e' un
 problema di soglie in dollari: normalizzando tutto all'ATR peggiora (-67,1 e
--105,3, ipotesi pre-registrata respinta). Su diciotto anni il **lato corto non
-ha vantaggio** (+6,2 R su 259 operazioni) e il 90% del risultato 2020-2026
-viene dal lato lungo. Prima di portare la strategia su un conto reale, questa
-e' la domanda da risolvere.
+-105,3, ipotesi pre-registrata respinta, appendice AV).
+
+Le tre verifiche successive sono tutte negative:
+
+- **AW** nessun regime salva il periodo vecchio. Il filtro definito sul
+  2020-2026 (volatilita', distanza dalle medie 50 e 200) lascia il 2009-2019
+  a -15,9/-23,3 R: dentro e fuori perdono entrambi.
+- **AX** togliere il lato corto migliora il rischio (DD da 54,5 a 39,2 sui
+  diciotto anni, +0,58 R/op invece di +0,45 sul 2020-2026) ma **non cambia il
+  segno**: il 2009-2019 solo long fa -29,5 R, per operazione peggio del
+  sistema completo.
+- **AY** la stessa ricerca su **2.268 celle** ripetuta sui due periodi: il
+  meglio che si trova sul 2009-2019 e' +6,9 R su undici anni (nulla), mentre
+  i vincitori trovati sul 2020-2026 valgono +223 R li' e -107 R altrove.
+  **Solo l'1% delle celle scelte sul 2020-2026 resta positivo sul 2009-2019**,
+  contro il 64% nel verso opposto. E' la firma del sovradattamento, e la
+  taratura in vigore e' uno di quei vincitori.
+
+**Conseguenza operativa**: il 2020-2026 non e' piu' un giudice sufficiente.
+Ogni prova futura va chiusa sui diciotto anni. Quello che resta valido non e'
+la strategia ma il METODO di misura (motore causale, spread e swap reali, gap
+pagati alla riapertura, placebo e permutazioni): va applicato a un'idea nuova,
+non a un'altra variante di questa.
 
 ## Strade gia' misurate e respinte (non ripercorrerle)
 
@@ -212,12 +231,14 @@ escluso che sia un travestimento dell'impulso minimo. Codice in
   ~0.45$ (2020-24) a 1.05$ (2025) e 2.27$ (2026). Riparametrizzare in ATR.
   Nota: la riparametrizzazione secca **non** risolve il fuori campione
   (appendice AV), quindi vale come igiene, non come rimedio.
-- **PRIORITA': il fuori campione 2009-2019** (appendici AU-AV). Finche' non si
-  capisce se il -39,3 R e' regime o sovradattamento, tutto il resto — i tre
-  Expert Advisor compresi — sta costruendo su una prova sola. Piste non ancora
-  battute: filtro di regime (operare solo quando il contesto somiglia al
-  2020+), rinuncia al lato corto, ritaratura su 2009-2019 con verifica sul
-  2020-2026 (l'inverso di quella fatta).
+- **PRIORITA': la domanda aperta dopo AU-AY**. Le tre piste (regime, solo
+  long, taratura invertita) sono state battute tutte e tre e sono negative:
+  la risposta e' sovradattamento, non regime. Quindi NON ha senso cercare
+  un'altra variante di questa famiglia. Le strade che restano sono due, e
+  vanno decise con l'utente: (a) un'idea di ingresso diversa, misurata dal
+  primo giorno sui diciotto anni; (b) accettare che il vantaggio esista solo
+  in condizioni tipo 2020-2026 e trattarlo come scommessa sul regime, con
+  dimensionamento tarato sulla perdita massima VERA (47,8 R, non 16).
 - **Bug confermati dalla ri-validazione 2026-07**: resample_tf M33/M66 dipende
   dagli anni caricati; resample('1D') conta lo spezzone domenicale come giornata
   piena (17% di D1 monchi); da verificare la chiusura EOD del venerdi'.

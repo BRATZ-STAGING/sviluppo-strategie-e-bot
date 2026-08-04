@@ -81,8 +81,10 @@ def calcola():
     # il VWAP e' ancorato alla giornata: si calcola una volta sui minuti e si
     # legge alla chiusura di ogni candela, cosi' e' lo STESSO su ogni grafico
     vwap_m1 = anchored_vwap(m1, "day")
-    for tf in ("M6", "M12", "M33", "M66", "H2", "H3", "H6"):
-        s = resample_tf(m1, tf).tail(400)
+    # M1 non serve a operare (l'ingresso e' su M6): serve a vedere con
+    # precisione dove sta il prezzo adesso rispetto a un livello
+    for tf in ("M1", "M6", "M12", "M33", "M66", "H2", "H3", "H6"):
+        s = resample_tf(m1, tf).tail(600)
         passo = pd.Timedelta(TIMEFRAMES[tf])
         v = vwap_m1.reindex(s.index + passo - pd.Timedelta("1min"),
                             method="ffill").values
@@ -186,8 +188,8 @@ background:var(--p);color:var(--i3)}.pill b{color:var(--i)}
 .seg button{border:0;background:none;color:var(--i3);font:12px var(--m);
 padding:5px 10px;border-radius:6px;cursor:pointer}
 .seg button[aria-pressed=true]{background:var(--br);color:var(--g);font-weight:600}
-canvas{display:block;width:100%;height:440px;background:var(--p);
-border:1px solid var(--l);border-radius:12px}
+canvas{display:block;width:100%;height:520px;background:var(--p);
+border:1px solid var(--l);border-radius:12px;cursor:grab;touch-action:none}
 table{width:100%;border-collapse:collapse;font:12px var(--m)}
 th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--l)}
 th{color:var(--i3);font-weight:500;text-align:right}td:first-child,th:first-child{text-align:left}
@@ -196,17 +198,24 @@ th{color:var(--i3);font-weight:500;text-align:right}td:first-child,th:first-chil
 </style></head><body><div class="w">
 <h1>XAUUSD <span>·</span> live da MT5</h1>
 <div class="bar" id="bar"></div>
-<div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div></div>
+<div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div>
+<div class="seg"><button id="ora">torna a ora</button></div>
+<span class="pill">rotellina = zoom · trascina = scorri · doppio clic = ora</span></div>
 <canvas id="c"></canvas>
 <table id="tab"></table>
 <p class="note">La colonna <b>raffinata</b> e' la parte che porta il vantaggio misurato.
 Una zona non e' un segnale da sola e non va usata come limite in attesa: serve il
 segnale della strategia con la struttura concorde.</p>
 </div><script>
-const TF=["M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,etich=0,curY=null,fissate=new Set();
+const TF=["M1","M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,etich=0,curY=null,fissate=new Set();
+// finestra visibile: quante candele si vedono e di quante il bordo destro sta
+// indietro rispetto all'ultima. off negativo = spazio vuoto a destra, cosi' il
+// grafico non resta incollato al bordo.
+let vis=140,off=-8,nPrec=0,passoX=6,trascina=null,mosso=false;
+const VUOTE=()=>Math.floor(vis*0.45);          // quanto si puo' andare oltre l'ultima
 const el=i=>document.getElementById(i);
 el("tf").innerHTML=TF.map(t=>`<button aria-pressed="${t===tf}">${t}</button>`).join("");
-[...el("tf").children].forEach((b,k)=>b.onclick=()=>{tf=TF[k];
+[...el("tf").children].forEach((b,k)=>b.onclick=()=>{tf=TF[k];off=-8;nPrec=0;
 [...el("tf").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
 el("vp").innerHTML=["profilo off","profilo sessioni"].map((t,k)=>
  `<button aria-pressed="${k===vp}">${t}</button>`).join("");
@@ -218,9 +227,25 @@ el("et").innerHTML=["nomi al passaggio","nomi sempre"].map((t,k)=>
  [...el("et").children].forEach((x,j)=>x.setAttribute("aria-pressed",j===k));draw();});
 // il puntatore decide quali nomi mostrare; il clic li fissa
 const cv0=el("c");
-cv0.addEventListener("mousemove",e=>{curY=e.clientY-cv0.getBoundingClientRect().top;draw();});
+const aOra=()=>{off=-8;draw();};
+el("ora").onclick=aOra; cv0.addEventListener("dblclick",aOra);
+cv0.addEventListener("mousemove",e=>{
+ curY=e.clientY-cv0.getBoundingClientRect().top;
+ if(trascina){const dx=e.clientX-trascina.x;
+  if(Math.abs(dx)>2)mosso=true;
+  off=trascina.off+Math.round(dx/passoX);}
+ draw();});
+cv0.addEventListener("mousedown",e=>{trascina={x:e.clientX,off:off};mosso=false;
+ cv0.style.cursor="grabbing";});
+addEventListener("mouseup",()=>{trascina=null;cv0.style.cursor="grab";});
 cv0.addEventListener("mouseleave",()=>{curY=null;draw();});
-cv0.addEventListener("click",()=>{if(!D||!D.zone)return;
+// zoom tenendo fermo il punto sotto il puntatore, come su TradingView
+cv0.addEventListener("wheel",e=>{e.preventDefault();
+ const r=cv0.getBoundingClientRect();
+ const fx=Math.min(Math.max((e.clientX-r.left-8)/Math.max(r.width-70,1),0),1);
+ const nv=Math.round(vis*(e.deltaY>0?1.18:1/1.18));
+ off=Math.round(off-(nv-vis)*(1-fx)); vis=nv; draw();},{passive:false});
+cv0.addEventListener("click",()=>{if(mosso||!D||!D.zone)return;   // trascinare non fissa
  D.zone.forEach((z,i)=>{if(z._sotto){fissate.has(i)?fissate.delete(i):fissate.add(i);}});
  draw();});
 const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra",""];
@@ -239,13 +264,23 @@ function draw(){
  const cv=el("c"),x=cv.getContext("2d"),dpr=devicePixelRatio||1;
  const W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
  x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
- const n=s.c.length,vis=Math.min(n,180),i0=n-vis;
+ const n=s.c.length;
+ // se si sta guardando il passato, l'arrivo di una candela non deve spostare
+ // la vista: si scala l'offset di altrettante candele
+ if(nPrec&&n>nPrec&&off>0)off+=n-nPrec;
+ nPrec=n;
+ vis=Math.max(15,Math.min(vis,Math.max(n,15)));
+ off=Math.max(-VUOTE(),Math.min(off,Math.max(n-10,0)));
+ const destra=n-1-off,i0=destra-vis+1;
+ const a0=Math.max(0,i0),a1=Math.min(n-1,destra);
  const zs=D.zone;
- let lo=Math.min(...s.l.slice(i0)),hi=Math.max(...s.h.slice(i0));
+ let lo=Math.min(...s.l.slice(a0,a1+1)),hi=Math.max(...s.h.slice(a0,a1+1));
+ if(!isFinite(lo)||!isFinite(hi)){lo=D.bid-5;hi=D.bid+5;}
  zs.forEach(z=>{if(z.basso>lo-200&&z.alto<hi+200){lo=Math.min(lo,z.basso);hi=Math.max(hi,z.alto);}});
  const pad=(hi-lo)*.06||1;lo-=pad;hi+=pad;
  const pl=8,pr=62,pt=10,pb=8,pw=W-pl-pr,ph=H-pt-pb;
- const X=i=>pl+(i-i0)/Math.max(vis-1,1)*pw, Y=p=>pt+(hi-p)/(hi-lo)*ph;
+ passoX=pw/vis;
+ const X=i=>pl+(i-i0+.5)*passoX, Y=p=>pt+(hi-p)/(hi-lo)*ph;
  const F="11px "+getComputedStyle(document.body).getPropertyValue("--m");
 
  // --- profilo volume: a SINISTRA, sotto a tutto il resto -------------------
@@ -279,6 +314,16 @@ function draw(){
     x.textAlign="left";x.textBaseline="top";
     x.fillText("profilo "+P.giorno+" · asia londra ny sera",pl+4,pt+4);}}}
 
+ // --- scala dei prezzi: passo tondo, cosi' si legge quanto vale un movimento
+ {const gr=[.1,.2,.5,1,2,5,10,20,50,100,200,500];
+  const ideale=(hi-lo)/7; let p0=gr[gr.length-1];
+  for(const g of gr){if(g>=ideale){p0=g;break;}}
+  x.font=F;x.textAlign="left";x.textBaseline="middle";
+  for(let p=Math.ceil(lo/p0)*p0;p<=hi;p+=p0){const y=Math.round(Y(p))+.5;
+   x.strokeStyle="rgba(233,228,219,.07)";x.lineWidth=1;
+   x.beginPath();x.moveTo(pl,y);x.lineTo(pl+pw,y);x.stroke();
+   x.fillStyle="#6E675F";x.fillText(p.toFixed(p0<1?2:(p0<10?1:0)),pl+pw+6,y);}}
+
  // --- zone: bande, senza etichetta (le etichette vanno a destra, in fondo) --
  zs.forEach(z=>{const y1=Y(z.alto),y2=Y(z.basso),up=z.lato===1;
   x.fillStyle=up?"rgba(78,165,127,.10)":"rgba(194,90,70,.10)";
@@ -292,14 +337,17 @@ function draw(){
 
  if(s.v){x.strokeStyle=getComputedStyle(document.body).getPropertyValue("--vw");
   x.lineWidth=1.6;x.beginPath();let pen=false;
-  for(let i=i0;i<n;i++){if(s.v[i]===null){pen=false;continue;}
+  for(let i=a0;i<=a1;i++){if(s.v[i]===null){pen=false;continue;}
    pen?x.lineTo(X(i),Y(s.v[i])):(x.moveTo(X(i),Y(s.v[i])),pen=true);}x.stroke();}
- const bw=Math.max(1.5,Math.min(pw/vis*.66,9));
- for(let i=i0;i<n;i++){const up=s.c[i]>=s.o[i];
+ // corpi su pixel interi: a mezzo pixel il canvas antialiasa e le candele
+ // sfocano, che e' quello che si vedeva zoomando
+ const bw=Math.max(1,Math.round(Math.min(passoX*.7,22)));
+ for(let i=a0;i<=a1;i++){const up=s.c[i]>=s.o[i];
   x.strokeStyle=x.fillStyle=up?"#4EA57F":"#C25A46";x.lineWidth=1;
-  x.beginPath();x.moveTo(Math.round(X(i))+.5,Y(s.h[i]));x.lineTo(Math.round(X(i))+.5,Y(s.l[i]));x.stroke();
-  const yo=Y(s.o[i]),yc=Y(s.c[i]);
-  x.fillRect(X(i)-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
+  const xc=Math.round(X(i))+.5;
+  x.beginPath();x.moveTo(xc,Math.round(Y(s.h[i])));x.lineTo(xc,Math.round(Y(s.l[i])));x.stroke();
+  const yo=Math.round(Y(s.o[i])),yc=Math.round(Y(s.c[i]));
+  x.fillRect(Math.round(X(i)-bw/2),Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
 
  const yb=Math.round(Y(D.bid))+.5;
  x.strokeStyle="#C99A3E";x.lineWidth=1;x.setLineDash([4,3]);

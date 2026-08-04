@@ -3123,3 +3123,106 @@ esiste a suo favore viene dal periodo su cui e' stata costruita**, e che gli
 undici anni indipendenti dicono il contrario. Prima di metterla su un conto
 reale — a maggior ragione su tre conti — la domanda da risolvere e' questa,
 non quale variante di trailing renda mezzo R in piu'.
+
+## Appendice AW: esiste un regime che salva il 2009-2019? No
+
+Se il vantaggio del 2020-2026 vivesse in un regime preciso, la parte di
+2009-2019 che somiglia a quel regime dovrebbe guadagnare. Il filtro si
+**definisce sul periodo buono** (fra il 10simo e il 90simo percentile della
+misura sulle 350 operazioni del 2020-2026) e si **applica al 2009-2019**, che
+resta intatto. Tre misure, tutte causali e note all'apertura della giornata.
+
+| misura | intervallo del 2020+ | dentro | fuori |
+|---|---|---|---|
+| volatilita' (ATR in % del prezzo) | 1,04 - 2,04 | 262 op, **-18,3 R** (4/11 anni) | 100 op, -11,5 R |
+| distanza dalla media 50 (in ATR) | -2,80 - 5,88 | 298 op, **-20,9 R** (3/11) | 64 op, -8,9 R |
+| distanza dalla media 200 (in ATR) | -2,24 - 11,76 | 249 op, **-23,3 R** (3/11) | 113 op, -6,6 R |
+| tutte e tre insieme | — | 160 op, **-15,9 R** (3/11) | — |
+
+**Nessun taglio funziona.** Dentro e fuori perdono entrambi, e la parte
+"simile al 2020" perde piu' di quella diversa in tutte e tre le misure. Non
+c'e' un sottoinsieme di condizioni che spieghi la differenza: il 2009-2019 non
+e' un periodo sbagliato per la strategia, e' un periodo in cui la strategia non
+ha vantaggio.
+
+## Appendice AX: togliere il lato corto
+
+| periodo | selezione | op | R | R/op | DD | anni+ |
+|---|---|---|---|---|---|---|
+| 2009-2019 | long+short | 382 | -39,3 | -0,10 | 47,8 | 3/11 |
+| 2009-2019 | **solo long** | 230 | **-29,5** | **-0,13** | 30,8 | 5/11 |
+| 2009-2019 | solo short | 152 | -9,8 | -0,06 | 25,2 | 4/11 |
+| 2020-2026 | long+short | 350 | +157,1 | +0,45 | 17,6 | 6/7 |
+| 2020-2026 | **solo long** | 243 | **+141,1** | **+0,58** | **12,9** | 5/7 |
+| 2020-2026 | solo short | 107 | +16,0 | +0,15 | 21,2 | 4/7 |
+| 2009-2026 | long+short | 732 | +117,8 | +0,16 | 54,5 | 9/18 |
+| 2009-2026 | **solo long** | 473 | **+111,6** | **+0,24** | **39,2** | 10/18 |
+
+Il solo long **migliora il rischio ma non cambia il segno**: sui diciotto anni
+tiene il 95% del risultato con il 72% della perdita massima (39,2 contro 54,5)
+e un anno positivo in piu'. Sul 2020-2026 rende di piu' per operazione (+0,58
+contro +0,45) con un drawdown di 12,9 invece di 17,6. Ma sul 2009-2019 resta
+negativo, e per operazione fa **peggio** del sistema completo (-0,13 contro
+-0,10): lo short li' dentro faceva da ammortizzatore, non da zavorra.
+
+Conclusione: rinunciare allo short e' una buona idea di igiene — 259 operazioni
+in diciotto anni per +6,2 R non pagano il rischio — ma non e' il rimedio.
+
+## Appendice AY: la taratura invertita, cioe' la prova del metodo
+
+Non e' una ricerca di parametri migliori. E' la stessa identica ricerca
+ripetuta sui due periodi: **12 gestioni x 7 obiettivi x 27 combinazioni di
+conferme = 2.268 celle** (M33, H12 e M12 ciascuno allineato, contrario o
+ignorato; H6 e H2 restano la struttura), minimo 60 operazioni per cella. Ogni
+vincitore viene poi verificato sull'ALTRO periodo.
+
+### Cercando sul 2009-2019 (1.932 celle valide)
+
+| conferme | gestione | RR | dove e' stata scelta | verificata sul 2020-2026 |
+|---|---|---|---|---|
+| H12- · M12- | trail MFE-2 | 1:10 | **+6,9 R** su 100 op (5/11 anni) | -24,6 R su 98 op (1/7) |
+| H12- · M12- | scala 2>0 4>2 6>4 | 1:10 | +6,7 R su 100 op (5/11) | -7,9 R su 98 op (3/7) |
+| H12- · M12- | trail MFE-2 | 1:9 | +5,9 R su 100 op (5/11) | -24,6 R su 98 op (1/7) |
+
+Il **migliore** di 1.932 modi di combinare la strategia su undici anni rende
+**+6,9 R**, cioe' 0,07 R per operazione: dentro il costo dello spread. Non
+esiste una taratura che funzioni sul 2009-2019 — non e' che abbiamo scelto
+male i parametri, e' che li' dentro non c'e' niente da scegliere.
+
+### Cercando sul 2020-2026 (2.016 celle valide)
+
+| conferme | gestione | RR | dove e' stata scelta | verificata sul 2009-2019 |
+|---|---|---|---|---|
+| M33+ | pari a +3R | 1:10 | +223,4 R su 695 op (6/7 anni) | **-107,0 R** su 793 op (4/11) |
+| M33+ · H12+ | pari a +3R | 1:10 | +221,6 R su 628 op (6/7) | **-85,6 R** su 685 op (5/11) |
+| H12+ | pari a +3R | 1:10 | +219,4 R su 1.176 op (5/7) | **-183,0 R** su 1.250 op (2/11) |
+
+### Il numero che chiude la questione
+
+| ricerca fatta su | celle valide | positive anche sull'altro periodo |
+|---|---|---|
+| 2009-2019 | 1.932 | 1.231 (**64%**) |
+| **2020-2026** | 2.016 | **17 (1%)** |
+
+Cercando sul periodo vecchio, due celle su tre restano positive sul nuovo —
+perche' nel 2020-2026 guadagnava quasi tutto. Cercando sul periodo nuovo,
+**una cella su cento** resta positiva sul vecchio.
+
+Questa asimmetria e' la diagnosi. Una ricerca su duemila celle dentro il
+2020-2026 produce vincitori spettacolari (+223 R) che quasi mai sopravvivono
+altrove: e' esattamente la firma del sovradattamento, e la taratura in vigore
+e' uno di quei vincitori. Il problema non e' quale configurazione si e'
+scelta, e' che **il 2020-2026 da solo non e' in grado di distinguere una
+regola buona da una fortunata**.
+
+### Cosa fare di questo
+
+1. Il 2020-2026 non puo' piu' essere l'unico giudice: qualunque prova futura
+   va chiusa sui diciotto anni, o almeno verificata sul 2009-2019.
+2. Le tre verifiche chieste sono tutte negative: **AW** nessun regime salva il
+   periodo vecchio, **AX** togliere lo short migliora il rischio ma non il
+   segno, **AY** nessuna delle 2.268 configurazioni funziona sul 2009-2019.
+3. Quello che resta in piedi non e' la strategia, e' il metodo di misura:
+   motore causale, spread e swap reali, gap pagati alla riapertura, placebo e
+   permutazioni. Serve applicarlo a un'idea nuova, non a un'altra variante di
+   questa.
