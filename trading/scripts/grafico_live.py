@@ -148,7 +148,30 @@ def leggi_mt5():
     df.columns = ["open", "high", "low", "close", "volume"]
     bid = float(tick.bid) if tick else float(df.close.iloc[-1])
     ask = float(tick.ask) if tick else bid
-    return simbolo, df, bid, ask
+    # MT5 NON da' UTC: da' l'ora del SERVER del broker (per FP UTC+3) messa
+    # dentro un campo che sembra un epoch. Etichettarla UTC sposta tutto di
+    # tre ore: l'archivio Dukascopy (UTC vero) si attacca male, il VWAP si
+    # ancora alle 21 invece che a mezzanotte e la finestra 07-19 diventa
+    # 04-16. Misurato: il 62% dei segnali disegnati non erano quelli della
+    # strategia. Lo scarto si ricava dal tick, che e' il dato piu' fresco.
+    scarto = scarto_server(tick)
+    if scarto:
+        df.index = df.index - pd.Timedelta(hours=scarto)
+    return simbolo, df, bid, ask, scarto
+
+
+def scarto_server(tick):
+    """Di quante ore l'orologio del broker e' avanti rispetto a UTC."""
+    if tick is None:
+        return 0
+    quando = pd.Timestamp(int(tick.time), unit="s", tz="UTC")
+    ore = (quando - pd.Timestamp.now("UTC")).total_seconds() / 3600
+    scarto = int(round(ore))
+    if abs(scarto) > 14:                 # non e' un fuso: meglio non indovinare
+        raise RuntimeError(
+            f"ora del terminale incoerente con quella di sistema ({ore:+.1f} h): "
+            f"controllare l'orologio della macchina")
+    return scarto
 
 
 def vwap_motore(m1):
@@ -440,11 +463,12 @@ def aggiorna_segnali(mediana=None):
             except Exception as e:
                 with _lock:
                     _segnali["errore"] = str(e)
+                    _segnali["ora"] = None      # l'elenco resta ma e' vecchio
         time.sleep(SEGNALI_OGNI)
 
 
 def calcola(storia, mediana):
-    simbolo, vivo, bid, ask = leggi_mt5()
+    simbolo, vivo, bid, ask, scarto = leggi_mt5()
     m1, buco = unisci(storia, vivo)
     with _lock:
         _serie["m1"] = m1
@@ -453,6 +477,7 @@ def calcola(storia, mediana):
            "ora": pd.Timestamp.now("UTC").strftime("%H:%M:%S"),
            "ultima_candela": vivo.index[-1].strftime("%d/%m %H:%M"),
            "storia_da": m1.index[0].strftime("%d/%m/%Y"), "buco": buco,
+           "scarto_server": scarto,
            "serie": {}, "zone": [], "struttura": {}, "pronto": True}
     # Il VWAP e' quello del MOTORE: ancorato alla giornata e calcolato sulle
     # candele M6, non sui minuti. Sono due linee diverse — pesi diversi — e la
@@ -670,6 +695,9 @@ cv0.addEventListener("click",()=>{if(mosso||!D||!D.zone)return;   // trascinare 
  D.zone.forEach((z,i)=>{if(z._sotto){fissate.has(i)?fissate.delete(i):fissate.add(i);}});
  draw();});
 const stat=v=>v===1?["rialzista","buy"]:v===-1?["ribassista","sell"]:["neutra",""];
+// identita' STABILE di una zona: l'elenco viene riordinato per distanza a ogni
+// aggiornamento, quindi un indice di posizione punterebbe a una zona diversa
+const chiave=z=>z.tf+"|"+z.lato+"|"+z.da+"|"+z.basso;
 const bollo=v=>v===null||v===undefined?'<b class="nd">—</b>'
  :v?'<b class="si1">si</b>':'<b class="no1">no</b>';
 // il pannello delle cinque condizioni, per i due lati, sull'ultima M6 chiusa
@@ -733,6 +761,9 @@ function draw(){
     D.segnali_ora?" · "+D.segnali_ora:" · in calcolo"}</span>`+
   (D.buco?`<span class="pill" style="border-color:var(--dn)">buco di <b class="no1">${
     D.buco} giorni</b> fra archivio e terminale</span>`:"")+
+  `<span class="pill">server UTC${D.scarto_server>=0?"+":""}${D.scarto_server}</span>`+
+  (D.segnali_errore?`<span class="pill" style="border-color:var(--dn)">segnali: <b class="no1">${
+    D.segnali_errore}</b></span>`:"")+
   Object.entries(D.struttura).map(([k,v])=>{const[s,c]=stat(v);
    return `<span class="pill">${k} <b class="${c}">${s}</b></span>`}).join("");
  pannello();
@@ -860,7 +891,7 @@ function draw(){
 
  // --- etichette: solo la banda sotto il puntatore, o quelle fissate col clic
  x.font=F;x.textBaseline="middle";x.textAlign="right";
- const scelte=zs.filter((z,i)=>etich===1||z._sotto||fissate.has(i));
+ const scelte=zs.filter(z=>etich===1||z._sotto||fissate.has(chiave(z)));
  if(!scelte.length){x.fillStyle="#6E675F";x.textAlign="right";x.textBaseline="top";
   x.fillText(zs.length+" zone · passa sopra una banda per il nome, clic per fissarlo",
              pl+pw-4,pt+4);x.textBaseline="middle";}

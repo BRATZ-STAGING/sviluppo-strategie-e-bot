@@ -28,6 +28,8 @@ import numpy as np
 import pandas as pd
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# il dettaglio per evento pesa decine di MB: fuori dal repository
+GREZZI = os.environ.get("GREZZI", os.path.join(ROOT, "..", "dati_grezzi"))
 DATI = os.path.join(ROOT, "docs", "studies", "dati")
 VECCHIO, NUOVO = (2009, 2019), (2020, 2026)
 MIN_OP = 80                 # sotto questa soglia una cella non e' misurabile
@@ -118,7 +120,7 @@ def confluenze(t):
 
 
 def main():
-    t = pd.read_parquet(os.path.join(DATI, "livelli_atr.parquet"))
+    t = pd.read_parquet(os.path.join(GREZZI, "livelli_atr.parquet"))
     pd.set_option("display.width", 240)
     print("caricato", flush=True)
     print(f"eventi: {int(t.vero.sum())} veri, {int((~t.vero).sum())} placebo, "

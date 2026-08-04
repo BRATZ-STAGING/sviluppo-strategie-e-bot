@@ -198,3 +198,36 @@ class TestUnisci:
         unito, _ = G.unisci(storia, vivo)
         assert not unito.index.has_duplicates
         assert unito.index.is_monotonic_increasing
+
+
+class TestOraDelServer:
+    """MT5 non da' UTC ma l'ora del server del broker, dentro un campo che
+    sembra un epoch. Sbagliare qui sposta tutto di ore: ancoraggio del VWAP,
+    finestra operativa, e la giunzione con l'archivio."""
+
+    class _Tick:
+        def __init__(self, t):
+            self.time = t
+
+    def test_rileva_utc_piu_tre(self):
+        adesso = pd.Timestamp.now("UTC")
+        finto = self._Tick(int((adesso + pd.Timedelta(hours=3)).timestamp()))
+        assert G.scarto_server(finto) == 3
+
+    def test_rileva_utc_esatto(self):
+        adesso = pd.Timestamp.now("UTC")
+        assert G.scarto_server(self._Tick(int(adesso.timestamp()))) == 0
+
+    def test_arrotonda_i_secondi_di_ritardo(self):
+        adesso = pd.Timestamp.now("UTC")
+        finto = self._Tick(int((adesso + pd.Timedelta(hours=2, seconds=-40)).timestamp()))
+        assert G.scarto_server(finto) == 2
+
+    def test_si_ferma_se_e_assurdo(self):
+        adesso = pd.Timestamp.now("UTC")
+        finto = self._Tick(int((adesso + pd.Timedelta(days=3)).timestamp()))
+        with pytest.raises(RuntimeError, match="incoerente"):
+            G.scarto_server(finto)
+
+    def test_senza_tick_non_corregge(self):
+        assert G.scarto_server(None) == 0

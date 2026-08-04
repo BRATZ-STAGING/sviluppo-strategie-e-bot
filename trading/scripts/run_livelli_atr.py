@@ -47,6 +47,8 @@ from framework.volatility import daily_atr                        # noqa: E402
 from export_lab import zone_ob                                    # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# il dettaglio per evento pesa decine di MB: fuori dal repository
+GREZZI = os.environ.get("GREZZI", os.path.join(ROOT, "..", "dati_grezzi"))
 TF_USATI = ["M33", "M66", "H2", "H6"]
 MODI = ["reazione", "rottura", "retest"]
 STOP_ATR = [0.25, 0.5, 1.0]           # stop in frazioni di ATR giornaliero
@@ -327,7 +329,8 @@ def main():
     veri["vero"], falsi["vero"] = True, False
     t = pd.concat([veri, falsi], ignore_index=True)
     d = os.path.join(ROOT, "docs", "studies", "dati")
-    t.to_parquet(os.path.join(d, "livelli_atr.parquet"), index=False)
+    os.makedirs(GREZZI, exist_ok=True)
+    t.to_parquet(os.path.join(GREZZI, "livelli_atr.parquet"), index=False)
     print(f"\n{len(veri)} eventi veri, {len(falsi)} placebo -> livelli_atr.parquet")
 
 
