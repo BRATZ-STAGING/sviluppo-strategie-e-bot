@@ -1,5 +1,10 @@
 # Bot in esercizio
 
+**Le tre strategie da implementare stanno in `SCHEDE-STRATEGIE.md`**: segnale
+d'ingresso condiviso, le tre gestioni (in uso / A / B), i numeri sui due
+periodi, le trappole dell'implementazione e cosa fare prima del reale.
+
+
 I bot che girano davvero, uno per cartella. Il framework in `trading/` serve a
 fare ricerca; qui sta il codice che opera sul mercato, con abbastanza contorno
 da poterlo confrontare con i risultati della ricerca.
