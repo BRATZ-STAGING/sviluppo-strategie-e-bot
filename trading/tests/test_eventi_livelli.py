@@ -88,3 +88,40 @@ class TestIstanteDegliEventi:
         atteso_da = m1.index[m1.index > quando][0]
         assert atteso_da > quando
         assert any(np.isfinite(v[0]) for v in col.values())
+
+
+class TestProfiloCausale:
+    """Il profilo dei volumi non puo' sapere dove il prezzo andra' dopo.
+
+    L'istogramma della giornata copre l'intera escursione, futuro compreso: i
+    livelli sotto al minimo toccato finora sono a zero, e senza precauzioni
+    quella fascia viene letta come un "vuoto" il cui bordo lontano e' il
+    MINIMO FUTURO del giorno — un prezzo che la giornata raggiungera' per
+    definizione. Uno short su quel vuoto sembrava rendere +0,47 R/op contro
+    -0,40, mentre il long, che non ha l'equivalente, restava negativo: e' stata
+    quell'asimmetria a smascherarlo.
+    """
+
+    def test_niente_vuoti_fuori_dal_gia_scambiato(self):
+        import numpy as np
+        import run_vuoto_obiettivo as V
+        passo = 1.0
+        prezzi = np.arange(0, 40, passo, dtype=float)
+        conteggio = np.zeros(len(prezzi))
+        # scambiato solo fra 20 e 30: sotto e sopra e' futuro, non vuoto
+        conteggio[20:31] = 100.0
+        conteggio[24:27] = 1.0                   # questo si' e' un vuoto vero
+        vuoti = V.vuoti_da(conteggio, prezzi, atr=10.0)
+        assert vuoti, "il vuoto interno deve essere trovato"
+        for basso, alto in vuoti:
+            assert basso >= prezzi[20] and alto <= prezzi[30], (
+                f"vuoto {basso}-{alto} fuori dal tratto gia' scambiato "
+                f"({prezzi[20]}-{prezzi[30]}): e' futuro travestito da vuoto")
+
+    def test_nessun_vuoto_se_tutto_scambiato_uniforme(self):
+        import numpy as np
+        import run_vuoto_obiettivo as V
+        prezzi = np.arange(0, 40, 1.0, dtype=float)
+        conteggio = np.zeros(len(prezzi))
+        conteggio[10:30] = 50.0
+        assert V.vuoti_da(conteggio, prezzi, atr=10.0) == []

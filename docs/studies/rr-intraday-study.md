@@ -3470,3 +3470,91 @@ conclusione cambia**: il risultato per operazione e' identico a tre decimali
 in tutti i periodi. Corretto in `framework/segnali.py`, con la misura scritta
 nel docstring perche' i numeri pubblicati prima si spostano di poco e chi li
 ritrova sappia perche'.
+
+## Appendice BE: order block M12 + vuoto di volume, il setup dell'utente
+
+Arrivato con un'operazione vera: innesco su un order block M12, e sopra una
+fascia a volume quasi nullo "da riempire" come bersaglio. Richiesta: una
+strategia semi-scalp intraday, una o piu' operazioni al giorno, RR 1:1,5-1:2.
+
+Era l'unico pezzo mai misurato: l'appendice AZ aveva provato i vuoti come
+INGRESSO, l'appendice AE l'obiettivo appoggiato ai livelli **strutturali** —
+mai i vuoti di volume come bersaglio, rimasti dall'appendice AB come "fase 2
+mai aperta".
+
+### Il risultato che sembrava, e cosa era
+
+La prima misura dava numeri fuori scala: sugli stessi inneschi, chiedere che
+nella direzione dell'operazione esistesse un vuoto portava il risultato da
+**-0,20 a +0,50 R/op** con obiettivo fisso 1:2, con **18 anni positivi su 18**,
++0,476 R/op sul 2009-2019 e +0,545 sul 2020-2026, ~340 operazioni l'anno e il
+58-60% di operazioni vinte. Esattamente quello che era stato chiesto.
+
+Tre controlli l'hanno smontato, nell'ordine in cui li ho fatti.
+
+**1. L'aritmetica delle barriere.** Con lo stop a 0,25 ATR e l'obiettivo a
+1,61 ATR (fascia oltre 5R), l'obiettivo risultava raggiunto nel **59%** dei
+casi e lo stop nel **24%**. Una barriera sei volte piu' lontana non puo'
+essere colpita piu' spesso di una vicina: nessun percorso di prezzo lo
+permette. Il calcolo degli esiti e' stato riverificato con
+un'implementazione indipendente su 200 operazioni — zero discordanze — quindi
+l'errore stava a monte, nella selezione.
+
+**2. Il confronto con ingressi a caso.** Stesse ore, stessa geometria, entrata
+casuale: stop 43,5%, obiettivo 16,6%. Il sottoinsieme "con vuoto": stop 33,5%,
+obiettivo 38,1%. Piu' del doppio, in una direzione che il caso non spiega.
+
+**3. La divisione per LATO**, che ha dato la risposta:
+
+| lato | senza vuoto | con vuoto | eventi con vuoto |
+|---|---|---|---|
+| short | -0,395 | **+0,468** | 19.460 |
+| long | -0,145 | **-0,279** | 2.506 |
+
+Tutto l'effetto stava sugli **short**, e i long — dieci volte meno numerosi —
+andavano perfino peggio. Un'asimmetria del genere non e' un fatto di mercato,
+e' la firma di un difetto.
+
+### Il difetto
+
+L'istogramma del profilo copriva **l'intera escursione della giornata, futuro
+compreso**. I livelli sotto al minimo toccato fino a quel momento erano tutti
+a zero; quella fascia veniva chiusa dal primo livello scambiato e registrata
+come un vuoto, il cui bordo lontano era **il minimo futuro del giorno** — un
+prezzo che la giornata avrebbe raggiunto per definizione. Verso l'alto la coda
+non veniva mai chiusa, quindi i long non avevano l'equivalente: da qui
+l'asimmetria.
+
+Corretto limitando la ricerca al tratto **gia' scambiato**, e bloccato da un
+test che verifica che nessun vuoto cada fuori da li'.
+
+### I numeri veri
+
+539.708 valutazioni su diciotto anni, ogni chiusura M12 nella finestra
+operativa, stop 0,25 ATR, obiettivo 1:2, uscita serale.
+
+| lato | senza vuoto | con vuoto |
+|---|---|---|
+| short | -0,016 (227.548 op) | **-0,090** (42.306) |
+| long | -0,092 (251.881 op) | **-0,134** (17.973) |
+
+**Il vuoto peggiora il risultato in entrambe le direzioni.** E dentro ogni
+fascia di posizione nel range il quadro non cambia: da -0,057 a -0,154.
+
+L'order block non aggiunge niente: -0,077 contro -0,082 sul bordo, -0,025
+contro -0,063 a meta' range, -0,007 contro -0,051 piu' su.
+
+Il **setup completo** (order block e vuoto concordi, 2.008 occasioni in
+diciotto anni, circa 110 l'anno): **-0,050 R/op**, -0,097 sul 2009-2019 e
++0,042 sul 2020-2026, **6 anni positivi su 18**.
+
+### Cosa resta
+
+La posizione nel range gia' scambiato non e' un vantaggio (tutte le fasce fra
+-0,041 e -0,082), il vuoto non lo e', l'order block nemmeno, e le tre cose
+insieme neanche. L'idea era ben posta e l'unica parte non ancora misurata del
+progetto: adesso e' misurata.
+
+Vale la pena tenere il metodo che l'ha smontata, perche' e' piu' rapido di
+qualunque backtest: **quando l'obiettivo lontano viene raggiunto piu' spesso
+dello stop vicino, non serve cercare oltre — c'e' del futuro nel calcolo.**
