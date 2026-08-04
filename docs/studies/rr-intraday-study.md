@@ -3558,3 +3558,40 @@ progetto: adesso e' misurata.
 Vale la pena tenere il metodo che l'ha smontata, perche' e' piu' rapido di
 qualunque backtest: **quando l'obiettivo lontano viene raggiunto piu' spesso
 dello stop vicino, non serve cercare oltre — c'e' del futuro nel calcolo.**
+
+## Appendice BG: appendici AZ e BA ricalcolate dopo la correzione dell'istante
+
+Le appendici AZ e BA sono state calcolate PRIMA che si scoprisse il difetto
+dell'appendice BB: l'istante di un evento veniva registrato all'apertura della
+candela invece che alla chiusura, quindi l'operazione ripercorreva la candela
+stessa sapendo gia' come finiva. L'errore GONFIA i risultati, quindi le
+conclusioni negative reggevano a maggior ragione — ma le cifre no, e vanno
+sostituite.
+
+Ricalcolo completo, 168.833 eventi veri e 124.225 placebo su diciotto anni,
+720 configurazioni (5 famiglie di livelli x 3 modi di interazione x 4
+timeframe x 3 stop x 4 obiettivi):
+
+| | |
+|---|---|
+| celle con almeno 80 operazioni sul 2009-2019 | 708 |
+| con risultato per operazione positivo | 53 (7%) |
+| positive su ENTRAMBI i periodi | 19 |
+| vantaggio mediano sul placebo | **-0,005 R/op** |
+| **scelte** (>= 80 op, R/op > 0, +0,05 sul placebo) | **11** |
+| **quante ne darebbe il caso** (stessi filtri applicati al placebo) | **18** |
+| delle 11 scelte, sopravvivono sul 2020-2026 | 5 (45%) |
+
+Il numero che conta e' l'ultimo confronto: **le celle vere che superano la
+scrematura sono 11, quelle finte 18**. La selezione sui livelli veri produce
+MENO sopravvissuti del caso. Non c'e' niente da salvare, e stavolta il conto
+e' pulito.
+
+La cella migliore su tutti e diciotto gli anni — retest degli estremi
+dell'area di valore di ieri su H6, stop 0,25 ATR — rende +0,071 R/op su **242
+operazioni in diciotto anni**, cioe' tredici l'anno: troppo poche per
+distinguerle dal rumore, e comunque sotto qualunque soglia operativa.
+
+Conclusione invariata: **i livelli non funzionano come ingresso**, in nessuna
+delle 720 configurazioni, ne' sul periodo di ricerca ne' su quello di
+verifica.

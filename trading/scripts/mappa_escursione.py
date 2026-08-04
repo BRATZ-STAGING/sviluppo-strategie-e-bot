@@ -54,6 +54,12 @@ MIN_BARRE = 600         # candele M1 minime perche' la giornata sia "vera"
 FINESTRE = (15, 30, 60)  # minuti di apertura misurati
 PERIODI = {"2009-2019": (2009, 2019), "2020-2026": (2020, 2026)}
 
+# combinazioni usate per la geometria della rottura (sezione 6)
+COMBI = [("asia", 60), ("london", 15), ("london", 30), ("london", 60),
+         ("ny", 15), ("ny", 30), ("ny", 60)]
+FINE_OPERATIVA = 21 * 60   # 21:00 UTC: oltre si paga lo swap, quindi si chiude qui
+BERSAGLI = (1.0, 1.5, 2.0, 3.0)
+
 pd.set_option("display.width", 200)
 pd.set_option("display.max_columns", 40)
 
@@ -91,7 +97,6 @@ def prepara(m1: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
     atr = daily_atr(m1, 14)
     gg["atr"] = atr.reindex(gg.index).values
-    gg["barre_scartate"] = 0
     return m1, gg
 
 
@@ -223,12 +228,13 @@ def aperture(m1: pd.DataFrame, gg: pd.DataFrame):
             dettaglio.append(tab)
 
     det = pd.concat(dettaglio)
-    det = det.join(gg[["range_g", "atr", "max_g", "min_g"]], on=det.index.name or None) \
-        if False else det.join(gg[["range_g", "atr", "max_g", "min_g"]])
+    det = det.join(gg[["range_g", "atr", "max_g", "min_g"]])
     det["or_atr"] = det["or"] / det.atr
     det["or_su_range"] = det["or"] / det.range_g
     det["resto_su_or"] = det.resto_range / det["or"]
     det["resto_atr"] = det.resto_range / det.atr
+    det["sess_range"] = det[["or_hi", "sess_hi"]].max(axis=1) - det[["or_lo", "sess_lo"]].min(axis=1)
+    det["or_su_sess"] = det["or"] / det.sess_range
     det["est_su_or"] = det.est_su / det["or"]
     det["est_giu_or"] = det.est_giu / det["or"]
     det["est_max_or"] = det[["est_su_or", "est_giu_or"]].max(axis=1)
@@ -250,6 +256,7 @@ def aperture(m1: pd.DataFrame, gg: pd.DataFrame):
                     "or_$": s["or"].median(),
                     "or/ATR": s.or_atr.median(),
                     "or/range_g": s.or_su_range.median(),
+                    "or/range_sess": s.or_su_sess.median(),
                     "resto/or": s.resto_su_or.median(),
                     "resto_ATR": s.resto_atr.median(),
                     "estSU/or": s.est_su_or.median(),
@@ -279,6 +286,161 @@ def aperture(m1: pd.DataFrame, gg: pd.DataFrame):
     return det, riass, prob
 
 
+# --------------------------------------------------------------------------
+# 6. geometria della rottura del range d'apertura (NON e' una strategia:
+#    e' la misura di quanto si allunga il prezzo dopo aver superato il bordo,
+#    con lo stop sul bordo opposto, cioe' 1 R = larghezza della finestra)
+# --------------------------------------------------------------------------
+def geometria_rottura(m1: pd.DataFrame, placebo: bool = False,
+                      seed: int = 20260804) -> pd.DataFrame:
+    """Una sola operazione per giornata e per combinazione (prima rottura).
+
+    Regole rispettate: ingresso al bordo (o all'apertura del minuto se e' gia'
+    oltre), stop sul bordo opposto, nello stesso minuto lo STOP prevale, uscita
+    a mercato alle 21:00 UTC (niente swap), costo spread 0,30 $ = 0.30/rischio R.
+    Con ``placebo=True`` la banda ha la stessa larghezza ma e' spostata a caso:
+    se i risultati non peggiorano, non e' il bordo del range a lavorare.
+    """
+    mod = m1["mod"].values
+    hi, lo = m1.high.values, m1.low.values
+    op, cl = m1.open.values, m1.close.values
+    giorni_arr = m1["giorno"].values
+    cambi = np.flatnonzero(np.r_[True, giorni_arr[1:] != giorni_arr[:-1]])
+    inizi, fini = cambi, np.r_[cambi[1:], len(giorni_arr)]
+    giorni = pd.DatetimeIndex(giorni_arr[cambi])
+    rng = np.random.default_rng(seed)
+    INF = 1 << 30
+
+    righe = []
+    for sess, w in COMBI:
+        a = SESSIONS[sess][0] * 60
+        b = a + w
+        for k in range(len(giorni)):
+            s, e = inizi[k], fini[k]
+            md = mod[s:e]
+            i0 = s + int(np.searchsorted(md, a))
+            i1 = s + int(np.searchsorted(md, b))
+            i2 = s + int(np.searchsorted(md, FINE_OPERATIVA))
+            if i1 - i0 < max(5, w // 3) or i2 - i1 < 60:
+                continue
+            or_hi, or_lo = hi[i0:i1].max(), lo[i0:i1].min()
+            larghezza = or_hi - or_lo
+            if larghezza <= 0:
+                continue
+            if placebo:
+                rif = cl[i1 - 1]
+                for _ in range(30):
+                    u = rng.uniform(-1.2, 1.2)
+                    if abs(u) < 0.25:
+                        continue
+                    c_hi, c_lo = or_hi + u * larghezza, or_lo + u * larghezza
+                    if c_lo < rif < c_hi:
+                        or_hi, or_lo = c_hi, c_lo
+                        break
+                else:
+                    continue
+
+            H, L, O, C = hi[i1:i2], lo[i1:i2], op[i1:i2], cl[i1:i2]
+            su = np.flatnonzero(H >= or_hi)
+            giu = np.flatnonzero(L <= or_lo)
+            j_su = int(su[0]) if su.size else INF
+            j_giu = int(giu[0]) if giu.size else INF
+            base = {"giorno": giorni[k], "sessione": sess, "finestra": w,
+                    "larghezza": larghezza, "anno": giorni[k].year}
+            if j_su == INF and j_giu == INF:
+                righe.append({**base, "esito": "nessuna_rottura"})
+                continue
+            if j_su == j_giu:          # stesso minuto su entrambi i bordi: ordine ignoto
+                righe.append({**base, "esito": "ambiguo"})
+                continue
+
+            if j_su < j_giu:
+                lato, j = 1, j_su
+                entry = max(or_hi, O[j])
+                stop = or_lo
+                rischio = entry - stop
+                colpo = np.flatnonzero(L[j:] <= stop)
+            else:
+                lato, j = -1, j_giu
+                entry = min(or_lo, O[j])
+                stop = or_hi
+                rischio = stop - entry
+                colpo = np.flatnonzero(H[j:] >= stop)
+            if rischio <= 0:
+                continue
+            if colpo.size:
+                t = j + int(colpo[0])
+                # regola 3: nel minuto t vince lo stop, quel massimo non conta
+                if t > j:
+                    estremo = H[j:t].max() if lato > 0 else L[j:t].min()
+                    mfe = (estremo - entry) if lato > 0 else (entry - estremo)
+                else:
+                    mfe = 0.0
+                stoppato, uscita = True, stop
+            else:
+                estremo = H[j:].max() if lato > 0 else L[j:].min()
+                mfe = (estremo - entry) if lato > 0 else (entry - estremo)
+                stoppato, uscita = False, C[-1]
+            r_scadenza = ((uscita - entry) if lato > 0 else (entry - uscita)) / rischio
+            righe.append({**base, "esito": "rottura", "lato": lato,
+                          "rischio": rischio, "mfe_R": max(mfe, 0.0) / rischio,
+                          "stoppato": stoppato, "r_scadenza": r_scadenza,
+                          "spread_R": SPREAD / rischio,
+                          "ora_rottura": (mod[i1 + j] // 60)})
+    op_df = pd.DataFrame(righe).set_index("giorno")
+    op_df["periodo"] = np.where(op_df.index.year <= 2019, "2009-2019", "2020-2026")
+    return op_df
+
+
+def riassunto_rottura(op_df: pd.DataFrame) -> pd.DataFrame:
+    righe = []
+    for periodo in PERIODI:
+        p = op_df[op_df.periodo == periodo]
+        for sess, w in COMBI:
+            s = p[(p.sessione == sess) & (p.finestra == w)]
+            if s.empty:
+                continue
+            r = s[s.esito == "rottura"]
+            riga = {"periodo": periodo, "sessione": sess, "min": w,
+                    "gg": len(s),
+                    "rotto_%": 100 * (s.esito == "rottura").mean(),
+                    "no_rott_%": 100 * (s.esito == "nessuna_rottura").mean(),
+                    "ambiguo_%": 100 * (s.esito == "ambiguo").mean(),
+                    "lato_su_%": 100 * (r.lato > 0).mean(),
+                    "mfe_R_med": r.mfe_R.median(),
+                    "spread_R": r.spread_R.median()}
+            for k in BERSAGLI:
+                riga[f"P(mfe>={k})"] = 100 * (r.mfe_R >= k).mean()
+            righe.append(riga)
+    return pd.DataFrame(righe)
+
+
+def scomposizione(op_df: pd.DataFrame, bersaglio: float) -> pd.DataFrame:
+    """obiettivo / stop / scadenza + R medio per operazione, lordo e netto."""
+    righe = []
+    for periodo in PERIODI:
+        p = op_df[(op_df.periodo == periodo) & (op_df.esito == "rottura")]
+        for sess, w in COMBI:
+            r = p[(p.sessione == sess) & (p.finestra == w)]
+            if r.empty:
+                continue
+            vinta = r.mfe_R >= bersaglio
+            persa = (~vinta) & r.stoppato
+            scad = (~vinta) & (~r.stoppato)
+            lordo = np.where(vinta, bersaglio, np.where(persa, -1.0, r.r_scadenza))
+            netto = lordo - r.spread_R.values
+            righe.append({
+                "periodo": periodo, "sessione": sess, "min": w, "op": len(r),
+                "obiettivo_%": 100 * vinta.mean(),
+                "stop_%": 100 * persa.mean(),
+                "scadenza_%": 100 * scad.mean(),
+                "R_scad_med": r.r_scadenza[scad].mean() if scad.any() else np.nan,
+                "R_lordo": lordo.mean(),
+                "R_netto": netto.mean(),
+            })
+    return pd.DataFrame(righe)
+
+
 def stabilita_annuale(det: pd.DataFrame, sess: str, w: int) -> pd.DataFrame:
     s = det[(det.sessione == sess) & (det.finestra == w)]
     out = s.groupby("anno").agg(
@@ -302,16 +464,16 @@ def main() -> None:
     m1, gg = prepara(m1)
     print(f"\n[giornate] {len(gg)} giornate vere (>= {MIN_BARRE} barre M1); "
           f"{tot_barre - len(m1):,} candele scartate su {tot_barre:,}")
-    base = gg.groupby(gg.index.year.map(
-        lambda y: "2009-2019" if y <= 2019 else "2020-2026")).agg(
-        gg=("range_g", "size"),
+    gg["periodo"] = np.where(gg.index.year <= 2019, "2009-2019", "2020-2026")
+    gg["range_su_atr"] = gg.range_g / gg.atr
+    base = gg.groupby("periodo").agg(
+        giornate=("range_g", "size"),
         barre_mediane=("barre", "median"),
-        range_$=("range_g", "median"),
-        atr_$=("atr", "median"),
-        range_su_atr=("range_g", "median"),
+        range_dollari=("range_g", "median"),
+        atr_dollari=("atr", "median"),
+        range_su_atr=("range_su_atr", "median"),
+        spread_su_range=("range_g", lambda x: SPREAD / x.median()),
     )
-    base["range_su_atr"] = gg.assign(r=gg.range_g / gg.atr).groupby(
-        gg.index.year.map(lambda y: "2009-2019" if y <= 2019 else "2020-2026")).r.median()
     print("\n=== BASE (mediane per giornata) ===")
     print(base.round(3).to_string())
 
@@ -351,8 +513,7 @@ def main() -> None:
 
     gg.to_parquet(f"{GREZZI}/mappa_escursione_giornate.parquet")
     prof.to_parquet(f"{GREZZI}/mappa_escursione_orario.parquet")
-    det.drop(columns=["sessione"]).assign(sessione=det.sessione.astype("category")) \
-        .to_parquet(f"{GREZZI}/mappa_escursione_aperture.parquet")
+    det.to_parquet(f"{GREZZI}/mappa_escursione_aperture.parquet")
     print(f"\n[dettaglio] {GREZZI}/mappa_escursione_*.parquet")
 
 
