@@ -344,3 +344,76 @@ di perdita massima**. Puo' anche andare bene, ma va scelto, non subito.
 Per restare al 6% annuo con tutte e quattro attive, ogni taglia va **divisa
 per quattro**: in uso 0,049% · A 0,051% · B 0,060% · 1:2 0,121%, per un rischio
 totale di 0,28% a segnale.
+
+---
+
+## 7. La sfida FundingPips: quale strategia la passa
+
+Sfida da 5.000 $: fase 1 **+10%**, fase 2 **+6%**, perdita massima **12%**,
+perdita giornaliera **4%**, nessun minimo di giornate.
+
+E' un problema diverso da tutti gli altri di questo documento e va detto:
+finora il criterio era "6% annuo col drawdown piu' piccolo", cioe' rendimento
+per unita' di sofferenza su orizzonte lungo. Una sfida e' una **corsa a due
+traguardi** — arrivare a +10% prima di −12%, senza mai perdere il 4% in una
+giornata. Il rendimento annuo non conta: conta la probabilita' di arrivarci.
+
+Simulate tutte le partenze possibili sulla sequenza storica delle 333
+operazioni (`trading/scripts/sfida_prop.py`): il conto si apre a ogni
+operazione e si segue fino a superamento, violazione o fine dei dati.
+
+### Percentuale di partenze che superano la fase 1
+
+| rischio/op | in uso | A | **B** | 1:2 |
+|---|---|---|---|---|
+| 0,50% | 89,8% | 91,6% | 91,3% | 85,3% |
+| **0,75%** | 88,9% | 91,6% | **97,0%** | 88,3% |
+| **1,00%** | 85,6% | 89,8% | **99,1%** | 88,6% |
+| 1,25% | 60,4% | 54,4% | **61,3%** | 51,7% |
+| 1,50% | 61,0% | 60,4% | 63,7% | 56,5% |
+
+Entrambe le fasi di fila, alla taglia migliore di ciascuna: in uso **90%**,
+A **91%**, **B 99%**, 1:2 **89%**.
+
+### La B vince, e non per il motivo che sembrava
+
+L'intuizione era che contassero le **perdite consecutive** (1:2 ne ha 7, B ne
+ha 12) e che quindi la 1:2 potesse rischiare di piu'. E' vero come principio,
+ma non basta: la B raggiunge il traguardo in **114 giorni mediani** contro i
+**174** della 1:2, perche' rende il doppio in R (24,9 contro 12,4 R l'anno).
+In una corsa la velocita' pesa quanto la sicurezza, e la B ha entrambe.
+
+La 1:2 non e' pericolosa — a 1% non viola mai nemmeno lei — e' **lenta**: nel
+11,4% delle partenze non arriva al traguardo prima che finiscano i dati.
+
+### ATTENZIONE alla taglia: l'1,00% e' sul bordo di un precipizio
+
+| B, rischio | passate | violate |
+|---|---|---|
+| 0,75% | 97,0% | **0,0%** |
+| 1,00% | 99,1% | **0,0%** |
+| **1,25%** | 61,3% | **38,1%** |
+
+Fra 1,00% e 1,25% il risultato crolla. Il motivo e' aritmetico: la peggiore
+serie storica della B e' di **12 perdite consecutive**, che all'1% fanno circa
+−11,4% — dentro il limite del 12% **per sei decimi di punto**. Non c'e' nessuna
+ragione perche' la peggiore serie futura sia anch'essa di 12: se ne arriva una
+di 13, all'1% la sfida e' persa.
+
+**Taglia consigliata: 0,75%.** Costa due punti di probabilita' (97% invece di
+99) e quaranta giorni in piu', e compra il margine per una serie peggiore di
+quella mai vista. Il 99% dell'1,00% e' una misura sul filo, non una garanzia.
+
+### Due cose da verificare col fornitore prima di comprare
+
+1. **La perdita massima del 12% e' statica o dinamica?** Qui e' modellata
+   statica dal saldo iniziale. Se e' calcolata sul massimo raggiunto e' piu'
+   severa e la taglia va abbassata ancora.
+2. **Lo swap.** Le strategie **A e B tengono le posizioni oltre la giornata e
+   attraversano il fine settimana**: sull'oro lo swap long di FP e' −71,5 punti
+   a notte, triplicati il mercoledi'. Con la B l'add-on "Swap Free" non e' un
+   optional. Per "in uso" e "1:2", che chiudono alle 21 UTC, e' irrilevante.
+
+Se lo Swap Free non e' disponibile o non conviene, la scelta si sposta sulla
+**1:2 secca all'1%**: 89% di successo, nessuna violazione, zero notti aperte,
+zero rischio di gap nel fine settimana.
