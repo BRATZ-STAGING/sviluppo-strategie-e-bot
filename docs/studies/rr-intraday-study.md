@@ -5099,86 +5099,6 @@ un parametro in dollari da tarare, e lo stop segue la volatilita' da solo —
 che e' esattamente la proprieta' che l'appendice BN ha misurato come decisiva
 (il costo relativo resta al 9,8% invece di salire al 21%).
 
-## Appendice CA: i livelli oggettivi, rimbalzo contro rottura — 66.624 operazioni, zero vantaggio
-
-Ripartenza dal grafico pulito su richiesta dell'utente: niente order block,
-niente reclaim del VWAP, niente allineamento di struttura. Solo i livelli che
-**non richiedono interpretazione**, quelli che chiunque disegna allo stesso
-modo: massimo/minimo del giorno precedente (PDHL), della sessione precedente
-(SESS), numeri tondi da 10 $ (R10) e da 50 $ (R50), aperture di giornata e
-settimana (OPEN), massimo/minimo delle 24 ore mobili (H24).
-
-Per ognuno le **due ipotesi opposte**, sullo stesso identico evento di tocco:
-RIMBALZO (si entra contro il verso di avvicinamento) e ROTTURA (si entra a
-favore, dopo la prima chiusura oltre il livello, entro 30 minuti).
-Periodo 2020-2026, ricerca 2020-2022 e verifica 2023-2026, spread vero per
-anno (appendice BN), stop 3 e 5 $ con 1:1,5 e 1:2, massimo 5 operazioni al
-giorno, 15 minuti di distanza, ingressi 7-21 UTC.
-Script `trading/scripts/run_scalp_livelli.py`, dettaglio in
-`docs/studies/dati/scalp_livelli.parquet` (131.626 operazioni).
-
-### Il fatto: LORDO R/op, cella stop 3 $ · 1:1,5
-
-| famiglia | ipotesi | n ric | **lordo ric** | n ver | **lordo ver** | netto ver | placebo ric | placebo ver |
-|---|---|---|---|---|---|---|---|---|
-| R50 | rottura | 1135 | **+0,111** | 1869 | **+0,062** | −0,118 | −0,056 | +0,016 |
-| R10 | rottura | 3619 | +0,029 | 4319 | +0,042 | −0,119 | −0,023 | −0,018 |
-| SESS | rimbalzo | 3570 | +0,017 | 4096 | +0,028 | −0,129 | −0,002 | +0,032 |
-| PDHL | rottura | 2010 | +0,029 | 2161 | +0,011 | −0,143 | +0,022 | −0,042 |
-| SESS | rottura | 3421 | −0,026 | 3914 | +0,011 | −0,146 | −0,008 | −0,038 |
-| OPEN | rimbalzo | 2554 | +0,034 | 2777 | +0,007 | −0,148 | +0,022 | −0,018 |
-| H24 | rottura | 2274 | −0,045 | 2651 | +0,003 | −0,154 | +0,003 | −0,048 |
-| OPEN | rottura | 2419 | −0,021 | 2609 | −0,015 | −0,169 | −0,033 | −0,014 |
-| R50 | rimbalzo | 1250 | −0,064 | 2027 | −0,013 | −0,192 | +0,039 | +0,018 |
-| H24 | rimbalzo | 2512 | +0,025 | 2842 | −0,020 | −0,177 | −0,015 | −0,004 |
-| PDHL | rimbalzo | 2166 | −0,036 | 2335 | −0,029 | −0,184 | +0,054 | −0,017 |
-| R10 | rimbalzo | 3710 | −0,005 | 4384 | −0,045 | −0,205 | −0,020 | +0,015 |
-
-**Nessuna riga arriva a +0,15 R/op lordo in entrambi i periodi**, cioe' nessuna
-paga lo spread. La migliore, R50 rottura, si ferma a +0,111 / +0,062 quando
-servirebbe +0,15-0,21. Le dodici righe stanno in una fascia di 0,16 R attorno
-allo zero: la media dei lordi veri e' **+0,004**, quella dei placebo **−0,006**.
-Il placebo non vince come nelle appendici BP/BU/BV/BY, ma **pareggia**, che dice
-la stessa cosa: i livelli oggettivi non portano informazione.
-
-### Le due ipotesi si annullano a vicenda
-
-Dove la rottura e' positiva il rimbalzo e' negativo, e viceversa, con somme
-vicine a zero (R50: +0,111 e −0,064; R10: +0,029 e −0,005). E' la firma di un
-evento **neutro**: il tocco non e' un segnale, e' solo un istante in cui il
-prezzo si trova li'. L'unico verso con un accenno di direzione e' la **rottura
-dei numeri tondi**, coerente in 6 anni su 7 al lordo — e negativo al netto in
-6 anni su 7.
-
-### Le celle di gestione, e il controllo di assurdita'
-
-| cella | costo %R | % stop | % obiettivo | % tempo | lordo | netto |
-|---|---|---|---|---|---|---|
-| stop 3 · 1:1,5 | 14,2% | 56,5% | 37,1% | 6,4% | +0,003 | −0,139 |
-| stop 3 · 1:2 | 14,2% | 61,5% | 29,0% | 9,5% | +0,002 | −0,140 |
-| stop 5 · 1:1,5 | 8,5% | 49,1% | 29,4% | 21,5% | −0,012 | −0,098 |
-| stop 5 · 1:2 | 8,5% | 51,9% | 20,3% | 27,8% | −0,019 | −0,105 |
-
-Controllo di assurdita' superato in tutte e quattro le celle: lo stop, che e'
-piu' vicino, viene colpito piu' spesso dell'obiettivo (56,5% contro 37,1%).
-Allargare lo stop dimezza il costo relativo ma peggiora il lordo: non c'e' una
-larghezza che salvi l'ingresso, esattamente come in appendice BS.
-
-### Primo tocco contro ritocchi
-
-Contando i tocchi **dello stesso livello** dentro il giorno di mercato, il
-primo tocco e' migliore solo per R50 rottura (+0,212 contro +0,053 su 519
-casi) e SESS rimbalzo (+0,059 contro +0,002). Ovunque altrove la differenza e'
-nel rumore e cambia segno fra famiglie vicine. Nessuna soglia utilizzabile.
-
-### Conclusione
-
-**La famiglia dei livelli oggettivi e' chiusa.** Non serve raffinare la
-definizione del tocco o aggiungere filtri: il vantaggio lordo massimo misurato
-su 66.624 operazioni vere (33.500 tocchi, due ipotesi ciascuno) e' un terzo di quello che serve per pagare lo spread del
-2025. E il placebo, a parita' di numero e di distanza dal prezzo, rende quanto
-i livelli veri.
-
 ---
 
 ## Appendice CA: lo stop in punti PIU' lo spread — piccolo miglioramento vero
@@ -5306,11 +5226,28 @@ non un risultato — lo stop del placebo si appoggiava all'estremo della candela
 un placebo puo' "vincere" per finta, e va tenuto a mente ogni volta che un
 placebo sembra troppo bravo.
 
-### 4. Livelli oggettivi — in corso
+### 4. Livelli oggettivi — le due ipotesi si annullano
+
+Massimi/minimi di ieri e delle sessioni, numeri tondi da 10 e 50 $, aperture,
+estremi delle 24 ore mobili. Per ognuno **rimbalzo e rottura, entrambi**.
+66.624 operazioni vere.
+
+La migliore delle dodici righe e' la **rottura dei numeri tondi da 50 $**:
++0,111 R/op in ricerca e +0,062 in verifica — sotto la soglia, e col netto
+negativo in 6 anni su 7. Le dodici righe stanno tutte in una fascia di 0,16 R
+attorno allo zero.
+
+Ma il fatto strutturale conta piu' dei numeri: **le due ipotesi si annullano a
+vicenda**. Dove la rottura e' positiva il rimbalzo e' negativo, e la somma fa
+zero (numeri tondi da 50: +0,111 contro −0,064; da 10: +0,029 contro −0,005).
+E' la firma di un evento neutro: **il tocco di un livello non e' un segnale,
+e' solo un istante in cui il prezzo si trova li'**. Il placebo pareggia
+(vero +0,004, finto −0,006 su un'escursione di 0,16 R), che dice la stessa
+cosa da un'altra strada.
 
 ### Il conto della campagna
 
-Tre famiglie chiuse su quattro, e una sola cosa portata a casa: **il ritorno
+Quattro famiglie chiuse su quattro, e una sola cosa portata a casa: **il ritorno
 alla media di brevissimo periodo su XAUUSD e' un fenomeno reale e
 direzionale.** Non e' abbastanza per pagare lo spread di questo strumento, ma
 e' l'unico effetto misurato oggi che si distingua dal caso in modo netto.
@@ -5321,3 +5258,87 @@ invece di 0,63 la cella migliore del ritorno alla media passerebbe da −0,185 a
 circa +0,07 netto. E' una questione di broker e di strumento, non di analisi —
 la stessa conclusione a cui era arrivata l'appendice BL confrontando l'oro con
 l'indice, dove il costo relativo e' un terzo.
+
+---
+
+## Appendice CC: i livelli oggettivi, rimbalzo contro rottura — 66.624 operazioni, zero vantaggio
+
+Ripartenza dal grafico pulito su richiesta dell'utente: niente order block,
+niente reclaim del VWAP, niente allineamento di struttura. Solo i livelli che
+**non richiedono interpretazione**, quelli che chiunque disegna allo stesso
+modo: massimo/minimo del giorno precedente (PDHL), della sessione precedente
+(SESS), numeri tondi da 10 $ (R10) e da 50 $ (R50), aperture di giornata e
+settimana (OPEN), massimo/minimo delle 24 ore mobili (H24).
+
+Per ognuno le **due ipotesi opposte**, sullo stesso identico evento di tocco:
+RIMBALZO (si entra contro il verso di avvicinamento) e ROTTURA (si entra a
+favore, dopo la prima chiusura oltre il livello, entro 30 minuti).
+Periodo 2020-2026, ricerca 2020-2022 e verifica 2023-2026, spread vero per
+anno (appendice BN), stop 3 e 5 $ con 1:1,5 e 1:2, massimo 5 operazioni al
+giorno, 15 minuti di distanza, ingressi 7-21 UTC.
+Script `trading/scripts/run_scalp_livelli.py`, dettaglio in
+`docs/studies/dati/scalp_livelli.parquet` (131.626 operazioni).
+
+### Il fatto: LORDO R/op, cella stop 3 $ · 1:1,5
+
+| famiglia | ipotesi | n ric | **lordo ric** | n ver | **lordo ver** | netto ver | placebo ric | placebo ver |
+|---|---|---|---|---|---|---|---|---|
+| R50 | rottura | 1135 | **+0,111** | 1869 | **+0,062** | −0,118 | −0,056 | +0,016 |
+| R10 | rottura | 3619 | +0,029 | 4319 | +0,042 | −0,119 | −0,023 | −0,018 |
+| SESS | rimbalzo | 3570 | +0,017 | 4096 | +0,028 | −0,129 | −0,002 | +0,032 |
+| PDHL | rottura | 2010 | +0,029 | 2161 | +0,011 | −0,143 | +0,022 | −0,042 |
+| SESS | rottura | 3421 | −0,026 | 3914 | +0,011 | −0,146 | −0,008 | −0,038 |
+| OPEN | rimbalzo | 2554 | +0,034 | 2777 | +0,007 | −0,148 | +0,022 | −0,018 |
+| H24 | rottura | 2274 | −0,045 | 2651 | +0,003 | −0,154 | +0,003 | −0,048 |
+| OPEN | rottura | 2419 | −0,021 | 2609 | −0,015 | −0,169 | −0,033 | −0,014 |
+| R50 | rimbalzo | 1250 | −0,064 | 2027 | −0,013 | −0,192 | +0,039 | +0,018 |
+| H24 | rimbalzo | 2512 | +0,025 | 2842 | −0,020 | −0,177 | −0,015 | −0,004 |
+| PDHL | rimbalzo | 2166 | −0,036 | 2335 | −0,029 | −0,184 | +0,054 | −0,017 |
+| R10 | rimbalzo | 3710 | −0,005 | 4384 | −0,045 | −0,205 | −0,020 | +0,015 |
+
+**Nessuna riga arriva a +0,15 R/op lordo in entrambi i periodi**, cioe' nessuna
+paga lo spread. La migliore, R50 rottura, si ferma a +0,111 / +0,062 quando
+servirebbe +0,15-0,21. Le dodici righe stanno in una fascia di 0,16 R attorno
+allo zero: la media dei lordi veri e' **+0,004**, quella dei placebo **−0,006**.
+Il placebo non vince come nelle appendici BP/BU/BV/BY, ma **pareggia**, che dice
+la stessa cosa: i livelli oggettivi non portano informazione.
+
+### Le due ipotesi si annullano a vicenda
+
+Dove la rottura e' positiva il rimbalzo e' negativo, e viceversa, con somme
+vicine a zero (R50: +0,111 e −0,064; R10: +0,029 e −0,005). E' la firma di un
+evento **neutro**: il tocco non e' un segnale, e' solo un istante in cui il
+prezzo si trova li'. L'unico verso con un accenno di direzione e' la **rottura
+dei numeri tondi**, coerente in 6 anni su 7 al lordo — e negativo al netto in
+6 anni su 7.
+
+### Le celle di gestione, e il controllo di assurdita'
+
+| cella | costo %R | % stop | % obiettivo | % tempo | lordo | netto |
+|---|---|---|---|---|---|---|
+| stop 3 · 1:1,5 | 14,2% | 56,5% | 37,1% | 6,4% | +0,003 | −0,139 |
+| stop 3 · 1:2 | 14,2% | 61,5% | 29,0% | 9,5% | +0,002 | −0,140 |
+| stop 5 · 1:1,5 | 8,5% | 49,1% | 29,4% | 21,5% | −0,012 | −0,098 |
+| stop 5 · 1:2 | 8,5% | 51,9% | 20,3% | 27,8% | −0,019 | −0,105 |
+
+Controllo di assurdita' superato in tutte e quattro le celle: lo stop, che e'
+piu' vicino, viene colpito piu' spesso dell'obiettivo (56,5% contro 37,1%).
+Allargare lo stop dimezza il costo relativo ma peggiora il lordo: non c'e' una
+larghezza che salvi l'ingresso, esattamente come in appendice BS.
+
+### Primo tocco contro ritocchi
+
+Contando i tocchi **dello stesso livello** dentro il giorno di mercato, il
+primo tocco e' migliore solo per R50 rottura (+0,212 contro +0,053 su 519
+casi) e SESS rimbalzo (+0,059 contro +0,002). Ovunque altrove la differenza e'
+nel rumore e cambia segno fra famiglie vicine. Nessuna soglia utilizzabile.
+
+### Conclusione
+
+**La famiglia dei livelli oggettivi e' chiusa.** Non serve raffinare la
+definizione del tocco o aggiungere filtri: il vantaggio lordo massimo misurato
+su 66.624 operazioni vere (33.500 tocchi, due ipotesi ciascuno) e' un terzo di quello che serve per pagare lo spread del
+2025. E il placebo, a parita' di numero e di distanza dal prezzo, rende quanto
+i livelli veri.
+
+---

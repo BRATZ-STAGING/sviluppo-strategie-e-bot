@@ -297,6 +297,10 @@ def placebo_statico(L, valido, ctx, rng):
 def main():
     os.environ.setdefault("XAU_ANNI", "2020-2026")
     m1 = load_m1(DATI)
+    # i Parquet M1 hanno l'indice in MILLISECONDI: senza questa riga i confronti
+    # fra datetime64 di unita' diversa sono un campo minato (vedi nota di
+    # framework nel registro delle sessioni)
+    m1.index = m1.index.as_unit("ns")
     ctx = costruisci(m1)
     idx, hi, lo, cl, opn, n = (ctx["idx"], ctx["hi"], ctx["lo"], ctx["cl"],
                                ctx["opn"], ctx["n"])
