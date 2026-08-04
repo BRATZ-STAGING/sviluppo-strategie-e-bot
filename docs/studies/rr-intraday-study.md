@@ -4048,3 +4048,78 @@ Perche' possa funzionare servirebbe almeno una delle due:
 
 Il punto tre, quello che NON serve, e' cambiare la gestione: e' misurato qui e
 va nella direzione sbagliata.
+
+---
+
+## Appendice BO: obiettivi fino a 10 $ e stop scritti in volatilita'
+
+Richiesta dell'utente dopo BM: obiettivi piu' larghi, **massimo 10 punti**, e
+la taglia decisa "in base alla situazione del momento, volatilita' ecc".
+Risolve anche il difetto che BM aveva trovato da sola — 3 $ fissi non sono lo
+stesso strumento nel 2021 e nel 2026.
+
+Stop e obiettivo sono scritti in **respiro corrente**: l'escursione media
+delle 30 candele M1 precedenti, spostata di uno (la candela in corso non e'
+ancora chiusa: usarla sarebbe un minuto di futuro a ogni operazione).
+
+### Campione largo, 1.290 operazioni, 2020-2026
+
+| gestione | stop $ | costo %R | lordo R/op | **netto R/op** | anni+ |
+|---|---|---|---|---|---|
+| **ufficiale 1:10 strutturale** | 4,54 | 7,6% | +0,462 | **+0,386** | 6/7 |
+| stop 1x respiro, obiettivo 2x (max 10 $) | 0,89 | **33,4%** | −0,039 | −0,373 | 0/7 |
+| stop 1x respiro, obiettivo 3x | 0,89 | 33,4% | −0,009 | −0,343 | 0/7 |
+| stop 1x respiro, obiettivo 5x | 0,89 | 33,4% | −0,027 | −0,361 | 0/7 |
+| stop 1,5x respiro, obiettivo 3x | 1,19 | 26,3% | −0,003 | −0,266 | 0/7 |
+| stop 2x respiro, obiettivo 3x | 1,56 | 20,6% | +0,012 | −0,195 | 0/7 |
+| stop 2x respiro, obiettivo 5x | 1,56 | 20,6% | +0,016 | −0,190 | 0/7 |
+| rif. stop 3 $ obiettivo 5 $ | 3,00 | 10,0% | +0,049 | −0,051 | 2/7 |
+| rif. stop 5 $ obiettivo 8 $ | 5,00 | 6,0% | +0,049 | −0,011 | 2/7 |
+
+### Ipotesi A: CONFERMATA — la regola in volatilita' e' finalmente stabile
+
+Percentuale di stop, stessa cella (1x respiro, obiettivo 3x) contro i 3 $ fissi
+di BM:
+
+| anno | respiro: stop $ | respiro: stop% | 3 $ fissi: stop% |
+|---|---|---|---|
+| 2020 | 0,85 | 79,5 | 64,8 |
+| 2022 | 0,77 | 73,6 | 55,1 |
+| 2024 | 0,83 | 71,2 | 61,9 |
+| 2026 | **2,47** | 77,7 | **70,2** |
+
+Lo stop in dollari cresce da solo (0,85 -> 2,47 $) e la percentuale di stop
+resta ferma fra 71 e 79 in sette anni, contro l'escursione 54-70 dei dollari
+fissi. **Scrivere le soglie in volatilita' funziona**, e questo e' un
+miglioramento del metodo che vale comunque, indipendentemente dal resto.
+
+### Ipotesi B: CONFERMATA — la stabilita' non basta
+
+Tutte le celle in volatilita' sono nette negative, e peggio dei dollari fissi.
+Il motivo e' aritmetico e si legge nella colonna "costo %R": il respiro M1
+mediano su sette anni e' **0,89 $**, quindi uno stop di un respiro fa pagare
+allo spread il **33% del rischio**. Il vantaggio lordo di quelle celle sta fra
+−0,04 e +0,02 R/op. Non c'e' nessuna taratura che recuperi trenta punti di
+handicap partendo da zero.
+
+Detto in modo che si ricordi: **piu' lo stop e' stretto, piu' la regola e'
+stabile fra gli anni, e piu' e' impossibile da pagare.** Le due cose vanno
+nella stessa direzione ed e' per questo che l'idea sembra sempre buona finche'
+non si sottrae lo spread.
+
+### Ipotesi C: CONFERMATA — il tetto di 10 $ taglia quello che paga
+
+L'ufficiale 1:10 resta davanti a ogni cella su entrambi i periodi
+(+0,202 R/op in ricerca, +0,529 in verifica) e con l'unico R/DD positivo
+(7,07). Gli obiettivi corti non perdono per poco: perdono di un ordine di
+grandezza.
+
+### Dove sta il numero che serve
+
+Il conto di BM diceva: il vantaggio lordo dell'ingresso deve passare da 0,05 a
+oltre 0,20 R/op. BO dimostra che **non ci si arriva cambiando stop e
+obiettivo**: sei celle in volatilita', tre riferimenti a punti fissi, e il
+lordo resta fra −0,04 e +0,05 ovunque. La leva non e' li'.
+
+Resta l'ingresso — ed e' esattamente cio' che misurano le appendici BP
+(conferme fini su M1/M3) e BQ (i ritracciamenti in zona).
