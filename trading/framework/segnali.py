@@ -59,7 +59,8 @@ def filtro_macro(m1: pd.DataFrame, n: int) -> dict:
 
 
 def genera(m1: pd.DataFrame, t: Taratura, tf_extra=(),
-           mediana_atr: float | None = None) -> list[dict]:
+           mediana_atr: float | None = None,
+           sempre_scalate: bool = False) -> list[dict]:
     """Tutte le operazioni della variante ``t``, con i percorsi al minuto.
 
     Ogni voce contiene ingresso, stop, rischio, i percorsi ``fav``/``sfav`` in
@@ -74,6 +75,15 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=(),
     nei mesi ad alta volatilita'. Di norma si ricava dagli anni di
     calibrazione presenti nella serie; va passata quando la serie NON li
     contiene, come nel grafico dal vivo che carica solo gli ultimi mesi.
+
+    ``sempre_scalate`` riscala le soglie sull'ATR in OGNI mese, non solo in
+    quelli agitati. Serve all'appendice BX: l'oro e' passato da 950 a 4.700 $
+    fra il 2009 e il 2026, e l'appendice BW ha misurato che in rapporto al
+    prezzo la volatilita' NON e' cambiata (ATR 1,35% contro 1,39%). Quindi
+    soglie in dollari fissi — impulso 4 $, rischio 1-10 $, buffer 0,30 $ —
+    valgono cose diverse in epoche diverse, e la strategia tarata sul 2020-2026
+    applicata al 2009-2019 sta usando soglie due-tre volte troppo larghe in
+    termini relativi. Il valore predefinito lascia il comportamento invariato.
     """
     passo = pd.Timedelta(TIMEFRAMES[t.tf_ingresso])
     base = resample_tf(m1, t.tf_ingresso)
@@ -122,7 +132,7 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=(),
         if ultimo is not None and (quando - ultimo) < pd.Timedelta(minutes=t.attesa_minuti):
             continue
 
-        if alta.get(mese[i], False):
+        if sempre_scalate or alta.get(mese[i], False):
             u = atr_bar[i]
             if np.isnan(u) or u <= 0:
                 continue

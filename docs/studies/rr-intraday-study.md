@@ -4648,3 +4648,347 @@ abbia mai usato per una domanda del genere. **Non c'e'.** E' anche il terzo
 studio indipendente che arriva alla stessa conclusione sulle zone order block
 (AZ con 720 configurazioni, BQ con 27.127 ritracciamenti, BV con la
 confluenza): le zone raffinate non selezionano.
+
+---
+
+## Appendice BL: l'ORB sull'S&P fino al 2026, con lo scarto denaro-lettera VERO
+
+Le appendici BJ e BK lasciavano due buchi: i dati finivano nel **2018**, e il
+costo era un'**ipotesi** (fra 0,25 e 0,50 punti il verdetto cambiava segno).
+Qui si scarica da Dukascopy il CFD `USA500IDXUSD` con **BID e ASK minuto per
+minuto**, 2012-2026, e si compra sulla lettera, si vende sul denaro.
+Script: `trading/scripts/run_orb_indice_vero.py`.
+
+### Prima di tutto: metа' del dato scaricato non e' utilizzabile
+
+Il feed indice di Dukascopy nei primi anni e' povero, e va detto perche' la
+prima versione dello studio ci e' cascata: **nel 2012 la serie ASK e' una copia
+esatta della BID** (scarto identicamente nullo) e il reticolo dei minuti e'
+bucato. Una serie bucata non registra tutti gli estremi: lo Stretch esce piu'
+piccolo del vero, il rischio si rimpicciolisce, gli stop non vengono toccati e
+il risultato in R **si gonfia da solo**. Senza filtro il 2012 dava
+**+0,74 R/op**, dieci volte qualunque cosa mai misurata: era il dato, non la
+strategia. Filtro applicato a ogni giornata: copertura >= 95% dei minuti di
+sessione con scambi, e lettera > denaro in >= 90% dei minuti.
+
+| anno | gg scaricate | **gg sane** | copertura | spread mediano | **costo %R** |
+|---|---|---|---|---|---|
+| 2012 | 314 | **0** | 0,946 | — (nessun ASK) | — |
+| 2013 | 313 | 54 | 0,862 | 0,440 | 5,5% |
+| 2014 | 21 | 8 | 0,939 | 0,434 | — |
+| 2016 | 313 | 240 | 1,000 | 0,544 | 6,7% |
+| 2017 | 265 | 148 | 0,964 | 0,530 | 9,7% |
+| 2018 | 199 | 144 | 0,987 | 0,460 | 5,0% |
+| 2019 | 313 | 234 | 0,995 | 0,460 | 4,5% |
+| 2020 | 218 | 175 | 1,000 | 0,505 | 2,8% |
+| 2021 | 313 | 251 | 1,000 | 0,510 | 3,8% |
+| 2023 | 92 | 71 | 1,000 | 0,514 | 3,2% |
+
+Mancano 2015 e 2022 (un lato solo), e 2024-2026 hanno solo la lettera: per
+quegli anni si puo' misurare il **lordo** ma non il netto.
+
+### Ipotesi A: le due fonti sono d'accordo, ed e' HistData ad avere ragione
+
+Confronto **giornata per giornata** sul periodo comune, sui soli giorni sani:
+
+| anno | gg | rischio HistData | rischio Duka | rapporto | corr. R | lordo Hist | lordo Duka |
+|---|---|---|---|---|---|---|---|
+| 2016 | 228 | 7,25 | 7,34 | 1,010 | **0,910** | −0,030 | −0,050 |
+| 2017 | 114 | 5,70 | 5,93 | 1,015 | **0,934** | −0,098 | −0,011 |
+| 2018 | 109 | 11,65 | 9,30 | 1,003 | **0,969** | +0,070 | +0,034 |
+
+Dove il dato Dukascopy e' sano le due fonti **coincidono** (rischio a meno
+dell'1,5%, correlazione dei risultati 0,91-0,97). Nessuno dei due dati e'
+sbagliato: quello sbagliato era il 2012-2014 di Dukascopy, ora escluso.
+
+**Ma la scomposizione per periodo corregge BK.** Su HistData il vantaggio
+lordo non e' uniforme: **2010-2015 +0,076 R/op** (n=1.185, t=+2,0),
+**2016-2018 +0,009** (n=724, t=+0,2). Il +0,060 / +0,042 di BK e' quindi
+tutto nel **2011-2015**; nel triennio in cui possiamo confrontare le fonti il
+vantaggio era gia' sparito su ENTRAMBE.
+
+### Ipotesi B: il lordo c'e' ancora dal 2019, piccolo e non significativo
+
+| periodo | fonte | op | lordo R/op | t | pareggio (punti) |
+|---|---|---|---|---|---|
+| 2016-2018 | Duka due lati | 456 | −0,004 | — | −0,03 |
+| **2019-2023** | **Duka due lati** | **673** | **+0,058** | +1,21 | **0,73** |
+| 2019-2026 | Duka un lato | 1.486 | +0,048 | +1,46 | 0,78 |
+| 2022-2026 | Duka un lato | 791 | +0,073 | — | **1,53** |
+
+Lordo un lato, anno per anno: 2019 +0,000 · 2020 +0,015 · 2021 +0,043 · 2022
++0,055 · 2023 +0,152 · 2024 +0,009 · 2025 +0,311 (15 op) · 2026 +0,044 —
+**8 anni positivi su 8**, ma nessun singolo periodo arriva a due deviazioni
+standard. Il vantaggio non e' morto; non e' nemmeno dimostrato.
+
+### Ipotesi C: RESPINTA — con lo spread vero il netto e' positivo
+
+La previsione era netto negativo. Non lo e':
+
+| periodo | lordo | costo | **netto R/op** | netto R | anni+ |
+|---|---|---|---|---|---|
+| 2016-2018 | −0,004 | 7,55%R | **−0,054** | −24,6 | 1/3 |
+| **2019-2023** | +0,058 | **3,86%R** | **+0,009** | +5,8 | 3/4 |
+
+Il netto 2019-2023 e' **+0,009 R/op, cioe' zero** (t=+0,19): ~2% annuo lordo
+all'1% di rischio che diventa nulla dopo il costo. La conclusione di BK regge
+in sostanza — il vantaggio e' della taglia dei costi — ma per una ragione
+nuova, ed e' la parte interessante.
+
+### La scoperta vera: sull'indice il costo e' 3-4% del rischio, non 7-10%
+
+| | oro (app. BN) | S&P 500 CFD |
+|---|---|---|
+| spread mediano | 0,33 → **0,63 $** (raddoppiato dal 2025) | 0,44 → **0,51 pt** (piatto) |
+| rischio tipico | stop 3,5-14,8 $ | 2×Stretch, 7 → 32 pt |
+| **costo in % del rischio** | **7,6-9,8%** (21% sugli stop fissi) | **9,7% (2017) → 2,8-3,8% (2020-23)** |
+
+Lo spread dell'indice **non e' cambiato in dieci anni** (0,44-0,54 punti,
+nessuna tendenza), mentre l'indice e' passato da 2.100 a 6.400 e lo Stretch
+con lui: il rischio mediano e' salito da 7 a 32 punti. Il costo relativo si e'
+quindi **dimezzato per conto suo**, e il pareggio e' salito da 0,32 punti (BK,
+2011-2018) a **0,73-1,53 punti** contro uno spread di 0,51.
+
+**E' la risposta alla domanda lasciata aperta da BK** («abbassare il costo in
+rapporto al rischio»): sull'indice il rapporto e' oggi **due-tre volte
+migliore che sull'oro**, e l'oro sta peggiorando mentre l'indice migliora. Non
+basta a rendere pagabile l'ORB di Crabel — il lordo e' troppo piccolo e non
+significativo — ma dice dove ha senso cercare: **una strategia con lo stesso
+vantaggio lordo rende molto di piu' sull'indice che sull'oro**.
+
+### Da fare prima di crederci
+
+Lo scarico e' **incompleto**: `scarica_indice.py` usa `curl --fail-early`, e
+quando un blocco fallisce i giorni restanti vengono marcati `.empty` e non si
+ritentano piu'. Mancano interi mesi, 2015, 2022, e un lato di 2024-2026. Con
+500-700 operazioni l'errore standard e' ±0,05 R/op: **esattamente la taglia di
+tutto quello che si sta misurando**. Prima di qualunque decisione va rifatto
+lo scarico senza `--fail-early`.
+
+---
+
+## Appendice BT: la curva del netto in funzione della larghezza dello stop
+
+Domanda dell'utente, alla lettera: *"invece che 3 punti mettere 4 punti di
+stop va benissimo, qual e' la larghezza giusta?"*.
+
+Fin qui il progetto aveva misurato **tre punti isolati** di questa curva e li
+aveva riportati come verdetti separati: 3 $ e 5 $ a punti fissi (BM), lo stop
+in volatilita' da 0,89 $ (BO), lo stop strutturale (tutto il resto). Tre punti
+non sono una curva. Qui ci sono tutte e diciannove le larghezze da **2 a 20 $**
+a passi di 1, con obiettivo **1:2** (l'unico obiettivo vicino sopravvissuto in
+BR) e **1:3** come controllo, su **diciotto anni** e tre periodi separati.
+
+Cambia solo l'uscita: le operazioni sono le stesse della taratura ufficiale
+(2.680 nel campione largo, 712 ufficiali, 2009-2026). Costi: spread vero
+dell'appendice BN anno per anno, 0,40 $ sul 2009-2019 che BN non copre.
+
+### La curva, campione largo, obiettivo 1:2 (netto R/op)
+
+| stop $ | 2 | 3 | 4 | 5 | 6 | 7 | **8** | 10 | **13** | 16 | 20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| costo %R | 20,7 | 13,8 | 10,3 | 8,3 | 6,9 | 5,9 | 5,2 | 4,1 | 3,2 | 2,6 | 2,1 |
+| lordo R/op | −0,009 | +0,015 | +0,014 | +0,006 | +0,010 | +0,049 | +0,083 | +0,064 | **+0,085** | +0,059 | +0,032 |
+| **netto R/op** | −0,215 | −0,123 | −0,089 | −0,077 | −0,059 | −0,010 | **+0,032** | +0,023 | **+0,053** | +0,033 | +0,011 |
+| durata mediana h | 0,5 | 1,1 | 1,8 | 2,8 | 4,0 | 5,5 | 7,5 | 14,7 | 22,9 | 31,1 | 49,0 |
+| oltre 1 giorno % | 0,0 | 0,7 | 2,8 | 5,2 | 9,5 | 15,3 | 22,1 | 34,0 | 47,3 | 59,4 | 69,9 |
+
+### Ipotesi A (curva monotona crescente): RESPINTA
+
+C'e' un **massimo interno**, e non solo nel netto: anche nel **lordo**. Il
+vantaggio lordo sale da −0,009 (2 $) a +0,085 (13 $) e poi ridiscende a +0,032
+(20 $). Se fosse solo una questione di costo, il lordo sarebbe piatto e il
+netto crescerebbe per sempre. Non e' cosi', e il motivo si legge nelle due
+righe in fondo alla tabella: **il vantaggio di questo ingresso e' intraday e
+dura poche ore**. Allargando lo stop l'operazione si allunga (0,5 h a 2 $,
+23 h a 13 $, 49 h a 20 $) e il vantaggio si diluisce nel caso.
+
+### Ipotesi B (soglia di pareggio intorno ai 10 $): CONFERMATA, anzi meglio
+
+Il netto attraversa lo zero fra **7 e 8 $** su entrambi i campioni con
+obiettivo 1:2, e fra 6 e 7 $ con obiettivo 1:3. La stima a priori (0,45 / 0,045
+= 10 $) era pessimistica di due dollari, ma l'ordine di grandezza era giusto.
+**Sotto gli 8 $ non si paga lo spread, sopra si.**
+
+### Ipotesi C (soglia piu' alta nel 2023-2026): RESPINTA — e' l'opposto
+
+| stop $ | 2009-2019 | 2020-2022 | 2023-2026 |
+|---|---|---|---|
+| 3 | −0,168 | −0,029 | −0,110 |
+| 4 | −0,155 | +0,047 | −0,070 |
+| 5 | −0,151 | +0,083 | −0,059 |
+| **8** | −0,032 | +0,132 | **+0,075** |
+| **12** | −0,029 | +0,139 | **+0,118** |
+| 16 | +0,010 | +0,142 | −0,007 |
+| 20 | −0,038 | +0,178 | −0,024 |
+
+Il periodo che rifiuta ogni larghezza non e' il recente ma il **2009-2019**:
+undici anni in cui l'unica cella positiva del 1:2 e' 16 $ per +0,010, cioe'
+zero. E' la stessa firma gia' trovata nell'appendice BS con lo stop
+strutturale — **il problema non e' la larghezza dello stop, e' l'ingresso** —
+letta questa volta su diciannove larghezze invece che su otto gestioni.
+
+### La risposta alla domanda, senza scorciatoie
+
+**3 punti o 4 punti: nessuno dei due.** Entrambi sono nettamente negativi in
+tutti e tre i periodi, su entrambi i campioni e con entrambi gli obiettivi. 4 $
+e' meglio di 3 $ (−0,089 contro −0,123 R/op sul largo a 1:2), ma "meglio"
+qui vuol dire perdere meno: il pareggio sta piu' del doppio piu' in la'.
+
+**Esiste una larghezza positiva su tutti e tre i periodi?** Con obiettivo
+**1:2, no**: il minimo fra i tre periodi resta ≤ 0 per tutte e diciannove le
+larghezze sul campione ufficiale (il massimo e' −0,000 a 16 $) e una sola cella
+lo supera sul largo (15 $, +0,015). Con obiettivo **1:3 si**, formalmente:
+9-12 e 14-19 $ sul campione ufficiale, 11 e 15-18 $ sul largo (16 celle
+positive su 76 provate). Ma va detto come stanno le cose:
+
+1. il margine e' **tutto deciso dal 2009-2019**, che oscilla fra −0,06 e +0,05
+   e **cambia segno fra larghezze adiacenti** (12 $: +0,001; 13 $: −0,010;
+   14 $: +0,006). Non e' un altopiano, e' rumore che passa lo zero. L'appendice
+   BP ha tarato lo strumento su questo stesso campione: mezzo R di separazione
+   apparente nasce dal nulla, e qui si parla di centesimi;
+2. a quelle larghezze **l'operazione non e' piu' uno scalp**: durata mediana
+   fra 14 e 52 ore, dal 34% al 70% delle posizioni tenute oltre un giorno di
+   mercato. Sono posizioni portate a casa la notte, che violano la chiusura
+   EOD delle 21 UTC della taratura e cambiano completamente il profilo di
+   rischio (gap del lunedi', notizie notturne). Confrontarle con "3 o 4 punti"
+   sarebbe cambiare strumento e chiamarlo taratura.
+
+### In una riga
+
+La larghezza giusta, se si guarda solo la curva, sta fra **11 e 14 $** — dove
+il netto e' massimo su entrambi gli obiettivi e su entrambi i campioni. Ma
+quella non e' la risposta alla domanda dell'utente: **nella regione dello
+scalp (2-7 $) non esiste nessuna larghezza pagabile**, e la larghezza che paga
+paga perche' smette di essere uno scalp e diventa una posizione multi-giorno
+che il 2009-2019 comunque non premia.
+
+Dati: `docs/studies/dati/larghezza_stop.parquet`,
+script `trading/scripts/run_larghezza_stop.py`.
+
+---
+
+## Appendice BW: il regime dell'oro non e' cambiato — e' cambiato il prezzo
+
+Premessa dell'utente: *"dal 2020 il mercato e' cambiato, sugli anni passati
+cerchiamo altre strategie da tenere come riserve"*. Prima di accettarla o
+respingerla va misurata, perche' su di essa poggia il destino di tutti i
+risultati fuori campione.
+
+### Le misure, in rapporto al prezzo
+
+L'oro e' passato da **950 $ (2009) a 4.676 $ (2026)**: quasi cinque volte.
+Qualunque grandezza espressa in dollari cresce da sola. Divise per il prezzo:
+
+| | 2009-2019 | 2020-2026 | sovrapposizione |
+|---|---|---|---|
+| **ATR giornaliero / prezzo** | **1,351%** | **1,393%** | 68,6% |
+| escursione M1 / prezzo | 0,214‰ | 0,239‰ | — |
+| quota di escursione notturna | 0,049 | 0,073 | **93,4%** |
+| persistenza mattina->sera | −0,012 | +0,046 | **91,4%** |
+| direzionalita' (20 giorni) | 0,214 | 0,204 | 79,4% |
+| spread / prezzo | (0,195‰ nel 2021) | (0,135‰ nel 2026) | — |
+
+**Nessuna delle cinque separa i due periodi.** L'ATR relativo differisce del
+3%. Lo spread relativo, che in dollari e' raddoppiato, in percentuale e'
+addirittura sceso. La quota notturna e la persistenza si sovrappongono per
+oltre il 90%.
+
+### E non c'e' nessun interruttore da costruire
+
+Una regola causale semplice (escursione relativa sopra la sua mediana a 250
+giorni per 20 sedute di fila) scatta **32 volte in 18 anni**. Quota di
+giornate "accese": 49% nel 2013, 45% nel 2015, **0,4% nel 2021**. Cioe' e'
+spenta quasi tutto l'anno proprio dentro il regime che si voleva riconoscere,
+e accesa a meta' negli anni che si volevano escludere.
+
+Ipotesi A e B respinte. **Il mercato dell'oro, misurato con un righello
+relativo, e' lo stesso di sempre.** Quello che e' cambiato e' il numero sul
+cartellino.
+
+---
+
+## Appendice BX: se non e' il regime, sara' un problema di unita'? — no
+
+Se il mercato non e' cambiato ma il prezzo si', allora le soglie in **dollari
+fissi** della taratura (impulso 4 $, rischio 1-10 $, buffer 0,30 $), scelte
+sul 2020-2026 con l'oro fra 1.800 e 4.700, applicate al 2009-2019 con l'oro
+fra 950 e 1.660 valgono in termini relativi **due-tre volte tanto**. Il crollo
+fuori campione poteva essere una strategia giusta misurata col righello
+sbagliato — non sovradattamento.
+
+Test: le stesse identiche regole, con le soglie riscalate sull'ATR corrente in
+**ogni** mese invece che solo in quelli agitati. Un solo interruttore, nessun
+parametro nuovo. Mediana di riferimento congelata al 2020-2024, mai
+ricalcolata sul periodo in esame.
+
+### Ipotesi C: CONFERMATA — la correzione funziona, come correzione
+
+Operazioni per anno (campione ufficiale):
+
+| | 2014 | 2017 | 2018 | 2019 | 2022 | 2025 |
+|---|---|---|---|---|---|---|
+| soglie in dollari | 23 | **17** | 25 | 32 | 38 | **80** |
+| soglie relative | 42 | 52 | 64 | 63 | 41 | 80 |
+
+Con i dollari fissi la strategia trovava da 17 a 80 occasioni l'anno; con le
+soglie relative sta fra 41 e 64 in diciotto anni. **Le soglie ERANO
+sbagliate**, e riscriverle in ATR e' un miglioramento reale del metodo: lo
+stop mediano segue il prezzo da solo (1,62 $ nel 2017, 14,71 $ nel 2026).
+
+### Ipotesi A: RESPINTA — la correzione non restituisce il vantaggio
+
+| periodo | soglie | lordo R/op | netto R/op | anni+ |
+|---|---|---|---|---|
+| **2009-2019** | dollari | +0,052 | −0,041 | 3/11 |
+| **2009-2019** | **relative** | **+0,046** | **−0,074** | 3/11 |
+| 2020-2022 | dollari | +0,525 | +0,429 | 3/3 |
+| 2020-2022 | relative | +0,442 | +0,343 | 3/3 |
+| 2023-2026 | dollari | +0,759 | +0,656 | 3/4 |
+| 2023-2026 | relative | +0,722 | +0,617 | 3/4 |
+
+Il 2009-2019 non migliora: il lordo resta +0,046 R/op, **dieci-quindici volte
+piu' piccolo** del 2020-2026, e il netto peggiora perche' lo stop piu' stretto
+fa pesare di piu' lo spread.
+
+### Ipotesi B: CONFERMATA — e serviva a validare il test
+
+Il 2020-2026 non migliora, anzi cala un poco (0,759 -> 0,722). Se fosse
+migliorato anche li' avrebbe voluto dire che stavo guadagnando da un grado di
+liberta' in piu' e non da una correzione di unita'. Il test e' pulito.
+
+### Il conto, e cosa resta aperto
+
+Le unita' **erano** sbagliate, correggerle raddoppia le occasioni nel periodo
+vecchio (374 -> 601 operazioni) e stabilizza la regola fra le epoche. Ma il
+vantaggio non torna. Quindi la spiegazione "era solo un problema di righello"
+e' **eliminata**, ed e' un'informazione che valeva il test: era la piu'
+attraente delle spiegazioni alternative.
+
+Nemmeno la tendenza di fondo spiega il divario. Condizionando sulla pendenza
+della media a 200 giorni, nel 2009-2019 la fascia "sale forte" rende +0,102
+lordo e **−0,001 netto** su 158 operazioni; nel 2020-2026 la stessa fascia
+rende **+0,580**. Il vantaggio non e' dove l'oro sale: e' dopo il 2020.
+
+**Resta un fatto senza spiegazione**: il vantaggio lordo della regola e' ~0,05
+R/op per undici anni e ~0,6 per sei, mentre tutte le grandezze misurabili del
+mercato — volatilita' relativa, spread relativo, quota notturna, persistenza,
+direzionalita', tendenza — sono uguali nei due periodi. Non avendo trovato
+nessuna caratteristica del mercato che cambi insieme al risultato, la
+spiegazione piu' parsimoniosa resta che la regola sia stata trovata cercando
+dentro il 2020-2026.
+
+### L'unica cosa positiva emersa, con la sua riserva
+
+Condizionando sulla pendenza a 200 giorni, la fascia **"oro che scende"** e'
+netta positiva in **entrambe** le epoche: +0,080 R/op nel 2009-2019 (204
+operazioni) e +0,397 nel 2020-2026 (51 operazioni), +36,5 R in totale su 255.
+E' l'unica delle quattro fasce a riuscirci, ed e' controintuitiva — la
+strategia ha un filtro di fondo che la rende lunga, e va meglio quando la
+media scende, cioe' comprando i ritorni dentro una discesa.
+
+Va detto anche perche' non ci si puo' ancora contare: quattro fasce provate,
+una positiva in entrambe le epoche e' **esattamente la frequenza del caso**, e
+le appendici BP, BU e BV hanno appena mostrato tre volte che in questo
+progetto il placebo produce separazioni di questa taglia da solo. Va rimisurata
+come ipotesi a se', pre-registrata, non raccolta da una tabella.

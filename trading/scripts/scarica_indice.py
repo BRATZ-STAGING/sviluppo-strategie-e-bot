@@ -59,12 +59,19 @@ def in_cache(simbolo, lato, g):
     return os.path.exists(b + ".bi5") or os.path.exists(b + ".empty")
 
 
-def scarica(simbolo, lato, giorni):
-    """Un blocco di giorni con curl in parallelo.
+def tira(simbolo, lato, giorni):
+    """Un giro di curl in parallelo sui giorni indicati, senza marcare niente.
 
     curl -Z riusa le connessioni: attraverso il proxy e' circa quattro volte
     piu' veloce di altrettanti thread Python, che ririnegoziano il TLS a ogni
-    file. I giorni senza dati tornano a zero byte e diventano marcatori.
+    file.
+
+    NIENTE ``--fail-early``. Con quell'opzione il primo 404 (o il primo scatto
+    del rate limiting) abortisce **l'intero blocco**, e i giorni che non hanno
+    fatto in tempo a scaricarsi finivano marcati ``.empty`` per sempre: e' cosi'
+    che si sono persi interi anni (BID 2022, 2024, 2026 e ASK 2025 hanno 312+
+    marcatori ``.empty`` e zero file). Il costo di toglierla e' qualche secondo,
+    il beneficio e' non buttare via un anno.
     """
     if not giorni:
         return
@@ -73,9 +80,28 @@ def scarica(simbolo, lato, giorni):
         for g in giorni:
             f.write(f'url = "{url_di(simbolo, lato, g)}"\n'
                     f'output = "{base(simbolo, lato, g)}.bi5"\n')
-    subprocess.run(["curl", "-sS", "--fail-early", "-Z", "--parallel-max", "12",
+    subprocess.run(["curl", "-sS", "-Z", "--parallel-max", "12",
                     "--retry", "3", "--retry-delay", "1", "-K", conf],
                    check=False)
+
+
+def scarica(simbolo, lato, giorni):
+    """Due passate, e solo dopo la seconda un giorno si dichiara vuoto.
+
+    Un giorno davvero senza dati (festivo, fine settimana) torna a zero byte
+    tutte e due le volte: quello e' un marcatore legittimo. Un giorno caduto
+    per un problema di rete torna al secondo giro. Distinguere le due cose
+    costa una passata sui soli mancanti e rende il marcatore affidabile.
+    """
+    if not giorni:
+        return
+    for passata in (1, 2):
+        manca = [g for g in giorni
+                 if not os.path.exists(base(simbolo, lato, g) + ".bi5")
+                 or os.path.getsize(base(simbolo, lato, g) + ".bi5") == 0]
+        if not manca:
+            return
+        tira(simbolo, lato, manca)
     for g in giorni:
         b = base(simbolo, lato, g)
         if not os.path.exists(b + ".bi5") or os.path.getsize(b + ".bi5") == 0:
@@ -118,11 +144,21 @@ def main():
                   for i in range((dt.date(anno + 1, 1, 1) - dt.date(anno, 1, 1)).days)]
         giorni = [g for g in giorni if g < oggi and g.weekday() < 5 or g.weekday() == 6]
         for lato in lati:
-            manca = [g for g in giorni if not in_cache(simbolo, lato, g)]
-            for i in range(0, len(manca), LOTTO):
-                scarica(simbolo, lato, manca[i:i + LOTTO])
-            pezzi = [x for x in (decodifica(simbolo, lato, g) for g in giorni)
-                     if x is not None and len(x)]
+            # decodifica() cancella i file troncati perche' si riscarichino: se
+            # non si ricicla, quei giorni mancano dal parquet dell'anno anche se
+            # il dato esiste. Due giri bastano, il secondo lavora sui resti.
+            pezzi = []
+            for _ in range(2):
+                manca = [g for g in giorni if not in_cache(simbolo, lato, g)]
+                if not manca:
+                    break
+                for i in range(0, len(manca), LOTTO):
+                    scarica(simbolo, lato, manca[i:i + LOTTO])
+                pezzi = [x for x in (decodifica(simbolo, lato, g) for g in giorni)
+                         if x is not None and len(x)]
+            if not pezzi:
+                pezzi = [x for x in (decodifica(simbolo, lato, g) for g in giorni)
+                         if x is not None and len(x)]
             if not pezzi:
                 print(f"{anno} {lato}: nessun dato", flush=True)
                 continue
