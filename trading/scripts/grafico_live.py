@@ -34,7 +34,8 @@ from framework.data import TIMEFRAMES, load_m1, resample_tf       # noqa: E402
 from framework.segnali import filtro_macro, genera                # noqa: E402
 from framework.structure import trend_state_series                # noqa: E402
 from framework.taratura import UFFICIALE as T                     # noqa: E402
-from framework.volatility import daily_atr                        # noqa: E402
+from framework.volatility import (atr_at, daily_atr,              # noqa: E402
+                                  high_volatility_months)
 from framework.vwap import anchored_vwap                          # noqa: E402
 
 from export_lab import zone_ob                                    # noqa: E402
@@ -82,14 +83,29 @@ def storico_archivio():
 
 
 def unisci(storia, vivo):
-    """Archivio davanti, terminale dietro; in mezzo si taglia sul primo minuto
-    del terminale, che e' la fonte piu' fedele per il periodo che copre."""
+    """Archivio davanti, terminale dietro, con il taglio su un confine di GIORNO.
+
+    Tagliare sul primo minuto del terminale spezzerebbe una giornata fra due
+    fonti, e il volume non e' la stessa cosa nelle due: conteggio di tick da
+    MT5, decimale nell'archivio. Il VWAP e' pesato sui volumi e ancorato alla
+    giornata, quindi una giornata mista darebbe un VWAP senza senso. Si taglia
+    percio' a mezzanotte: l'archivio arriva fino alla fine dell'ultimo giorno
+    intero che precede i dati del terminale.
+
+    Ritorna anche i giorni di buco fra le due fonti: se ce ne sono, il filtro
+    di fondo a 50 giornate e l'ATR stanno contando giornate che non ci sono, e
+    chi guarda il grafico deve saperlo.
+    """
     if storia is None or storia.empty:
-        return vivo
-    pezzo = storia[storia.index < vivo.index[0]]
+        return vivo, None
+    confine = vivo.index[0].normalize()
+    pezzo = storia[storia.index < confine]
     if pezzo.empty:
-        return vivo
-    return pd.concat([pezzo[vivo.columns], vivo])
+        return vivo, None
+    buco = (confine - pezzo.index[-1].normalize()).days - 1
+    unito = pd.concat([pezzo[vivo.columns], vivo])
+    unito = unito[~unito.index.duplicated(keep="last")].sort_index()
+    return unito, max(buco, 0)
 
 
 def leggi_mt5():
@@ -118,6 +134,47 @@ def leggi_mt5():
     return simbolo, df, bid, ask
 
 
+def vwap_motore(m1):
+    """Il VWAP come lo calcola ``segnali.genera``: sulle candele di ingresso.
+
+    Indicizzato per ORA DI CHIUSURA della candela, cosi' leggerlo a un istante
+    qualunque con un ffill da' il valore che era noto in quel momento — e non
+    uno che comprende candele non ancora finite.
+    """
+    base = resample_tf(m1, T.tf_ingresso)
+    v = anchored_vwap(base, "day")
+    v.index = base.index + pd.Timedelta(TIMEFRAMES[T.tf_ingresso])
+    return v
+
+
+def leggi_vwap(v, quando):
+    """Il VWAP noto a un dato istante (l'ultima candela chiusa)."""
+    s = v.reindex(pd.DatetimeIndex(quando), method="ffill")
+    return s
+
+
+def soglie_ora(m1, barra):
+    """Le soglie vigenti adesso, con lo stesso conto che fa ``segnali.genera``.
+
+    Nei mesi riconosciuti ad alta volatilita' le soglie non restano in dollari
+    ma seguono l'ATR, rapportate alla mediana del periodo di calibrazione. Il
+    riconoscimento e' causale (finestra espansiva sul passato) e chiede almeno
+    250 giornate di storia: sotto quella soglia risponde "normale".
+    """
+    atr = daily_atr(m1, 14)
+    anni = ((atr.index.year >= T.calibrazione[0])
+            & (atr.index.year <= T.calibrazione[1]))
+    mediana = float(atr[anni].median()) if anni.any() else float("nan")
+    mese = pd.Period(barra.strftime("%Y-%m"), "M")
+    alta = high_volatility_months(atr, [mese], T.fattore_alta_volatilita)[mese]
+    if not alta or not np.isfinite(mediana) or mediana <= 0:
+        return T.soglie(), False
+    u = atr_at(atr, pd.DatetimeIndex([barra])).iloc[0]
+    if not np.isfinite(u) or u <= 0:
+        return T.soglie(), False
+    return T.soglie(atr=float(u), mediana=mediana), True
+
+
 def condizioni_ora(m1, vwap_m1, struttura, adesso):
     """Le cinque condizioni della strategia, adesso, per i due lati.
 
@@ -129,19 +186,31 @@ def condizioni_ora(m1, vwap_m1, struttura, adesso):
     m6 = resample_tf(m1, T.tf_ingresso)
     if len(m6) < 3:
         return None
-    i = len(m6) - 2                       # -1 e' la candela ancora aperta
+    passo = pd.Timedelta(TIMEFRAMES[T.tf_ingresso])
+    # l'ultima candela CHIUSA si sceglie per orario, non per posizione: nel
+    # minuto in cui una candela si chiude, quella dopo non esiste ancora nel
+    # terminale (nasce al primo tick), quindi l'indice -2 punterebbe indietro
+    # di una candela e il pannello mancherebbe il segnale appena formato
+    chiusi = np.flatnonzero((m6.index + passo) <= adesso)
+    if len(chiusi) < 2:
+        return None
+    i = int(chiusi[-1])
     barra = m6.index[i]
     giorno = barra.normalize()
-    passo = pd.Timedelta(TIMEFRAMES[T.tf_ingresso])
-    v = float(vwap_m1.reindex([barra + passo - pd.Timedelta("1min")],
-                              method="ffill").iloc[0])
+    v = float(leggi_vwap(vwap_m1, [barra + passo]).iloc[0])
+    if not np.isfinite(v):
+        return None
     macro = filtro_macro(m1, T.media_macro).get(giorno, None)
     del_giorno = m6[m6.index.normalize() == giorno]
     prima = del_giorno[del_giorno.index < barra]
     hi, lo, cl = m6.high.values, m6.low.values, m6.close.values
-    soglie = T.soglie()                   # in dollari: il regime alto lo dira'
+    # le soglie NON sono sempre in dollari: nei mesi ad alta volatilita' il
+    # motore le riscala sull'ATR. Un pannello che mostrasse sempre 4,00 $
+    # direbbe "manca ancora" mentre il motore ha gia' aperto, o il contrario
+    soglie, alta = soglie_ora(m1, barra)
     fuori = {"vwap": round(v, 2), "candela": barra.strftime("%d/%m %H:%M"),
              "ora_ok": bool(T.ora_inizio <= adesso.hour < T.ora_fine),
+             "alta_volatilita": bool(alta),
              "chiusura": T.ora_chiusura, "lati": {}}
     for nome, segno in (("long", 1), ("short", -1)):
         if segno == 1:
@@ -292,25 +361,27 @@ def aggiorna_segnali():
 
 def calcola(storia):
     simbolo, vivo, bid, ask = leggi_mt5()
-    m1 = unisci(storia, vivo)
+    m1, buco = unisci(storia, vivo)
     with _lock:
         _serie["m1"] = m1
     out = {"simbolo": simbolo, "bid": bid, "ask": ask,
            "spread": round(ask - bid, 3),
            "ora": pd.Timestamp.now("UTC").strftime("%H:%M:%S"),
            "ultima_candela": vivo.index[-1].strftime("%d/%m %H:%M"),
-           "storia_da": m1.index[0].strftime("%d/%m/%Y"),
+           "storia_da": m1.index[0].strftime("%d/%m/%Y"), "buco": buco,
            "serie": {}, "zone": [], "struttura": {}, "pronto": True}
-    # il VWAP e' ancorato alla giornata: si calcola una volta sui minuti e si
-    # legge alla chiusura di ogni candela, cosi' e' lo STESSO su ogni grafico
-    vwap_m1 = anchored_vwap(m1, "day")
+    # Il VWAP e' quello del MOTORE: ancorato alla giornata e calcolato sulle
+    # candele M6, non sui minuti. Sono due linee diverse — pesi diversi — e la
+    # decisione si prende su quella di M6, quindi e' quella che va disegnata.
+    # Letta alla chiusura di ogni candela resta comunque identica su ogni
+    # grafico, che era il motivo per cui la si calcolava una volta sola.
+    vwap_m1 = vwap_motore(m1)
     # M1 non serve a operare (l'ingresso e' su M6): serve a vedere con
     # precisione dove sta il prezzo adesso rispetto a un livello
     for tf in ("M1", "M6", "M12", "M33", "M66", "H2", "H3", "H6"):
         s = resample_tf(m1, tf).tail(600)
         passo = pd.Timedelta(TIMEFRAMES[tf])
-        v = vwap_m1.reindex(s.index + passo - pd.Timedelta("1min"),
-                            method="ffill").values
+        v = leggi_vwap(vwap_m1, s.index + passo).values
         out["serie"][tf] = {
             "t": [int(x.timestamp() * 1000) for x in s.index],
             "o": [round(x, 2) for x in s.open], "h": [round(x, 2) for x in s.high],
@@ -513,7 +584,8 @@ function pannello(){
  el("cond").innerHTML='<div class="chk">'+["long","short"].map(n=>{
   const L=C.lati[n];
   const righe=[
-   ["1 · orario 07-19 UTC",bollo(C.ora_ok)],
+   ["1 · orario 07-19 UTC",bollo(C.ora_ok)
+     +(C.alta_volatilita?' <b class="nd">· mese agitato</b>':"")],
    ["2 · struttura H6+H2",bollo(L.struttura)],
    ["3a · conferme M33+H12",bollo(L.conferme)],
    ["3b · M12 contrario",bollo(L.ritracciamento)],
@@ -558,6 +630,8 @@ function draw(){
   <span class="pill">VWAP <b>${D.condizioni?D.condizioni.vwap.toFixed(2):"—"}</b></span>
   <span class="pill">segnali ${D.segnali?D.segnali.length:0}${
     D.segnali_ora?" · "+D.segnali_ora:" · in calcolo"}</span>`+
+  (D.buco?`<span class="pill" style="border-color:var(--dn)">buco di <b class="no1">${
+    D.buco} giorni</b> fra archivio e terminale</span>`:"")+
   Object.entries(D.struttura).map(([k,v])=>{const[s,c]=stat(v);
    return `<span class="pill">${k} <b class="${c}">${s}</b></span>`}).join("");
  pannello();
