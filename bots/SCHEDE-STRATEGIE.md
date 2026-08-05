@@ -457,3 +457,87 @@ Quindi:
 - **mai** mettere le due allo 0,50% "per prudenza": la coppia scende al 91%,
   peggio della sola B a 0,75%. Abbassare la taglia della B costa piu' di quanto
   renda abbassare quella della "in uso".
+
+---
+
+# CONFIGURAZIONE FINALE PER LA SFIDA — 05/08/2026
+
+Scelta dell'utente dopo la simulazione: si avviano **due** profili, su due conti
+separati.
+
+| | **B** | **C** |
+|---|---|---|
+| obiettivo | 1:8 | **1:2 secco** |
+| gestione | da +3R lo stop insegue l'MFE a distanza 2R | **nessuno spostamento dello stop** |
+| chiusura | oltre la giornata; il fine settimana si attraversa solo sopra +1R | ogni sera alle **21:00 UTC** |
+| **rischio per operazione** | **0,75%** | **1,00%** |
+| fase 1 superata | **97%** | 88% |
+| violazioni | **0%** | **0%** |
+| giorni mediani | 156 | 258 |
+| margine sul limite del 12% | 2,5 punti | **6,0 punti** |
+| perdite consecutive | 12 | **7** |
+| Swap Free | **necessario** | non serve |
+
+Sotto il lotto minimo negoziabile l'operazione si **salta**: in una sfida il
+vincolo e' sopravvivere, non fare numero. Con 5.000 $ allo 0,75% si rischiano
+37,50 $ per operazione, che con lo stop mediano di 10-15 $ fanno 0,03-0,04
+lotti; nei mesi agitati lo stop sale a 25-30 $ e si arriva al minimo.
+
+## Cosa NON fare su queste due
+
+- **Non aggiungere un pareggio alla C.** Misurato: portando lo stop a +1R la C
+  passa da **+86,6 a +47,3 R**, cioe' perde il 45%. Il 1:2 secco vive delle
+  operazioni che vanno dritte al bersaglio, e qualunque stop mosso per strada
+  le taglia prima.
+- **Non spostare il pareggio della B.** Il suo trailing porta gia' lo stop a
+  +1R quando l'MFE tocca +3R: la modifica e' gia' dentro, ed e' il motivo per
+  cui la B non ha uscite a pareggio.
+
+## Il pareggio sopra l'ingresso: dove invece serve
+
+Proposta dell'utente, misurata su tutte e quattro. Portare lo stop a **+0,50 R**
+sopra l'ingresso invece che esattamente a pareggio:
+
+| | R | vinte% | perdite di fila | costo serie | DD R | R/DD |
+|---|---|---|---|---|---|---|
+| in uso, pareggio a 0 | 214,7 | 21,3% | 23 | −20,77 R | 20,77 | 10,33 |
+| **in uso, pareggio +0,50R** | 209,9 | **39,0%** | **11** | **−11,59 R** | 19,77 | **10,62** |
+| A, pareggio a 0 | 206,2 | 16,8% | 24 | −16,18 R | 26,30 | 7,84 |
+| **A, pareggio +0,50R** | **216,7** | **36,6%** | **12** | −12,60 R | **16,80** | **12,90** |
+
+Su **A rende di piu' e rischia meno**, il che e' raro. Su **in uso** costa il 2%
+del rendimento e dimezza le serie perdenti. **+0,50 R batte sia +1 $ sia +2 $**:
+due dollari sopra uno stop da 2 $ sono un intero R, sopra uno da 15 $ sono un
+settimo — in dollari fissi si applica una regola diversa ogni mese.
+
+Per un conto normale e' un miglioramento consigliato. **Per la sfida non
+serve**: la percentuale di successo resta 89%, perche' quello che fa saltare il
+conto non e' la serie, e' il drawdown — e quello passa solo da 20,77 a 19,77 R.
+
+## La lezione di metodo che ne esce
+
+**Contare le perdite consecutive non basta a dimensionare.** Serie perdente e
+drawdown massimo coincidono solo quando la discesa e' ininterrotta:
+
+| | costo serie peggiore | drawdown massimo |
+|---|---|---|
+| **B** | −12,60 R | **12,60 R** (coincidono) |
+| in uso + pareggio 0,5R | −11,59 R | **19,77 R** (non coincidono) |
+
+Il drawdown della "in uso" e' una discesa lunga **spezzata da piccole vittorie
+che non recuperano**: il contatore delle serie si azzera, il conto no. La
+taglia va sempre calcolata sul drawdown.
+
+## Nota sui conteggi, per non ricascarci
+
+Le tabelle delle sessioni precedenti riportavano **13-14 perdite di fila per
+tutte le gestioni** e tassi di vincita intorno al 35%. Quelle di oggi dicono
+23-24 e 21%. Nessuna delle due e' sbagliata: la "in uso" chiude **60
+operazioni su 333 a pareggio**, e la differenza e' se un pareggio conta come
+vittoria (serie spezzata, 13) o come non-vittoria (serie continua, 23). Le
+altre differenze: 348 operazioni contro 333 per la correzione del filtro D1
+(appendice BD), e drawdown 17,6 contro 20,77 R per lo spread vero al posto
+dello 0,30 della taratura.
+
+**Su B e C l'ambiguita' non esiste**: non hanno uscite a pareggio, quindi 12 e
+7 valgono con qualunque convenzione.
