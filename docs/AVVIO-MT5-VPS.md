@@ -21,17 +21,53 @@ sette condizioni, tutte in `bots/SCHEDE-STRATEGIE.md`. Cambia solo l'uscita.
 | pareggio | — | **nessuno** | stop a **+0,50 R** quando l'MFE tocca +3R |
 | trailing | da +3R lo stop segue l'MFE a distanza **2R** | — | — |
 | chiusura per tempo | oltre la giornata; il fine settimana si attraversa **solo sopra +1R** | **21:00 UTC** | **21:00 UTC** |
-| **rischio per operazione** | **0,75%** | **0,75%** | **0,50%** |
+| **lati** | long e short | long e short | **SOLO LONG** |
+| **rischio per operazione** | **0,75%** | **0,75%** | **0,53%** |
 | Swap Free | **necessario** | non serve | non serve |
+
+### Perche' la D e' solo long
+
+Separando i due lati (con il filtro D1 attivo, cioe' la configurazione viva):
+
+| | | op | R | R/op | vinte% | DD R | R/DD | anni+ |
+|---|---|---|---|---|---|---|---|---|
+| **B** | long | 232 | +155,9 | 0,67 | 41,8% | **10,94** | **14,26** | **7/7** |
+| | short | 101 | +18,6 | 0,18 | 30,7% | 19,29 | **0,97** | 5/7 |
+| **C** | long | 232 | +74,6 | 0,32 | 49,1% | 11,27 | 6,62 | 5/7 |
+| | short | 101 | +12,1 | 0,12 | 41,6% | 9,74 | **1,24** | 4/7 |
+| **D** | long | 232 | **+220,7** | **0,95** | 43,5% | **18,71** | **11,80** | 6/7 |
+| | short | 101 | **−10,7** | **−0,11** | 28,7% | 26,62 | **−0,40** | **2/7** |
+
+Gli short della D perdono su 101 operazioni con **2 anni positivi su 7**, e si
+portano dietro un drawdown (26,62 R) piu' grande di quello dell'intera
+strategia. Solo long: **+220,7 R con DD 18,71** contro +209,9 con DD 19,77 —
+**rende di piu' e rischia meno**. Non e' una scelta, e' una correzione, e la
+taglia sale da 0,50% a **0,53%**.
+
+Sulla **B** gli short sono marginali: guadagnano quanto il buco che scavano
+(R/DD 0,97). Solo long sarebbe leggermente meglio (R/DD 14,26 contro 13,85,
+drawdown da 12,60 a 10,94 R, taglia fino a 0,86%). **Restano entrambi i lati**
+perche' il margine e' piccolo e la B e' l'unica 7/7 su tutti e due; chi avvia
+puo' scegliere solo-long sapendo che e' difendibile.
+
+Sulla **C** gli short pagano il loro spazio (R/DD 1,24, e il combinato 7,02
+batte il solo long 6,62): **restano**.
+
+**Il caveat, che va detto:** il 2020-2026 e' un mercato toro dell'oro, da 1.775
+a 4.676 $. Un solo-long in un toro *deve* sembrare buono, e in questo campione
+l'oro non ha mai girato davvero. Togliere gli short e' ottimizzare su un
+regime. L'unica cosa che rende la scelta meno sospetta e' che **"lo short da
+solo perde" era gia' documentato nell'appendice 7**, prima di questa analisi:
+e' la conferma di un fatto noto, non un risultato pescato oggi.
 
 Attese misurate su 333 operazioni, 2020-2026, spread reale:
 
 | | B | C | D |
 |---|---|---|---|
-| R totale | +174,6 | +86,6 | +209,9 |
-| R per operazione | 0,52 | 0,26 | 0,63 |
+| R totale | +174,6 | +86,6 | **+220,7 (solo long)** |
+| R per operazione | 0,52 | 0,26 | **0,95 (solo long)** |
 | win rate | 38,4% | **46,9%** | 39,0% |
-| drawdown massimo | 12,60 R -> **−9,45%** | 12,33 R -> **−9,25%** | 19,77 R -> **−9,89%** |
+| drawdown massimo | 12,60 R -> **−9,45%** | 12,33 R -> **−9,25%** | **18,71 R (solo long) -> −9,92%** |
 | perdite consecutive | 12 | **7** | 11 |
 | anni positivi | **7/7** | 6/7 | 6/7 |
 | anno peggiore | +11,9 R | −2,6 R | −2,6 R |
