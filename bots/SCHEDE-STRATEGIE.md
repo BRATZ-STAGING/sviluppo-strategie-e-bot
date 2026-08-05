@@ -417,3 +417,43 @@ quella mai vista. Il 99% dell'1,00% e' una misura sul filo, non una garanzia.
 Se lo Swap Free non e' disponibile o non conviene, la scelta si sposta sulla
 **1:2 secca all'1%**: 89% di successo, nessuna violazione, zero notti aperte,
 zero rischio di gap nel fine settimana.
+
+### Quanto margine lascia ogni taglia (striscia peggiore contro il limite del 12%)
+
+La striscia peggiore mai vista costa −20,77 R alla "in uso" e −12,60 R alla B.
+Tradotto in percentuale del conto, e confrontato col limite del 12%:
+
+| rischio/op | in uso: costo | margine | **B: costo** | **margine** |
+|---|---|---|---|---|
+| 0,40% | 8,3% | +3,7% | **5,0%** | **+7,0%** |
+| 0,50% | 10,4% | +1,6% | **6,3%** | **+5,7%** |
+| 0,60% | 12,5% | **−0,5%** | 7,6% | +4,4% |
+| 0,75% | 15,6% | **−3,6%** | **9,5%** | **+2,5%** |
+| 1,00% | 20,8% | **−8,8%** | 12,6% | **−0,6%** |
+
+**La "in uso" non puo' andare oltre lo 0,50%**: gia' a 0,60% la striscia
+peggiore mai vista basterebbe a violare. La B regge fino a 0,75% con 2,5 punti
+di margine — circa tre operazioni perdenti in piu' di quante ne siano mai
+capitate di fila.
+
+### Due sfide insieme aggiungono meno di quanto sembri
+
+| coppia | entrambe passano | **almeno una** | nessuna | almeno una violata |
+|---|---|---|---|---|
+| in uso 0,50% + B 0,50% | 90% | **91%** | 9% | 0% |
+| **in uso 0,50% + B 0,75%** | **90%** | **97%** | 3% | **0%** |
+| in uso 0,75% + B 0,75% | 89% | 97% | 3% | **2%** |
+
+Il confronto che conta: **la sola B a 0,75% da' gia' il 97%.** Comprare anche
+la seconda sfida non alza la probabilita' di essere finanziati — le due
+strategie condividono l'ingresso (correlazione 0,68) e falliscono insieme.
+
+Quindi:
+- **se l'obiettivo e' passare**, basta la B a 0,75%: 97%, zero violazioni. La
+  seconda sfida e' 28 € che non comprano probabilita';
+- **se l'obiettivo sono due conti finanziati**, allora si comprano entrambe e
+  nel 90% dei casi passano tutte e due. La seconda sfida raddoppia il premio,
+  non riduce il rischio;
+- **mai** mettere le due allo 0,50% "per prudenza": la coppia scende al 91%,
+  peggio della sola B a 0,75%. Abbassare la taglia della B costa piu' di quanto
+  renda abbassare quella della "in uso".
