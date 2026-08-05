@@ -122,6 +122,7 @@ in Python e' `trading/framework/segnali.py` e `trading/framework/structure.py`:
    > `SCHEDE-STRATEGIE.md` (trappola 1) dice epoch ed e' quella giusta.
    > Verificato per contrasto: ancorando alla mezzanotte il confronto
    > EA/motore fallisce (`bots/mt5/vwap-reclaim/verifica/falsifica.py`).
+
    M6, M12, H2, H6, H12 sono nativi. Se l'aggregazione e' sbagliata, sbagliano
    le condizioni 2, 3a e 3b, cioe' quasi tutto.
 3. **Struttura causale**: swing confermato **3 candele dopo** l'estremo; lo
@@ -135,10 +136,23 @@ in Python e' `trading/framework/segnali.py` e `trading/framework/structure.py`:
 6. **Il filtro D1** usa la chiusura di ieri contro la sua media a 50 giornate.
    Le giornate sono quelle vere: lo spezzone della domenica sera non e' una
    giornata (contarlo cambiava il 5,1% delle classificazioni).
-7. **La riscalatura ATR** vale **solo** nei mesi ad alta volatilita' (mediana
-   ATR dei 21 giorni prima dell'inizio del mese > 1,5 x la mediana di
-   riferimento **25,5968 $**, congelata sul 2020-2024). Negli altri mesi le
-   soglie restano in dollari.
+7. **La riscalatura ATR** vale **solo** nei mesi ad alta volatilita'. Negli
+   altri mesi le soglie restano in dollari.
+
+   > **Correzione 05/08.** Questa riga diceva che il mese e' agitato quando la
+   > mediana ATR dei 21 giorni precedenti supera 1,5 volte **la mediana di
+   > riferimento 25,5968 $**. Non e' quello che fa il codice:
+   > `volatility.high_volatility_months` confronta con la mediana di **tutta
+   > la storia precedente** (finestra espansiva, e sotto 250 giornate risponde
+   > "normale"). La mediana congelata 25,5968 $ serve a un'altra cosa: a
+   > riscalare le soglie una volta deciso che il mese e' agitato.
+   >
+   > Le due regole classificano mesi diversi — la mediana espansiva sale con
+   > gli anni, quella congelata no — e con essi cambiano le soglie e le
+   > operazioni. Conseguenza operativa: l'EA ha bisogno di **250 giornate
+   > vere** di storia M1 per rispondere come il motore, e finche' non le ha
+   > non apre (lo scrive nel log invece di operare con soglie diverse in
+   > silenzio).
 
 ### Una cosa da sapere sulla B prima di implementarla
 
