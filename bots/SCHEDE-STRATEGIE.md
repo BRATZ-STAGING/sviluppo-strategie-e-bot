@@ -460,7 +460,43 @@ Quindi:
 
 ---
 
-# CONFIGURAZIONE FINALE PER LA SFIDA — 05/08/2026
+# CONFIGURAZIONE FINALE PER LA SFIDA — 05/08/2026 (rivista)
+
+Tre profili su tre conti separati. **Le taglie sono diverse perche' i drawdown
+sono diversi**: si pareggia il rischio in percentuale di conto, non la
+percentuale per operazione. Tre conti tutti allo 0,75% avrebbero avuto rischi
+molto diversi senza che si vedesse.
+
+| | **B** | **C** | **in uso +0,50R** |
+|---|---|---|---|
+| obiettivo | 1:8 | 1:2 secco | 1:10 |
+| gestione | trailing MFE−2 da +3R | nessuno spostamento dello stop | stop a **+0,50 R** quando l'MFE tocca +3R |
+| chiusura | oltre la giornata, weekend solo sopra +1R | 21:00 UTC | 21:00 UTC |
+| **rischio per operazione** | **0,75%** | **0,75%** | **0,50%** |
+| drawdown massimo | 12,60 R -> **−9,45%** | 12,33 R -> **−9,25%** | 19,77 R -> **−9,89%** |
+| margine sul limite del 12% | 2,55 punti | 2,75 punti | 2,11 punti |
+| **fase 1 superata** | **97%** | 88% | 90% |
+| violazioni | 0% | 0% | 0% |
+| giorni mediani | **156** | 258 | 221 |
+| **win rate** | 38,4% | **46,9%** | 39,0% |
+| **perdite di fila** | 12 | **7** | 11 |
+| costo di quella serie | −12,60 R | −8,00 R | −11,59 R |
+| anni positivi | **7/7** | 6/7 | 6/7 |
+| Swap Free | **necessario** | non serve | non serve |
+
+## Correzione a una versione precedente di questa scheda
+
+Una stesura precedente dava alla C **1,00%** di rischio e "6,0 punti di
+margine". Sbagliato due volte: il margine era calcolato sul **costo della
+serie** (−8,00 R) invece che sul **drawdown** (12,33 R), e allo 0,75% invece
+che all'1,00%. All'1,00% la C sta a −12,33%, cioe' **sopra il limite**. Le
+zero violazioni della simulazione non la salvavano: significano solo che
+nessuna partenza era capitata dentro quella discesa prima di arrivare a +10%.
+
+E' lo stesso errore descritto qui sotto, commesso mentre lo si documentava.
+Vale la pena lasciarlo scritto: **la taglia si calcola SEMPRE sul drawdown**.
+
+# CONFIGURAZIONE PRECEDENTE (superata, tenuta per storia)
 
 Scelta dell'utente dopo la simulazione: si avviano **due** profili, su due conti
 separati.
