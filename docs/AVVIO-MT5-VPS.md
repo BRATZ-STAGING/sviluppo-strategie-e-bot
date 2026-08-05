@@ -93,7 +93,12 @@ minimo negoziabile. In una sfida il vincolo e' sopravvivere, non fare numero:
 installato in tre istanze su tre conti. L'ingresso e' identico: scriverlo tre
 volte significa tre modi diversi di sbagliarlo.
 
-L'EA **non esiste ancora**. La specifica completa e' in
+L'EA **c'e'**: `bots/mt5/vwap-reclaim/` (sorgente, nucleo confrontabile,
+scheda e banco di prova). Mai compilato in MetaEditor e mai messo su un conto;
+gli ingressi sono gia' confrontati col motore Python, le uscite no. Leggere
+`bots/mt5/vwap-reclaim/README.md`, sezione "Cosa NON e' stato verificato".
+
+La specifica completa e' in
 `bots/SCHEDE-STRATEGIE.md`; per le convenzioni del progetto (gruppi di input,
 magic number, guardia sull'equity, log CSV) seguire
 `bots/mt5/keltner-impulse/KeltnerImpulseBot_MT5.mq5`. Il motore di riferimento
@@ -108,7 +113,15 @@ in Python e' `trading/framework/segnali.py` e `trading/framework/structure.py`:
    `TimeGMT()`/`TimeCurrent()`, **mai un offset fisso**. Un errore identico ha
    reso irreali il **62% dei segnali** disegnati sul grafico.
 2. **M33 e M66 non esistono in MT5.** Vanno aggregati da M1 (33 e 66 minuti,
-   allineati all'inizio della giornata UTC, candela etichettata all'APERTURA).
+   allineati all'**epoch**, candela etichettata all'APERTURA).
+
+   > **Correzione 05/08.** Questa riga diceva "allineati all'inizio della
+   > giornata UTC" ed era sbagliata: `data.py` usa `resample(origin="epoch")`,
+   > e 1440 minuti non sono divisibili per 33, quindi ancorare alla mezzanotte
+   > produce candele M33 diverse da quelle del motore. La scheda
+   > `SCHEDE-STRATEGIE.md` (trappola 1) dice epoch ed e' quella giusta.
+   > Verificato per contrasto: ancorando alla mezzanotte il confronto
+   > EA/motore fallisce (`bots/mt5/vwap-reclaim/verifica/falsifica.py`).
    M6, M12, H2, H6, H12 sono nativi. Se l'aggregazione e' sbagliata, sbagliano
    le condizioni 2, 3a e 3b, cioe' quasi tutto.
 3. **Struttura causale**: swing confermato **3 candele dopo** l'estremo; lo
@@ -133,6 +146,20 @@ La B tocca l'obiettivo 1:8 solo nel **4%** delle operazioni; il **29%** le
 chiude lo **stop mobile in guadagno**. Non e' una strategia a bersaglio, e' una
 strategia di trailing. **Se il trailing e' implementato male la B non perde
 qualche punto: smette di funzionare.**
+
+### L'ottava trappola, trovata scrivendo l'EA
+
+`segnali.genera()` **non applica** le conferme M33/H12 ne' il ritracciamento
+M12: le registra come colonne e il filtro lo mette chi consuma il risultato
+(`prepara_verifiche.py`). Quindi il **tetto di tre operazioni al giorno e
+l'attesa di trenta minuti sono gia' stati consumati dai segnali grezzi**,
+compresi quelli che le conferme scarteranno.
+
+Un EA che contasse i posti sulle sole operazioni aperte si troverebbe posti
+liberi che il motore non ha, e aprirebbe piu' tardi nella giornata operazioni
+inesistenti. Nel nucleo la distinzione e' esplicita: `consuma` (segnale grezzo)
+e `apre` (grezzo piu' conferme). Il confronto se ne accorge: invertire i due
+fa fallire `falsifica.py`.
 
 ### Log obbligatorio
 
