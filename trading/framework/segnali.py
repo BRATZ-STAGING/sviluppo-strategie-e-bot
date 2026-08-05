@@ -24,7 +24,7 @@ import pandas as pd
 from .data import TIMEFRAMES, resample_tf
 from .structure import state_at, trend_state_series
 from .taratura import Taratura
-from .volatility import atr_at, daily_atr, high_volatility_months
+from .volatility import atr_at, daily_atr, daily_bars, high_volatility_months
 from .vwap import anchored_vwap
 
 
@@ -39,14 +39,28 @@ def stati(m1: pd.DataFrame, tfs, istanti, k: int) -> dict[str, np.ndarray]:
 
 
 def filtro_macro(m1: pd.DataFrame, n: int) -> dict:
-    """Chiusura giornaliera sopra o sotto la sua media, spostata di un giorno."""
-    d1 = m1.close.resample("1D").last().dropna()
+    """Chiusura giornaliera sopra o sotto la sua media, spostata di un giorno.
+
+    Le giornate sono quelle VERE: il resampling grezzo conta come giornata
+    anche lo spezzone della domenica sera (due ore alla riapertura), che e' il
+    17% delle righe. Contandolo, la media a 50 giorni copriva in realta' ~42
+    giornate e una volta a settimana ci entrava un valore quasi identico alla
+    chiusura del venerdi'. L'ATR gia' li escludeva (``daily_bars``); qui no, ed
+    era una delle incoerenze note del progetto.
+
+    Impatto misurato sui diciotto anni (appendice BD): 5,1% delle giornate
+    classificate diversamente, 732 operazioni contro 712, risultato da
+    +117,8 a +115,1 R. Nessuna conclusione cambia.
+    """
+    d1 = daily_bars(m1).close
     sopra = (d1 > d1.rolling(n).mean()).shift(1)
     sopra.index = sopra.index.normalize()
     return sopra.to_dict()
 
 
-def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
+def genera(m1: pd.DataFrame, t: Taratura, tf_extra=(),
+           mediana_atr: float | None = None,
+           sempre_scalate: bool = False) -> list[dict]:
     """Tutte le operazioni della variante ``t``, con i percorsi al minuto.
 
     Ogni voce contiene ingresso, stop, rischio, i percorsi ``fav``/``sfav`` in
@@ -56,6 +70,20 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
 
     ``tf_extra`` aggiunge timeframe da registrare senza usarli come filtro:
     serve agli studi che vogliono misurare conferme non ancora adottate.
+
+    ``mediana_atr`` e' la mediana ATR di riferimento per riscalare le soglie
+    nei mesi ad alta volatilita'. Di norma si ricava dagli anni di
+    calibrazione presenti nella serie; va passata quando la serie NON li
+    contiene, come nel grafico dal vivo che carica solo gli ultimi mesi.
+
+    ``sempre_scalate`` riscala le soglie sull'ATR in OGNI mese, non solo in
+    quelli agitati. Serve all'appendice BX: l'oro e' passato da 950 a 4.700 $
+    fra il 2009 e il 2026, e l'appendice BW ha misurato che in rapporto al
+    prezzo la volatilita' NON e' cambiata (ATR 1,35% contro 1,39%). Quindi
+    soglie in dollari fissi — impulso 4 $, rischio 1-10 $, buffer 0,30 $ —
+    valgono cose diverse in epoche diverse, e la strategia tarata sul 2020-2026
+    applicata al 2009-2019 sta usando soglie due-tre volte troppo larghe in
+    termini relativi. Il valore predefinito lascia il comportamento invariato.
     """
     passo = pd.Timedelta(TIMEFRAMES[t.tf_ingresso])
     base = resample_tf(m1, t.tf_ingresso)
@@ -67,9 +95,17 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
     atr = daily_atr(m1, 14)
     atr_bar = atr_at(atr, base.index).values
     anni = (atr.index.year >= t.calibrazione[0]) & (atr.index.year <= t.calibrazione[1])
-    mediana = float(atr[anni].median())
+    mediana = float(atr[anni].median()) if mediana_atr is None else float(mediana_atr)
     mesi = sorted({pd.Period(x.strftime("%Y-%m"), "M") for x in base.index})
     alta = high_volatility_months(atr, mesi, t.fattore_alta_volatilita)
+    # Senza mediana le soglie riscalate diventerebbero NaN e OGNI confronto
+    # sarebbe falso: nessuna operazione per tutti i mesi agitati, in silenzio.
+    # Meglio fermarsi e dire cosa manca.
+    if any(alta.values()) and not (mediana > 0):
+        raise ValueError(
+            f"mediana ATR non calcolabile: la serie non contiene gli anni di "
+            f"calibrazione {t.calibrazione} e ci sono mesi ad alta "
+            f"volatilita'. Passare mediana_atr esplicitamente.")
     macro = filtro_macro(m1, t.media_macro)
 
     idx = base.index
@@ -96,7 +132,7 @@ def genera(m1: pd.DataFrame, t: Taratura, tf_extra=()) -> list[dict]:
         if ultimo is not None and (quando - ultimo) < pd.Timedelta(minutes=t.attesa_minuti):
             continue
 
-        if alta.get(mese[i], False):
+        if sempre_scalate or alta.get(mese[i], False):
             u = atr_bar[i]
             if np.isnan(u) or u <= 0:
                 continue

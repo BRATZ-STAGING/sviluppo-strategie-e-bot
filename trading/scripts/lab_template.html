@@ -115,9 +115,14 @@
     <div class="grp"><span class="lab-t">filtro di fondo (media 50 giorni)</span><div class="seg" id="mac" role="group" aria-label="Filtro macro"></div></div>
     <div class="grp"><span class="lab-t">conferme strutturali</span><div class="seg" id="conf" role="group" aria-label="Conferme"></div></div>
     <div class="grp"><span class="lab-t">obiettivo</span><div class="seg" id="rr" role="group" aria-label="Obiettivo"></div></div>
+    <div class="grp"><span class="lab-t">order block</span><div class="seg" id="obf" role="group" aria-label="Order block"></div></div>
+    <div class="grp"><span class="lab-t">stop</span><div class="seg" id="stopm" role="group" aria-label="Tipo di stop"></div></div>
+    <div class="grp"><span class="lab-t">profilo volume</span><div class="seg" id="vpf" role="group" aria-label="Profilo volume"></div></div>
     <div class="grp"><span class="lab-t">stop a pareggio</span><div class="seg" id="be" role="group" aria-label="Stop a pareggio"></div></div>
+    <div class="grp"><span class="lab-t">spread</span><div class="seg" id="spr" role="group" aria-label="Spread"></div></div>
     <div class="grp"><span class="lab-t">rischio per operazione</span><div class="seg" id="risk" role="group" aria-label="Rischio"></div></div>
     <div class="grp"><span class="lab-t">periodo</span><div class="seg" id="periods" role="group" aria-label="Periodo"></div></div>
+    <div class="grp"><span class="lab-t">candele del grafico</span><div class="seg" id="ctf" role="group" aria-label="Timeframe del grafico"></div></div>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -155,7 +160,7 @@
   </div>
 
   <footer>
-    <b>Come leggerlo.</b> Il grafico avanza una candela alla volta, come le vedeva la strategia: nulla a schermo era ignoto in quel momento. Le statistiche e il grafico per anno si riferiscono all'<b>intero periodo</b> con le impostazioni scelte, non solo alla parte già scorsa. Il rendimento in percentuale è composto (ogni operazione rischia la percentuale scelta del capitale corrente); scegliendo un anno singolo il conto riparte da 10.000 € a inizio anno. <b>1R</b> = il rischio di una singola operazione. <b>Stop a pareggio</b>: quando il prezzo arriva al guadagno indicato, lo stop viene spostato sul prezzo d'ingresso, cosi' l'operazione non puo' piu' perdere. Spazio per avviare o fermare, frecce per muoverti di una candela.
+    <b>Come leggerlo.</b> Il grafico avanza una candela alla volta, come le vedeva la strategia: nulla a schermo era ignoto in quel momento. Le statistiche e il grafico per anno si riferiscono all'<b>intero periodo</b> con le impostazioni scelte, non solo alla parte già scorsa. Il rendimento in percentuale è composto (ogni operazione rischia la percentuale scelta del capitale corrente); scegliendo un anno singolo il conto riparte da 10.000 € a inizio anno. <b>1R</b> = il rischio di una singola operazione. <b>Stop a pareggio</b>: quando il prezzo arriva al guadagno indicato, lo stop viene spostato sul prezzo d'ingresso, cosi' l'operazione non puo' piu' perdere. <b>Serie di fila</b>: operazioni vinte o perse consecutive; le uscite a pareggio interrompono la serie senza contarla. <b>Op. senza nuovi massimi</b>: quante operazioni consecutive sono passate, al peggio, prima che il risultato cumulato tornasse sopra il suo massimo precedente. <b>Fattore di profitto</b>: somma delle vincite divisa per la somma delle perdite; sopra 1 la strategia guadagna. <b>Candele del grafico</b>: cambia solo la lente (da 1 ora a 1 giorno), mai i numeri: ingressi e uscite sono risolti al minuto e rimappati sulle candele scelte. Il triangolo segna l'ingresso, il cerchio il prezzo <b>reale</b> d'uscita (stop, obiettivo, pareggio o chiusura di fine giornata). Spazio per avviare o fermare, frecce per muoverti di una candela.
   </footer>
 </div>
 
@@ -171,7 +176,13 @@
     ? JSON.parse(grezzo)
     : await (await fetch("/api/dati")).json();
   const P = DATA.periods, RRS = DATA.rr, BES = DATA.be;
-  const NOMI = { "full:H6": "tutto lo storico" };
+  const STOPM = DATA.stops || ["strutturale"], SPREADS = DATA.spread || [0.30];
+  const STOPP = DATA.stop_punti || [null];
+  const NOMI = { "full:H1": "tutto lo storico", "full:H6": "tutto lo storico" };
+  // timeframe del grafico: la base esportata e' H1, il resto si aggrega qui
+  const CTF = [{n:"1h",m:60,d:"candele da 1 ora"},{n:"2h",m:120,d:"candele da 2 ore"},
+               {n:"3h",m:180,d:"candele da 3 ore"},{n:"6h",m:360,d:"candele da 6 ore"},
+               {n:"12h",m:720,d:"candele da 12 ore"},{n:"1g",m:1440,d:"candele giornaliere"}];
 
   const DIR = [{k:"both",n:"long + short"},{k:"long",n:"solo long"},{k:"short",n:"solo short"}];
   const MAC = [{k:1,n:"attivo"},{k:0,n:"spento"}];
@@ -179,26 +190,59 @@
   const SPEEDS = [{k:"lenta",v:6},{k:"media",v:22},{k:"veloce",v:90},{k:"max",v:400}];
 
   // st.anno = null (tutto) oppure l'anno scelto; a0/a1 delimitano le candele
-  const st = { p:0, i:0, dir:"both", mac:1, rr:4, q:3, auto:false, be:3, risk:1,
+  const st = { p:0, i:0, dir:"both", mac:1, rr:4, q:3, auto:false, be:2, risk:1,
+               sm:0, spr:0, ob:0, vp:1, ctf:3,
                anno:null, a0:0, a1:0, playing:false, speed:22, hover:null };
 
   const D = P.map(p => {
     const b = p.base, f = a => a.map(x => x === null ? NaN : b + x/100);
     return { id:p.id, t0:p.t0, tmin:p.t, o:f(p.o), h:f(p.h), l:f(p.l), c:f(p.c),
              v:f(p.v), s:p.s, trades:p.trades, n:p.t.length, vol:p.vol||null,
+             tv:p.tv||null,
              hasState:p.s.some(x=>x!==0) };
   });
 
-  // intervallo di candele di ciascun anno, calcolato una volta sola
-  const FIN = (() => {
-    const d=D[0], out={};
+  // vista corrente: la base aggregata sul timeframe del grafico scelto.
+  // I confini dei secchi sono in minuti ASSOLUTI, cosi' cadono sulla
+  // mezzanotte UTC per qualunque passo che divida la giornata.
+  function vista(){
+    const d=D[st.p];
+    if(d._v && d._vk===st.ctf) return d._v;
+    const step=CTF[st.ctf].m, t0min=Math.floor(d.t0/60000);
+    const T=[],O=[],H=[],L=[],Cc=[],V=[],TV=[],S=[],VOL=[];
+    let cur=null;
     for(let k=0;k<d.n;k++){
-      const y=new Date(d.t0+d.tmin[k]*60000).getUTCFullYear();
-      if(!(y in out)) out[y]=[k,k]; else out[y][1]=k;
+      const b=Math.floor((t0min+d.tmin[k])/step);
+      if(b!==cur){ cur=b; T.push(b*step-t0min);
+        O.push(d.o[k]); H.push(d.h[k]); L.push(d.l[k]); Cc.push(d.c[k]);
+        V.push(d.v[k]); TV.push(d.tv?d.tv[k]:0); S.push(d.s[k]);
+        VOL.push(d.vol?d.vol[k]:null); }
+      else { const j=T.length-1;
+        H[j]=Math.max(H[j],d.h[k]); L[j]=Math.min(L[j],d.l[k]); Cc[j]=d.c[k];
+        if(!isNaN(d.v[k])) V[j]=d.v[k]; if(d.tv) TV[j]+=d.tv[k]; S[j]=d.s[k];
+        if(d.vol&&d.vol[k]!==null) VOL[j]=d.vol[k]; }
     }
-    return out;
+    const out={ id:d.id, t0:d.t0, tmin:T, o:O, h:H, l:L, c:Cc, v:V, s:S,
+                tv:TV, vol:d.vol?VOL:null, n:T.length, trades:d.trades,
+                hasState:d.hasState };
+    out.fin={};
+    for(let k=0;k<out.n;k++){
+      const y=new Date(out.t0+out.tmin[k]*60000).getUTCFullYear();
+      if(!(y in out.fin)) out.fin[y]=[k,k]; else out.fin[y][1]=k;
+    }
+    d._v=out; d._vk=st.ctf; return out;
+  }
+  // ultima candela della vista con apertura <= al minuto dato
+  function idxOf(d,m){
+    let lo=0,hi=d.n-1;
+    while(lo<hi){ const md=(lo+hi+1)>>1; if(d.tmin[md]<=m) lo=md; else hi=md-1; }
+    return lo;
+  }
+  const ANNI = (() => {
+    const d=D[0], s=new Set();
+    for(let k=0;k<d.n;k++) s.add(new Date(d.t0+d.tmin[k]*60000).getUTCFullYear());
+    return [...s].sort((a,b)=>a-b);
   })();
-  const ANNI = Object.keys(FIN).map(Number).sort((a,b)=>a-b);
 
   const el = id => document.getElementById(id);
   const chart=el("chart"), eq=el("equity"), vol=el("vol"), anni=el("anni"), conto=el("conto");
@@ -235,11 +279,23 @@
       if (st.q===1 && !F[0]) continue;                       // M33
       if (st.q===2 && !(F[0]&&F[1])) continue;               // M33 + H12
       if (st.q===3 && !(F[0]&&F[1]&&F[3]===0)) continue;     // + M12 in ritracciamento
+      const B = t.b || [0,0];
+      if (st.ob===1 && !B[0]) continue;                      // dentro un order block
+      if (st.ob===2 && !B[1]) continue;                      // dentro la zona raffinata
       // "auto": l'obiettivo lo sceglie la qualità del setup, non l'utente
       const j = st.auto ? (t.q>=2 ? 4 : t.q===1 ? 3 : 1) : st.rr;
-      const [xi, rl, mo] = t.x[st.be][j];
-      out.push({ ...t, xi, r: rl - t.c, tp: t.L===1 ? t.e + RRS[j]*t.k : t.e - RRS[j]*t.k,
-                 rrUsato: RRS[j], motivo: mo, vinta: rl > 0 });
+      const [xm, rl, mo] = t.x[st.sm][st.be][j];             // xm = MINUTO d'uscita
+      const kR = STOPP[st.sm]===null ? t.k : STOPP[st.sm];   // rischio in $
+      const costo = SPREADS[st.spr] / kR;
+      const netto = rl - costo;
+      out.push({ ...t, i: idxOf(d, t.m), xi: idxOf(d, xm),
+                 r: netto, kUsato: kR,
+                 tp: t.L===1 ? t.e + RRS[j]*kR : t.e - RRS[j]*kR,
+                 sPrice: STOPP[st.sm]===null ? t.s : (t.L===1 ? t.e - STOPP[st.sm] : t.e + STOPP[st.sm]),
+                 // il prezzo VERO d'uscita, dal risultato lordo: e' qui che
+                 // va disegnato il cerchio (non al TP teorico)
+                 uPrice: t.L===1 ? t.e + rl*kR : t.e - rl*kR,
+                 rrUsato: RRS[j], motivo: mo, vinta: netto > 0 });
     }
     return out;
   }
@@ -254,11 +310,26 @@
       eqv*=(1+RISK[st.risk]*t.r); peak=Math.max(peak,eqv); dd=Math.max(dd,(peak-eqv)/peak);
       perAnno[t.y]=(perAnno[t.y]||0)+t.r;
     }
-    let r=0,pk=0,ddR=0; for(const t of ts){ r+=t.r; pk=Math.max(pk,r); ddR=Math.max(ddR,pk-r); }
+    // serie consecutive e durata del recupero: i pareggi (uscita sul prezzo
+    // d'ingresso, motivo 3) non sono ne' vittorie ne' perdite e interrompono
+    // entrambe le serie; il loro piccolo costo resta pero' nel totale.
+    let r=0,pk=0,ddR=0, sotto=0, sottoMax=0;
+    let sv=0,sp=0, svMax=0,spMax=0, gw=0,gl=0,nw=0,nl=0;
+    for(const t of ts){
+      r+=t.r;
+      if(r>=pk){ pk=r; sotto=0; } else { sotto++; sottoMax=Math.max(sottoMax,sotto); }
+      ddR=Math.max(ddR,pk-r);
+      if(t.motivo===3){ sv=0; sp=0; }
+      else if(t.r>0){ sv++; sp=0; svMax=Math.max(svMax,sv); gw+=t.r; nw++; }
+      else if(t.r<0){ sp++; sv=0; spMax=Math.max(spMax,sp); gl-=t.r; nl++; }
+      else { sv=0; sp=0; }
+    }
     const mot=[0,0,0,0]; for(const t of ts) mot[t.motivo]++;
     return { n:ts.length, tot, expR:ts.length?tot/ts.length:0, win:ts.length?win/ts.length:0,
              stop:ts.length?mot[0]/ts.length:0, pari:ts.length?mot[3]/ts.length:0,
              rend:eqv-1, ddPct:dd, ddR, perAnno,
+             svMax, spMax, sottoMax, nVinte:nw, nPerse:nl,
+             mediaW:nw?gw/nw:0, mediaL:nl?gl/nl:0, pf:gl>0?gw/gl:(gw>0?Infinity:0),
              anniPos:Object.values(perAnno).filter(x=>x>0).length,
              anniTot:Object.keys(perAnno).length };
   }
@@ -269,7 +340,7 @@
 
   /* ---------- grafico principale ---------- */
   function draw() {
-    const d=D[st.p], ts=attivi(d), {w,h}=fit(chart,cx);
+    const d=vista(), ts=attivi(d), {w,h}=fit(chart,cx);
     const padR=56,padB=21,padT=7,padL=6;
     const N=Math.min(visibleCount(),ampiezza()), end=Math.max(st.a0,Math.min(st.i,st.a1)),
           start=Math.max(st.a0,end-N+1);
@@ -280,7 +351,7 @@
     for(let k=start;k<=end;k++){ if(d.l[k]<lo)lo=d.l[k]; if(d.h[k]>hi)hi=d.h[k];
       if(!isNaN(d.v[k])){ if(d.v[k]<lo)lo=d.v[k]; if(d.v[k]>hi)hi=d.v[k]; } }
     const live=aperta(ts,end);
-    if(live){ lo=Math.min(lo,live.s,live.tp); hi=Math.max(hi,live.s,live.tp); }
+    if(live){ lo=Math.min(lo,live.sPrice,live.tp); hi=Math.max(hi,live.sPrice,live.tp); }
     const span=Math.max(hi-lo,1)*1.06, mid=(hi+lo)/2; lo=mid-span/2; hi=mid+span/2;
     const cw=plotW/N, X=k=>padL+(k-start+0.5)*cw, Y=p=>padT+(hi-p)/(hi-lo)*plotH;
 
@@ -290,6 +361,24 @@
       cx.strokeStyle=C.line2; cx.lineWidth=1; cx.beginPath(); cx.moveTo(padL,y); cx.lineTo(padL+plotW,y); cx.stroke();
       cx.fillStyle=C.ink3; cx.textAlign="left"; cx.fillText(fmt(p,1),padL+plotW+7,y); }
 
+    if(st.vp && d.tv){
+      const NB=36, bins=new Float64Array(NB);
+      for(let k=start;k<=end;k++){
+        const mid=(d.h[k]+d.l[k])/2;
+        const bi=Math.max(0,Math.min(NB-1,Math.floor((hi-mid)/(hi-lo)*NB)));
+        bins[bi]+=d.tv[k];
+      }
+      let mx=0; for(const b of bins) mx=Math.max(mx,b);
+      if(mx>0){
+        cx.fillStyle=C.brass; cx.globalAlpha=0.10;
+        const bh=plotH/NB;
+        for(let bi=0;bi<NB;bi++){
+          const w2=bins[bi]/mx*plotW*0.16;
+          if(w2>0.5) cx.fillRect(padL+plotW-w2, padT+bi*bh, w2, Math.max(bh-1,1));
+        }
+        cx.globalAlpha=1;
+      }
+    }
     cx.textAlign="center"; cx.textBaseline="alphabetic";
     let pd=when(d,start).dayIdx, lastX=-1e9;
     for(let k=start+1;k<=end;k++){ const wk=when(d,k);
@@ -302,9 +391,9 @@
       cx.fillStyle=C.up; cx.globalAlpha=.13;
       cx.fillRect(x0,Y(Math.max(live.tp,live.e)),x1-x0,Math.abs(Y(live.tp)-Y(live.e)));
       cx.fillStyle=C.down;
-      cx.fillRect(x0,Y(Math.max(live.s,live.e)),x1-x0,Math.abs(Y(live.s)-Y(live.e)));
+      cx.fillRect(x0,Y(Math.max(live.sPrice,live.e)),x1-x0,Math.abs(Y(live.sPrice)-Y(live.e)));
       cx.globalAlpha=1;
-      [[live.tp,C.up,"obiettivo"],[live.s,C.down,"stop"],[live.e,C.brass,long?"ingresso long":"ingresso short"]]
+      [[live.tp,C.up,"obiettivo"],[live.sPrice,C.down,"stop"],[live.e,C.brass,long?"ingresso long":"ingresso short"]]
         .forEach(([p,col,lab])=>{ const y=Math.round(Y(p))+.5;
           cx.strokeStyle=col; cx.lineWidth=1.5; cx.setLineDash(lab.startsWith("ingresso")?[]:[5,4]);
           cx.beginPath(); cx.moveTo(x0,y); cx.lineTo(x1,y); cx.stroke(); cx.setLineDash([]);
@@ -331,9 +420,7 @@
 
     ts.forEach(t=>{ if(t.xi>end||t.xi<start)return;
       cx.fillStyle=t.r>0?C.up:C.down; cx.strokeStyle=C.panel; cx.lineWidth=2;
-      cx.beginPath(); cx.arc(X(t.xi),Y(t.L===1?t.tp:t.tp),0,0,0);
-      const yy=Y(t.r>0?t.tp:t.s);
-      cx.beginPath(); cx.arc(X(t.xi),yy,4.5,0,Math.PI*2); cx.fill(); cx.stroke(); });
+      cx.beginPath(); cx.arc(X(t.xi),Y(t.uPrice),4.5,0,Math.PI*2); cx.fill(); cx.stroke(); });
     ts.forEach(t=>{ if(t.i>end||t.i<start)return; const x=X(t.i), y=Y(t.e), long=t.L===1;
       cx.fillStyle=C.brass; cx.strokeStyle=C.panel; cx.lineWidth=2; cx.beginPath();
       if(long){ cx.moveTo(x,y+9); cx.lineTo(x-5,y+17); cx.lineTo(x+5,y+17); }
@@ -478,8 +565,8 @@
     el("hud").innerHTML=`<span class="pill"><b>${wk.day}</b> ${wk.hm} UTC</span>`+
       `<span class="pill">prezzo <b>${fmt(d.c[i])}</b></span>`+
       (d.hasState?`<span class="pill"><span class="dot ${c6}"></span>H6 ${t6}</span><span class="pill"><span class="dot ${c2}"></span>H2 ${t2}</span>`
-                 :`<span class="pill">candele da 6 ore · 2020-2026</span>`)+
-      (live?`<span class="pill" style="border-color:var(--brass)">${live.L===1?"long":"short"} aperto · rischio <b>${fmt(live.k)}&#36;</b></span>`:"");
+                 :`<span class="pill">${CTF[st.ctf].d} · 2020-2026</span>`)+
+      (live?`<span class="pill" style="border-color:var(--brass)">${live.L===1?"long":"short"} aperto · rischio <b>${fmt(live.kUsato)}&#36;</b></span>`:"");
 
     const m=metriche(ts), cls=v=>v>0?"pos":v<0?"neg":"";
     el("stats").innerHTML=[
@@ -494,12 +581,20 @@
       ["a pareggio", st.be ? (m.pari*100).toFixed(0)+"%" : "—", ""],
       ["anni positivi", `${m.anniPos}<span style="color:var(--ink3);font-size:13px"> / ${m.anniTot}</span>`,
         m.anniPos*2>m.anniTot?"pos":"neg"],
+      ["op. in profitto", `${m.nVinte}<span style="color:var(--ink3);font-size:13px"> (${m.n?Math.round(m.nVinte/m.n*100):0}%)</span>`, "pos"],
+      ["op. in perdita", `${m.nPerse}<span style="color:var(--ink3);font-size:13px"> (${m.n?Math.round(m.nPerse/m.n*100):0}%)</span>`, "neg"],
+      ["vittorie di fila max", String(m.svMax), "pos"],
+      ["perdite di fila max", String(m.spMax), "neg"],
+      ["media vittoria", "+"+fmt(m.mediaW,2)+" R", "pos"],
+      ["media perdita", "−"+fmt(m.mediaL,2)+" R", "neg"],
+      ["fattore di profitto", m.pf===Infinity?"∞":fmt(m.pf,2), m.pf>1?"pos":"neg"],
+      ["op. senza nuovi massimi", String(m.sottoMax), ""],
     ].map(([k,v,c])=>`<div class="stat"><span class="k">${k}</span><span class="v ${c}">${v}</span></div>`).join("");
   }
 
   let lastLog=-1;
   function log(d,ts,i,live){
-    const done=chiuse(ts,i), key=done.length*1000+(live?live.i:0)+st.rr*7+st.mac*3+st.be*29+
+    const done=chiuse(ts,i), key=done.length*1000+(live?live.i:0)+st.rr*7+st.mac*3+st.be*29+st.sm*61+st.spr*67+st.ob*71+st.ctf*101+
       (st.dir==="long"?1:st.dir==="short"?2:0)*11;
     if(key===lastLog)return; lastLog=key;
     const rows=el("rows");
@@ -532,9 +627,19 @@
     if(on)raf=requestAnimationFrame(tick); else if(raf)cancelAnimationFrame(raf); }
 
   function scegliAnno(anno){
+    const d=vista();
     st.anno=anno; lastLog=-1;
-    [st.a0,st.a1] = anno===null ? [0,D[0].n-1] : FIN[anno];
+    [st.a0,st.a1] = (anno===null || !d.fin[anno]) ? [0,d.n-1] : d.fin[anno];
     st.i=anno===null ? st.a0 : st.a1;   // l'anno si apre gia' completo
+    const sc=el("scrub"); sc.min=st.a0; sc.max=st.a1; sc.value=st.i;
+    setPlaying(false); draw(); }
+
+  function scegliCtf(k){
+    const minuto=vista().tmin[st.i];    // dove siamo nel tempo, non in candele
+    st.ctf=k; lastLog=-1;
+    const d=vista();
+    [st.a0,st.a1] = (st.anno===null || !d.fin[st.anno]) ? [0,d.n-1] : d.fin[st.anno];
+    st.i=Math.max(st.a0,Math.min(idxOf(d,minuto),st.a1));
     const sc=el("scrub"); sc.min=st.a0; sc.max=st.a1; sc.value=st.i;
     setPlaying(false); draw(); }
 
@@ -547,15 +652,21 @@
   }
   segmento("dir", DIR, 0, k=>st.dir=DIR[k].k);
   segmento("mac", MAC, 0, k=>st.mac=MAC[k].k);
-  const CONF=[{n:"nessuna",v:0},{n:"M33",v:1},{n:"M33 + H12",v:2},{n:"M33+H12, M12 in pullback",v:3}];
-  segmento("conf", CONF, 3, k=>st.q=CONF[k].v);
+  const CONF=[{n:"nessuna",v:0},{n:"M33+H12, M12 in pullback (l'insieme)",v:3}];
+  segmento("conf", CONF, 1, k=>st.q=CONF[k].v);
   segmento("rr", RRS.map(r=>({n:"1:"+r})).concat([{n:"auto"}]), 4,
            k=>{ st.auto = (k===RRS.length); if(!st.auto) st.rr=k; });
   segmento("be", BES.map(b=>({n: b===null ? "nessuno" : "+"+String(b).replace(".",",")+"R"})),
-           3, k=>st.be=k);
+           2, k=>st.be=k);
+  segmento("stopm", STOPM.map(n=>({n})), 0, k=>st.sm=k);
+  segmento("obf", [{n:"tutte"},{n:"in order block"},{n:"in zona raffinata"}], 0, k=>st.ob=k);
+  segmento("vpf", [{n:"off"},{n:"on"}], 1, k=>st.vp=k);
+  segmento("spr", SPREADS.map((v,i)=>({n:String(v).replace(".",",")+" $"+(i? " (reale)":"")})), 0,
+           k=>st.spr=k);
   segmento("risk", RISK.map(r=>({n:(r*100).toString().replace(".",",")+"%"})), 1, k=>st.risk=k);
   const PERIODI=[{n:"tutto",v:null}].concat(ANNI.map(y=>({n:String(y),v:y})));
   segmento("periods", PERIODI, 0, k=>scegliAnno(PERIODI[k].v));
+  segmento("ctf", CTF, st.ctf, k=>scegliCtf(k));
   segmento("speeds", SPEEDS.map(s=>({n:s.k})), 1, k=>st.speed=SPEEDS[k].v);
 
   el("play").addEventListener("click",()=>{ if(st.i>=st.a1){st.i=st.a0;el("scrub").value=st.a0;} setPlaying(!st.playing); });

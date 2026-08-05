@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# dettaglio grezzo degli studi: pesa centinaia di MB, sta fuori dal repo
+docs/studies/dati/ob_tocchi.parquet
+docs/studies/dati/livelli_atr.parquet

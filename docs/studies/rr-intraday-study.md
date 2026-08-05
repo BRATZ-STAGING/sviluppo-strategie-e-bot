@@ -1020,3 +1020,4325 @@ E' la conferma indipendente di quanto misurato nell'appendice M sulla variante
 sui timeframe piccoli: sotto una certa ampiezza di stop il costo fisso diventa
 decisivo. Qui succede a taratura invariata, sulle poche operazioni in cui lo
 stop e' minimo.
+
+## Appendice O: i ritracciamenti di Fibonacci — RESPINTI col placebo
+
+Domanda deliberatamente piu' piccola di "lo scalping su Fibonacci funziona":
+**i livelli di Fibonacci reagiscono?** Si misura la reazione al tocco, senza
+stop, senza obiettivo, senza costi. Se i livelli veri non battono livelli finti
+alla stessa profondita', qualunque strategia costruita sopra e' morta prima di
+pagare lo spread.
+
+Disegno (`trading/scripts/run_fibo_placebo.py`): gambe fra swing frattali
+confermati k barre dopo l'estremo, utilizzabili solo da quando il secondo
+estremo e' confermato; primo tocco del livello dopo l'attivazione; reazione =
+massima escursione favorevole nei 60 minuti successivi, in ATR.
+**Placebo**: livelli a percentuali NON di Fibonacci (23 · 34 · 44 · 56 · 67 · 84)
+misurati in modo identico.
+
+### Fibonacci contro placebo
+
+| timeframe | tocchi fibo | tocchi finti | reazione fibo | reazione finta | differenza | probabilita' che sia caso |
+|---|---|---|---|---|---|---|
+| M12 | 9.662 | 11.913 | 0,1185 | 0,1134 | +0,0031 | **16,9%** |
+| M6 | 7.479 | 9.240 | 0,1326 | 0,1296 | +0,0001 | **49,2%** |
+
+Su M6 la differenza e' **un decimillesimo di ATR** con probabilita' del 49% di
+essere caso: una moneta.
+
+### Accoppiando ogni livello di Fibonacci con un finto alla stessa profondita' (M12)
+
+| Fibonacci | finto | reazione fibo | reazione finta | vince |
+|---|---|---|---|---|
+| 38,2 | 34,0 | 0,1083 | 0,1064 | fibo |
+| 38,2 | 44,0 | 0,1083 | 0,1158 | finto |
+| 50,0 | 44,0 | 0,1177 | 0,1158 | fibo |
+| 50,0 | 56,0 | 0,1177 | 0,1185 | finto |
+| 61,8 | 56,0 | 0,1194 | 0,1185 | fibo |
+| 61,8 | 67,0 | 0,1194 | 0,1201 | finto |
+| 70,5 | 67,0 | 0,1207 | 0,1201 | fibo |
+| 78,6 | 84,0 | 0,1293 | 0,1300 | finto |
+
+**Quattro a quattro.** Su M12 il livello che reagisce meglio di tutti e' il
+finto **84%**, non il 78,6.
+
+### L'effetto profondita' NON e' stabile
+
+Su M12 la reazione cresce in modo perfettamente monotono con la profondita' del
+ritracciamento (correlazione **+0,965**), veri e finti mescolati: sembrava un
+effetto meccanico utilizzabile — piu' profondo il livello, piu' spazio per
+rimbalzare.
+
+Su M6 quella regolarita' **non c'e'**: correlazione **+0,341**, con un massimo
+intorno al 56% e reazioni che calano oltre il 67%. Il livello migliore su M6 e'
+il finto 56.
+
+Due timeframe, due forme diverse: **non e' una regolarita' su cui costruire.**
+
+### Il numero che chiude anche lo scalping
+
+| timeframe | reazione | penetrazione | rapporto |
+|---|---|---|---|
+| M12 | 0,1155 ATR | 0,1093 ATR | **1,057** |
+| M6 | 0,1326 ATR | 0,1207 ATR | **1,098** |
+
+Il rimbalzo supera il movimento contrario del 6-10%: praticamente una moneta.
+E lo scalping su XAUUSD, con lo spread reale misurato di 0,63 $, richiede:
+
+| stop | costo in R | pareggio a RR 1:1 | a RR 1:2 |
+|---|---|---|---|
+| 2 $ | 0,315 | **65,8%** | 43,8% |
+| 3 $ | 0,210 | 60,5% | 40,3% |
+| 5 $ | 0,126 | 56,3% | 37,5% |
+
+Formula: `pareggio = (1 + costo) / (1 + RR)`. Con un rapporto reazione/
+penetrazione di 1,06 non si arriva da nessuna parte vicino al 66%.
+
+**Conclusione: strada respinta.** Non e' un problema di taratura, e' che il
+segnale non c'e'. Non riprovare Fibonacci come generatore di livelli, ne' su
+timeframe piu' piccoli: e' misurato, con placebo, su due timeframe.
+
+## Appendice P: gli order block funzionano (primo risultato positivo su un'idea nuova)
+
+Definizione data dall'utente, il suo bot li usa cosi':
+
+- **rialzista**: l'ultima candela con chiusura sotto l'apertura prima del
+  movimento che rompe uno swing high. Zona **dal minimo dell'ombra
+  all'apertura**, cioe' al bordo superiore del corpo: l'ombra in alto non fa
+  parte della zona.
+- **ribassista**: simmetrico. Zona dall'apertura (bordo inferiore del corpo) al
+  massimo dell'ombra.
+- **causale**: la zona esiste solo dalla chiusura della candela che rompe. Prima
+  non si sapeva che ci sarebbe stata una rottura: usarla prima e' lookahead.
+- **invalidata** alla prima chiusura oltre il lato lontano; **scade** dopo 30
+  candele.
+
+Ipotesi pre-registrata: gli ingressi che cadono dentro un order block attivo e
+concorde rendono di piu', perche' e' dove stanno gli ordini in attesa.
+
+### Il risultato, su tutte le 1.344 operazioni
+
+| timeframe della zona | n dentro | R/op dentro | R/op fuori | delta | probabilita' per caso | anni meglio |
+|---|---|---|---|---|---|---|
+| **M33** | 160 | **+0,640** | +0,087 | **+0,553** | **0,3%** | **6/7** |
+| H2 | 99 | +0,146 | +0,153 | -0,007 | 50,0% | 3/7 |
+
+Su M33 l'effetto e' forte e regge per anno. Su H2 non c'e' niente: le zone dei
+timeframe alti sono troppo poche e troppo larghe.
+
+### Regge fuori campione, e migliora
+
+| periodo | dentro | fuori | delta |
+|---|---|---|---|
+| selezione 2020-2023 | +0,436 (n=92) | +0,100 (n=726) | +0,336 |
+| **verifica 2024-2026** | **+0,916** (n=68) | +0,066 (n=458) | **+0,850** |
+
+E' il contrario della firma da sovradattamento, dove il fuori campione crolla.
+
+### E' robusto al parametro che ho scelto io
+
+Il margine (quanto vicino alla zona basta essere) e' l'unico numero arbitrario:
+
+| margine | n dentro | R/op dentro | R/op fuori | delta | probabilita' per caso |
+|---|---|---|---|---|---|
+| 0,00 (dentro esatto) | 42 | +0,833 | +0,131 | **+0,702** | 3,1% |
+| 0,25 x rischio | 86 | +0,779 | +0,110 | +0,669 | 0,7% |
+| 0,50 x rischio | 160 | +0,640 | +0,087 | +0,553 | 0,3% |
+| 0,75 x rischio | 249 | +0,489 | +0,076 | +0,412 | 0,6% |
+| 1,00 x rischio | 337 | +0,421 | +0,063 | +0,359 | 0,7% |
+| 1,50 x rischio | 459 | +0,393 | +0,028 | +0,365 | 0,4% |
+
+**Monotono**: piu' si e' vicini alla zona, piu' grande l'effetto. E' un
+altopiano, non un picco: significativo a ogni margine. E' la forma che ha un
+effetto vero, non un parametro fittato.
+
+### E' indipendente dalle conferme
+
+| campione | n dentro | delta | probabilita' per caso | anni meglio |
+|---|---|---|---|---|
+| tutte le operazioni | 160 | +0,553 | 0,3% | 6/7 |
+| solo la regola completa | 69 | +0,378 | 14,1% | 4/7 |
+| **solo le operazioni che la regola SCARTA** | 91 | **+0,537** | **1,6%** | **6/7** |
+
+La terza riga e' la piu' informativa: l'effetto c'e' anche sulle operazioni che
+le conferme M33+H12+M12 rifiutano. **Gli order block non sono un altro modo di
+dire la stessa cosa delle conferme**: aggiungono informazione loro.
+
+Sul solo sottoinsieme della regola completa il test non passa (14,1%), ma con 69
+operazioni la potenza non basta: il campione grande e il sottoinsieme scartato
+dicono la stessa cosa e sono la prova.
+
+### Cosa resta da fare prima di adottarli
+
+1. **misurarli come filtro sul risultato complessivo**, non solo come differenza
+   fra due gruppi: quante operazioni si perdono, come cambiano drawdown e conto
+2. **provare altri timeframe fra M33 e H2** (M66) e altre durate di validita'
+3. **verificare che non sia un travestimento dell'impulso minimo**: entrambi
+   chiedono che il prezzo si sia mosso prima di tornare
+4. **rifarlo con lo spread reale** dai tick
+
+Il punto 3 e' il rischio piu' serio: se le due condizioni selezionano le stesse
+operazioni, l'order block non aggiunge nulla, misura solo di nuovo l'impulso.
+
+## Appendice Q: stop fissi piccoli su timeframe bassi — la direzione e' sbagliata
+
+Specifica dell'utente: 0,01 lotti su XAU, dove un punto vale un dollaro, quindi
+stop di **2 / 3 / 5 dollari** con obiettivi **1:3 e 1:5**, su ingressi M3 e M6.
+Lo stop non e' strutturale ma un valore fisso: meccanica diversa da quella della
+taratura, e va misurata a parte.
+
+Costi con lo spread reale misurato (0,63 $):
+
+| stop | costo in R | pareggio a 1:3 | a 1:5 |
+|---|---|---|---|
+| 2 $ | **0,315** | 32,9% | 21,9% |
+| 3 $ | 0,210 | 30,3% | 20,2% |
+| 5 $ | 0,126 | 28,2% | 18,8% |
+
+72 celle provate (2 timeframe x 3 stop x 2 obiettivi x 4 filtri). Le celle
+singole non contano — contano le **regolarita'**, che sono quattro e valgono su
+tutte e 72.
+
+### 1. Lo stop piu' largo vince sempre
+
+R/op con conferme e order block:
+
+| ingresso | 2 $ | 3 $ | 5 $ |
+|---|---|---|---|
+| M6, 1:3 | -0,061 | +0,273 | **+0,443** |
+| M6, 1:5 | +0,090 | +0,270 | +0,292 |
+| M3, 1:3 | -0,235 | +0,104 | **+0,299** |
+| M3, 1:5 | -0,099 | +0,204 | +0,170 |
+
+Monotono in **ogni** filtro e su entrambi i timeframe. Il tasso di stop passa dal
+72% con 2 $ al 42-48% con 5 $.
+
+**A 2 $ il risultato e' negativo quasi ovunque**, e su M3 in tutte e otto le
+celle. "Tante piccole operazioni" non compensa: il costo si paga per operazione,
+quindi piu' se ne fanno piu' se ne paga, e con lo stop stretto il rumore tira
+fuori piu' spesso.
+
+### 2. M6 batte M3 in ogni cella comparabile
+
+Con conferme e order block, stop 5 $ e obiettivo 1:3: **+0,443** su M6 contro
+**+0,299** su M3. Terza misura indipendente che dice la stessa cosa
+(appendici M e O sono le altre due).
+
+### 3. Senza filtri perde in ogni combinazione
+
+Tutti i segnali, nessun filtro: da -0,058 a -0,323 R/op. Ventiquattro celle su
+ventiquattro negative, su entrambi i timeframe.
+
+### 4. L'order block migliora quasi tutte le celle
+
+Coerente con l'appendice P, e su un campione diverso da quello in cui era stato
+trovato.
+
+### Il confronto che chiude la questione
+
+| sistema | n | R/op | anni+ | drawdown |
+|---|---|---|---|---|
+| miglior cella qui (M6, conferme+OB, 5 $, 1:3) | 127 | +0,443 | 5/7 | non misurato |
+| **taratura ufficiale** (M6 strutturale, 1:10, pareggio +3R) | **348** | **+0,492** | **7/7** | **16,3%** |
+
+La cella migliore di 72 e' **peggiore** della taratura in vigore, su un terzo
+delle operazioni e con due anni negativi. E quel +0,443 e' scelto a posteriori
+fra 72: il suo valore vero e' piu' basso.
+
+**Conclusione: la direzione e' sbagliata.** Tutte le regolarita' misurate
+puntano verso stop piu' larghi e timeframe piu' alti, cioe' verso dove la
+taratura ufficiale si trova gia'. Lo stop strutturale (minimo delle ultime
+candele piu' un buffer, banda 1-10 $, mediana 3,4-16 $ a seconda dell'anno) sta
+nella zona buona, e ci sta arrivando da una regola invece che da un numero
+fisso.
+
+## Appendice R: pareggio precoce e prova sui due anni completi
+
+### Il pareggio a +1 punto azzera il vantaggio
+
+Idea dell'utente: portare lo stop a pareggio appena l'operazione va di un punto
+(un dollaro) in vantaggio. Misurato su ingressi M6, spread reale 0,63 $:
+
+| filtro | stop | RR | senza pareggio | **+1 $** | +2 $ | +3 $ | +5 $ |
+|---|---|---|---|---|---|---|---|
+| conferme+OB | 5 $ | 1:3 | **+0,443** | **+0,003** | +0,106 | +0,137 | +0,277 |
+| conferme+OB | 3 $ | 1:3 | +0,273 | +0,003 | +0,108 | +0,135 | +0,135 |
+| conferme+OB | 5 $ | 1:5 | +0,292 | **-0,045** | +0,080 | +0,102 | +0,245 |
+| tutti i segnali | 5 $ | 1:5 | -0,058 | -0,120 | -0,128 | -0,132 | -0,114 |
+
+**A +1 $ il 74% delle operazioni esce a pareggio.** Con uno stop da 5 $ armare a
++1 $ significa armare a +0,2 R: il prezzo torna sull'ingresso in tre casi su
+quattro. E il pareggio non e' zero, costa lo spread (-0,126 R), quindi si
+trasforma il 74% delle operazioni in piccole perdite.
+
+Il pattern e' **monotono**: piu' tardi si arma, meglio va. E' identico a quanto
+misurato nell'appendice L sulla taratura ufficiale, dove +1R era la soglia
+peggiore e +3R la migliore. Due meccaniche diverse, stessa risposta: **il
+pareggio va armato tardi.**
+
+### La cella migliore, anno per anno
+
+M6, conferme e order block, stop 5 $, obiettivo 1:3, nessun pareggio:
+
+| anno | n | R/op | R totale |
+|---|---|---|---|
+| 2020 | 19 | -0,057 | -1,1 |
+| 2021 | 26 | +0,425 | +11,0 |
+| 2022 | 13 | +0,955 | +12,4 |
+| 2023 | 36 | +0,320 | +11,5 |
+| 2024 | 19 | +0,715 | +13,6 |
+| 2025 | 13 | +0,767 | +10,0 |
+| **2026** | **1** | -1,126 | -1,1 |
+
+### I due anni completi piu' recenti
+
+| | n | R/op | R totale | drawdown | conto da 10.000 € |
+|---|---|---|---|---|---|
+| 2024 | 19 | +0,715 | +13,6 | 5,6R | 11.413 € |
+| 2025 | 13 | +0,767 | +10,0 | 3,4R | 11.022 € |
+| 2024+2025 | 32 | +0,736 | +23,6 | 5,6R | 12.579 € |
+
+### Il confronto che conta
+
+| anno | operazioni piccola | R piccola | operazioni ufficiale | R ufficiale |
+|---|---|---|---|---|
+| 2024 | 19 | +13,6 | 54 | **+38,4** |
+| 2025 | 13 | +10,0 | 82 | **+44,1** |
+
+**Per operazione la variante e' pari o meglio** (+0,715 contro +0,710 nel 2024;
++0,767 contro +0,538 nel 2025). **In soldi rende un terzo**, perche' fa 20
+operazioni l'anno contro 54.
+
+E' la lezione che vale piu' del numero: **il R per operazione non e' quello che
+paga, il R totale lo e'.** Un sistema piu' selettivo puo' avere un'ottima media e
+guadagnare meno, perche' non capitalizza.
+
+Il 2026 con **una** operazione chiude il discorso sull'affidabilita': con
+campioni annuali da 13 a 36 operazioni non si distingue nulla.
+
+**Conclusione**: la variante non si adotta. Quello che resta di valore da questo
+studio e' l'order block (appendice P), che qui si e' confermato su un campione
+diverso da quello in cui era stato trovato.
+
+## Appendice S: win rate al 70% e dieci operazioni al giorno — due specifiche impossibili
+
+Due richieste dell'utente, misurate sulle stesse operazioni della taratura
+ufficiale. Entrambe sono specifiche su **variabili che non si possono scegliere**.
+
+### Il 70% di operazioni vinte si ottiene, ed e' dove si perde di piu'
+
+Stesse 348 operazioni, cambia solo l'obiettivo:
+
+| obiettivo | % vinte | R/op | R totale | anni positivi |
+|---|---|---|---|---|
+| 1:0,25 | **70,4%** | **-0,14** | -48,0 | **0/7** |
+| 1:0,4 | **71,6%** | **-0,13** | -45,1 | **0/7** |
+| 1:0,5 | 67,5% | -0,12 | -42,5 | 1/7 |
+| 1:0,75 | 62,4% | -0,06 | -19,6 | 3/7 |
+| 1:1 | 56,6% | -0,02 | -8,3 | 3/7 |
+| 1:2 | 46,8% | +0,14 | +47,7 | 6/7 |
+| 1:3 | 42,0% | +0,23 | +81,0 | 6/7 |
+| **1:10** | **36,2%** | **+0,37** | **+128,1** | 6/7 |
+
+La relazione e' **monotona**: piu' sale il win rate, piu' scende il guadagno.
+
+Perche' non e' aggirabile. Perche' il 70% sia profittevole serve un obiettivo
+sopra 0,6 (con stop da 5 $ e spread reale: `0,70 x RR - 0,30 - 0,126 > 0`).
+Ma sui dati, mettendo l'obiettivo a 0,75 il win rate **scende al 62,4%**, e a
+1,0 scende al 56,6%. **Le due grandezze non sono indipendenti**: il mercato da'
+la coppia, non i due numeri separatamente, e su questi dati non esiste nessuna
+coppia con vinte >= 70% e attesa positiva.
+
+**Il win rate non e' una specifica, e' una conseguenza dell'obiettivo.** Le
+specifiche sensate sono la perdita massima e la regolarita', e la taratura in
+vigore le ha buone (16,3% e 7 anni su 7) proprio grazie al 36% di vinte.
+
+### Dieci operazioni al giorno non esistono, e a otto il vantaggio non copre i costi
+
+Allentando progressivamente ogni condizione (impulso, filtro macro, limite
+giornaliero, attesa fra segnali), obiettivo 1:3, spread reale 0,63 $:
+
+| ingresso | op/giorno | lordo | netto 3 $ | netto 5 $ | netto 15 $ |
+|---|---|---|---|---|---|
+| M6 impulso 4 (taratura) | 2,15 | +0,026 | -0,184 | -0,085 | +0,000 |
+| M6 impulso 1, no macro | 3,35 | -0,009 | -0,219 | -0,071 | +0,029 |
+| M3 impulso 1, no macro | 4,72 | +0,022 | -0,188 | -0,066 | +0,029 |
+| M1 impulso 1, no macro | 7,02 | -0,022 | -0,232 | -0,120 | +0,007 |
+| **M1 impulso 0,5** | **7,98** | -0,015 | -0,225 | -0,119 | **+0,011** |
+
+1. **Il massimo raggiungibile e' 7,98 al giorno**, non 10: oltre non c'e' piu'
+   niente da allentare.
+2. **Il vantaggio lordo senza filtri va da +0,006 a +0,071 R**, mentre il costo
+   di uno stop da 5 $ e' 0,126. Sedici celle su sedici in perdita con stop da 3
+   e 5 dollari.
+3. Diventa positivo **solo con stop da 15 $**, e di un filo: +0,011 R/op a otto
+   operazioni al giorno.
+
+Quel +0,011 su 8 al giorno per 250 giorni fa **+22 R l'anno**. La taratura
+ufficiale ne fa **26 con 54 operazioni**: stessi soldi, quaranta volte le
+operazioni. E il margine e' un filo di lama — con spread 0,70 invece di 0,63
+(il livello del 2026) il costo a 15 $ sale a 0,047 e il netto diventa negativo.
+
+### La regolarita' che lega tutte le appendici da M a S
+
+Il vantaggio viene dai **filtri**, e i filtri tagliano la frequenza. Aumentare
+la frequenza non moltiplica il vantaggio: lo diluisce e moltiplica i costi, che
+si pagano per operazione. Cinque studi indipendenti (M, O, P, Q, S) misurano
+sempre la stessa cosa.
+
+Il vincolo di fondo: l'informazione che si estrae dalle candele (struttura,
+VWAP, order block) e' a **bassa frequenza**. Dice qualcosa sulle prossime ore,
+non sui prossimi minuti. I sistemi che fanno decine di operazioni al giorno e
+guadagnano vivono di costi quasi nulli (rebate, market making) e di informazione
+sul flusso degli ordini, che nei dati a candele non c'e'.
+
+## Appendice T: stop fissi in punti con pareggio — griglia completa degli esiti
+
+155 celle: stop 3/5/10/15/20 punti x obiettivi 1:1,5-1:20 x pareggio
+(nessuno, +1R, +2R, +3R, +5R), sui 348 segnali con le conferme, spread reale
+0,63 $. Pipeline verificata ricalcolando tre celle gia' misurate (coincidono).
+Dettaglio completo in `docs/studies/dati/griglia-stop-fissi-pareggio.parquet`.
+
+### Correzione all'appendice Q
+
+A parita' di perdita massima (16,3%) la miglior cella a stop fisso NON e'
+5 pt 1:20 ma **5 pt 1:5 senza pareggio**: drawdown 14 R (il piu' basso della
+griglia), quindi rischio ammesso 1,20% e conto **30.057 €**. Il divario con la
+taratura in vigore e' **-16%**, non -35% come scritto in Q (dove il confronto a
+parita' copriva solo gli obiettivi da 1:10 in su).
+
+| sistema | % vinte | R tot | conto (DD 16,3%) | anni+ |
+|---|---|---|---|---|
+| strutturale 1:10 pareggio +3R | 35,1% | +143,7 | **35.816 €** | **7/7** |
+| **5 pt 1:5 senza pareggio** | 37,1% | +100,7 | **30.057 €** | 6/7 |
+| 5 pt 1:20 pareggio +5R | 35,1% | +138,6 | 26.038 € | 6/7 |
+| 10 pt 1:2 senza | 53,4% | +69,7 | 23.488 € | 4/7 |
+
+La strutturale resta davanti e resta l'unica 7/7.
+
+### Il pareggio sugli stop fissi: al massimo neutro
+
+Esiti su stop 5 pt (SL / TP / pareggio / fine giornata):
+
+| RR | pareggio | % vinte | %SL | %TP | %BE | %fine gg | R tot | conto |
+|---|---|---|---|---|---|---|---|---|
+| 1:5 | nessuno | 37,1 | 58,3 | 11,8 | — | 29,9 | +100,7 | 30.057 |
+| 1:5 | +1R | 21,8 | 42,5 | 6,6 | **32,2** | 18,7 | +18,5 | 11.184 |
+| 1:5 | +3R | 34,8 | 57,5 | 10,9 | 3,2 | 28,4 | +81,5 | 20.916 |
+| 1:10 | nessuno | 35,6 | 59,8 | 1,7 | — | 38,5 | +106,8 | 24.307 |
+| 1:10 | +1R | 21,3 | 42,5 | 0,6 | **32,8** | 24,1 | +28,9 | 11.651 |
+| 1:10 | +5R | 35,3 | 58,3 | 1,7 | 1,7 | 38,2 | +106,9 | 22.071 |
+
+La meccanica: il pareggio a +1R toglie 17 punti di %SL ma li trasforma in un
+33% di uscite a pareggio, che pagano lo spread e rubano le operazioni che
+sarebbero finite in guadagno a fine giornata (a 1:10 solo l'1,7% tocca il TP:
+il profitto sta nel 38,5% di chiusure EOD, ed e' esattamente cio' che il
+pareggio precoce ammazza). Le vinte crollano dal 36% al 21%.
+
+**Terza conferma indipendente della stessa legge** (dopo le appendici L e R):
++1R distruttivo, +2/+3R toglie il 20-30%, +5R neutro. Sulla strutturale il
++3R aggiungeva il 10%; sugli stop fissi al massimo non toglie. Il pareggio si
+arma tardi o non si arma.
+
+## Appendice U: scalp su M1 (stop 1-3 punti, TP 5-10) — le tre previsioni confermate
+
+Registrate PRIMA della misura: (1) stop da 1 punto in perdita pesante ovunque,
+perche' il costo e' 0,63 R a operazione e la probabilita' casuale di fare +5
+prima di -1 e' ~17% contro il 27% che servirebbe; (2) le celle meno peggio a
+stop 3 / TP 10 con i filtri; (3) nessuna cella batte la variante 5 pt 1:5.
+
+Due contesti (M6+M3 proposta dell'utente; H6+H2 classico), ingresso M1,
+impulso 2 $, filtro macro, spread reale 0,63. Verifica indipendente: 4 celle
+su 4 coincidono.
+
+### Esito (R/op; 48 celle totali)
+
+| | M6+M3 (3.481 segnali, 3,3/gg) | H6+H2 (5.114 segnali, 6,8/gg) |
+|---|---|---|
+| stop 1, senza filtri | **-0,635** (vinte 17,3% = caso) | -0,619 (vinte 17,4% = caso) |
+| stop 2, senza filtri | -0,300 | -0,333 |
+| stop 3, senza filtri | -0,235 | -0,242 |
+| stop 3 TP 10, conferme | -0,091 | -0,078 |
+| stop 3 TP 10, conferme+OB | -0,163 | **+0,059** |
+
+1. **Con stop da 1 punto il segnale sparisce**: la percentuale di vinte
+   coincide con il caso puro (random walk ~1/6). La perdita e' esattamente il
+   costo dello spread. Confermata la previsione 1.
+2. **47 celle su 48 negative.** L'unica positiva (H6+H2, stop 3, TP 10,
+   conferme+OB: +0,059 su 358 op, 4/7 anni) e' 1 su 48 con test multipli:
+   compatibile con il rumore, e comunque un QUINTO della variante 5 pt 1:5
+   (+0,289) e un settimo della strutturale. Previsioni 2 e 3 confermate.
+3. **Il contesto M6+M3 e' PEGGIORE di H6+H2** in quasi ogni cella: quarta
+   conferma indipendente che il contesto va tenuto sui timeframe alti.
+
+Avvertenza sui dati: candele BID, spread applicato come costo; con stop da 1-2
+punti il percorso reale sull'ask e' peggiore di quello misurato. Questi numeri
+sono un TETTO, e sono gia' negativi.
+
+**Strada chiusa: scalp su M1 con stop 1-3 punti.** Con lo spread di XAU la
+matematica non lascia spazio: e' la quarta misura (M, Q, S, U) che converge.
+
+## Appendice V: la zona raffinata degli order block AGGIUNGE; il volume profile no
+
+Due studi pre-registrati, eseguiti in parallelo con verifica indipendente.
+
+### La zona raffinata (idea dell'utente)
+
+Definizione: dentro l'order block, il sotto-intervallo dove la base della
+candela OB e la base della candela successiva combaciano
+([max dei minimi, min dei corpi bassi]; speculare per il ribassista). Esiste
+per 4.801 delle 5.017 zone M33. Ipotesi dichiarata: e' il cuore della domanda,
+e deve rendere piu' della zona piena.
+
+| campione | gruppo | n | R/op | delta | p permutazione |
+|---|---|---|---|---|---|
+| tutte (1.344) | zona piena | 160 | +0,640 | +0,553 | 0,003 |
+| tutte | zona raffinata | 64 | **+1,304** | +1,209 | **0,0001** |
+| tutte | **testa-a-testa** (raffinata vs solo-piena, fra le 160) | 64 | +1,304 | **+1,106** | **0,0054** |
+| regola completa (348) | zona raffinata | 30 | +1,178 | +0,751 | 0,072 |
+| regola completa | testa-a-testa | 30 | +1,178 | +0,677 | 0,152 |
+
+**Sul campione largo la raffinazione aggiunge davvero**: il testa-a-testa —
+fra le operazioni gia' dentro la zona piena, quelle nel cuore contro le altre —
+passa la permutazione (p 0,005). Non e' la zona che si ripete: e' informazione
+in piu' dentro la zona.
+
+Sul sottoinsieme della regola completa i numeri puntano nella stessa direzione
+(+1,178 R/op) ma 30 operazioni non bastano per la significativita' (p 0,15),
+e per anno fa 5/7 (2020 e 2026 lievemente negativi su 2-6 operazioni l'anno).
+
+**Verifica indipendente** (implementazione da zero): n=30, +1,1776, delta
++0,7506 — coincide alla quarta cifra. Scelte ambigue dichiarate dal
+verificatore: se la candela OB coincide con quella di rottura la successiva
+non e' ancora chiusa (lookahead) e la raffinata non esiste (15 zone;
+sensibilita' misurata: zero). Il laboratorio mostra 29 operazioni contro le 30
+dello studio: un caso limite di bordo, ininfluente.
+
+**Stato**: promossa come opzione nel laboratorio (filtro "in zona raffinata").
+NON adottata nella taratura: su 30 operazioni non si taratura niente. La
+strada giusta per usarla e' l'OB COME INGRESSO (tocco della zona = segnale),
+dove le operazioni sono molte di piu': studio in corso.
+
+### Il session volume profile NON discrimina
+
+Ipotesi esplorativa senza direzione dichiarata: la classe di liquidita' del
+punto d'ingresso (bin del profilo volume causale della giornata: LVN = terzile
+basso, HVN = alto) discrimina gli esiti?
+
+| campione | classe | n | R/op |
+|---|---|---|---|
+| tutte | LVN (buco) | 150 | +0,119 |
+| tutte | medio | 360 | +0,155 |
+| tutte | HVN (eccesso) | 834 | +0,158 |
+
+Delta LVN-HVN = -0,038 con p di permutazione **0,85**: rumore puro. Nota
+strutturale: l'83% degli ingressi cade in zone medio-alte del profilo — ovvio a
+posteriori, il reclaim del VWAP avviene dove si e' scambiato.
+
+**Conseguenze**: il profilo resta nel laboratorio come strumento VISIVO (i
+buchi si vedono), ma come segnale non ha mostrato nulla. E l'idea naturale per
+l'obiettivo adattivo ("TP guidato dalla mappa di liquidita'") parte con la
+premessa gia' falsificata: qualunque studio futuro sull'obiettivo adattivo
+deve dichiarare un meccanismo diverso e battere il 1:10 fisso, che ha gia'
+resistito all'obiettivo per regime (appendice K) e per qualita' del setup.
+Avvertenza: volume TICK, non volume scambiato (standard sullo spot, ma va detto).
+
+## Appendice W: l'order block come SEGNALE D'INGRESSO non funziona (48 celle su 48 negative)
+
+Domanda dell'utente: la strategia apre troppo poco; l'OB toccato puo' diventare
+il segnale d'ingresso vero e proprio su M33/M66/H2/H3, con 1-5 operazioni a
+settimana? Regole pre-registrate, identiche per i quattro timeframe:
+
+- zone OB con `zone_ob` di `export_lab` (candela contraria + rottura, causale,
+  scadenza 30 barre, invalidazione oltre il lato lontano);
+- primo tocco M1 della zona attiva = fill limite sul bordo della zona;
+- stop sul lato lontano + 0,30 $ di margine (rischio accettato 0,5-20 $);
+- RR 2/3/5/10; filtri: nessuno / contesto H6+H2 allineato / contesto+macro;
+- spread 0,63 $ (quello reale attuale), finestra 7-19 UTC, max 3/giorno,
+  chiusura forzata alle 21.
+
+### Risultato: la frequenza c'e', il vantaggio no
+
+La frequenza chiesta e' raggiungibile (M33 filtrato 1,7-2,5/settimana, M66
+1,1-3,4, H2/H3 0,5-1,8). Ma **tutte le 48 celle perdono**, da -0,11 a -0,30 R
+per operazione. La migliore per timeframe:
+
+| tf | zone | tocchi | miglior cella | n | op/sett | R/op | anni pos su 7 |
+|---|---|---|---|---|---|---|---|
+| M33 | 5.017 | 2.037 | contesto+macro, 1:10 | 579 | 1,7 | **-0,112** | 3 |
+| M66 | 2.512 | 1.144 | nessun filtro, 1:5 | 1.144 | 3,4 | **-0,139** | 2 |
+| H3 | 955 | 447 | contesto H6+H2, 1:2 | 265 | 0,8 | **-0,149** | 2 |
+| H2 | 1.369 | 620 | contesto+macro, 1:2 | 259 | 0,8 | **-0,161** | 1 |
+
+Verifica avversariale (reimplementazione da zero, agente indipendente):
+M33 contesto+macro 1:3 → -0,149 contro -0,148 del calcolo principale (n 582
+contro 579, bordo); H2 nessuno 1:5 → -0,224 contro -0,220. Confermato.
+
+### Lettura
+
+Coerente con tutto il resto dello studio: **l'OB e' un filtro, non un
+ingresso**. Il tocco della zona da solo non ha vantaggio (qui: -0,15 R/op
+mediano); e' il tocco della zona SUL segnale gia' validato (reclaim del VWAP
+con conferme) che seleziona le operazioni buone (appendice P: +0,640 contro
++0,087). Ennesima conferma della legge sulla frequenza (appendice S): piu'
+operazioni = vantaggio diluito sotto il costo. La strada "piu' operazioni
+tramite OB come trigger" e' chiusa; la strada aperta resta "OB come filtro
+di qualita'" gia' nel laboratorio.
+
+Dati completi (48 celle): `docs/studies/dati/ob-come-ingresso.parquet`.
+
+## Appendice X: proteggersi dai drawdown — cosa regge e cosa no
+
+Domanda dell'utente guardando la curva del conto: "nella fase finale c'e'
+troppa escursione, dobbiamo proteggerci". Tre fatti misurati sulla serie
+ufficiale (348 operazioni, pareggio +3R, spread 0,30).
+
+**1. L'escursione finale e' in gran parte ottica.** Col rendimento composto il
+capitale a fine storico e' piu' che raddoppiato: la stessa oscillazione in R
+appare doppia in euro. In R la fase ottobre 2025 - giugno 2026 e' il DD massimo
+storico (17,6 R in 27 operazioni) ma dello stesso ordine degli altri anni
+(13,4 R nel 2024, 10,3 nel 2025): non un cambio di regime della strategia.
+
+**2. Gli esiti si raggruppano un po', i mesi no.** Autocorrelazione lag-1 del
+segno +0,119 (p 0,03); autocorrelazione dei risultati mensili -0,005 (p 0,97).
+Quindi uno stop mensile ("fermati dopo un mese a -8R") non ha alcuna base — e
+infatti misurato non aggiunge nulla (+0,0% a parita' di DD).
+
+**3. Le regole di riduzione del rischio non superano il controllo di
+permutazione.** Confronto onesto: ogni regola contro la base, A PARITA' di
+drawdown massimo (bisezione sul rischio), vince chi fa piu' capitale. Poi lo
+stesso confronto su 200 serie rimescolate, dove il raggruppamento e' distrutto:
+quel che sopravvive al rimescolamento e' vantaggio meccanico, non segnale.
+
+| regola | vantaggio osservato | parte meccanica (perm.) | p |
+|---|---|---|---|
+| dimezza dopo 2 perdite di fila | +17,5% | +3,9% | 0,15 |
+| dimezza quando il DD supera 8R | +19,4% | +10,3% | 0,32 |
+| stop mensile a -8R | +0,0% | — | — |
+
+"Dimezza dopo 2 perdite" e' la piu' promettente (il grosso del vantaggio non e'
+meccanico) ma p 0,15 non basta — stesso metro dell'appendice V: suggestivo,
+non dimostrato. Da rivedere quando lo storico si allunga.
+
+**Conseguenza operativa**: la protezione dimostrata e' il selettore del
+rischio (0,5% → DD storico ~9%), piu' l'aspettativa giusta: 13 perdite di fila
+e 33 operazioni senza nuovi massimi SONO nel copione. Le regole dinamiche
+restano fuori dalla taratura.
+
+## Appendice Y: VWAP ancorato agli estremi non rotti (registrazione)
+
+Idea dell'utente: VWAP ancorato all'ultimo massimo NON ancora rotto e
+all'ultimo minimo non rotto, esteso in avanti, su tutti i timeframe, per
+valutare le confluenze.
+
+### Regole registrate PRIMA dei risultati
+
+- TF: M33, M66, H2, H3, H6, H12. Su ciascuno: swing k=3 per lato, confermato
+  alla chiusura della k-esima candela dopo l'estremo (come `structure.py`).
+- Ancora ALTA = ultimo swing high confermato non superato da una chiusura di
+  quel TF; rotta la chiusura sopra, si passa al successivo confermato (anche
+  nessuno, finche' non ne nasce uno). Simmetrico per l'ancora BASSA.
+- AVWAP su M1 (prezzo tipico HLC/3 pesato col volume tick) dall'estremo
+  dell'ancora; utilizzabile solo dalla conferma in poi. Tutto causale.
+- Appartenenza: |ingresso - AVWAP| <= 0,5 x rischio dell'operazione (stessa
+  convenzione degli order block). 12 serie (6 TF x alto/basso); confluenza =
+  quante serie entro il margine.
+- Campione: le operazioni del campione largo full:H6 con esito della
+  configurazione ufficiale (strutturale, pareggio +3R, 1:10, spread 0,30);
+  sotto-analisi sulla regola completa.
+- PLACEBO obbligatorio: ancore finte scelte a caso tra gli swing confermati
+  dello stesso TF con la stessa distribuzione di eta'. Se il delta reale non
+  batte il placebo, l'effetto e' "vicino a una media qualunque" (fine che ha
+  fatto Fibonacci, appendice O).
+- Test: delta dentro/fuori con permutazione; placebo; monotonia della
+  confluenza; valore incrementale sulle operazioni gia' accettate dalle
+  conferme e su quelle scartate.
+
+### Previsioni (scritte prima di misurare)
+
+1. Copertura 25-45% (il segnale nasce sul VWAP giornaliero: le medie si
+   assomigliano).
+2. Delta reale piccolo, 0 / +0,3 R per operazione; 50/50 che passi p<0,05.
+3. Il rischio principale e' che il placebo sopravviva: "vicino a un AVWAP"
+   potrebbe essere solo "prezzo in equilibrio", comunque ancorato.
+4. Confluenza non monotona (le code hanno campioni minuscoli).
+
+### Risultati (misurati dopo la registrazione qui sopra)
+
+Campione largo full:H6, 1897 operazioni, esito ufficiale, margine 0,5 x rischio.
+Sette agenti (uno per TF + verifica avversariale H2 reimplementata da zero:
+coperture identiche alla seconda cifra, delta -0,193 riprodotto).
+
+| tf | copertura | delta dentro/fuori | p | placebo | p |
+|---|---|---|---|---|---|
+| M33 | 78% | **+0,255** | 0,034 | **+0,261** | 0,030 |
+| M66 | 84% | +0,095 | 0,48 | -0,254 | 0,046 |
+| H2 | 69% | **-0,193** | 0,08 | **-0,216** | 0,033 |
+| H3 | 51% | -0,170 | 0,08 | -0,111 | 0,28 |
+| H6 | 28% | +0,046 | 0,69 | +0,039 | 0,77 |
+| H12 | 12% | -0,179 | 0,25 | -0,010 | 0,95 |
+
+- Dove il delta reale sembra dire qualcosa (M33 positivo, H2 negativo), il
+  PLACEBO fa esattamente lo stesso: l'informazione non sta nell'ancora agli
+  estremi non rotti, sta nell'essere vicini a una media ancorata qualunque
+  (proxy di "prezzo in equilibrio"). Stessa fine di Fibonacci (appendice O).
+- Confluenza NON monotona, come previsto: 0 serie -0,218; 1-2 serie +0,211;
+  3-4 +0,067; 5+ +0,077.
+- ">=1 serie su 12" copre il 93,7% degli ingressi (placebo 95,1%): inutile
+  come filtro per costruzione.
+- Sottoinsieme ufficiale (348): segni instabili fra TF (M33 +0,50 dentro vs
+  +0,43 fuori; H2 invertito +0,28 vs +0,83). Nessun filtro adottabile.
+
+**Conclusione**: previsioni 3 e 4 della registrazione confermate; la copertura
+reale (fino al 94%) e' persino sopra la previsione 1. L'AVWAP ancorato agli
+estremi non rotti NON discrimina oltre il placebo su nessun timeframe: non
+entra ne' nella strategia ne' nel laboratorio come criterio. Dati per
+operazione in `avwapf_<TF>.parquet` (scratchpad di sessione, ricalcolabili
+con le regole registrate).
+
+## Appendice Z: tocco dell'OB valido solo dopo un allontanamento minimo (registrazione)
+
+Idea dell'utente: il fill dell'order block vale solo se prima il prezzo si e'
+allontanato dalla zona di almeno 50 punti sui TF medio-alti e 10/20 su quelli
+medio-bassi. Regole registrate prima di misurare:
+
+- Zone `zone_ob` (piene) su M33, M66, H2, H3; operazioni del campione largo
+  full (1897), esito ufficiale (strutturale, +3R, 1:10, spread 0,30).
+- ESCURSIONE di una zona al momento del tocco: quanto il prezzo si e' spinto
+  oltre il bordo della zona NEL VERSO della rottura, dall'attivazione al
+  minuto d'ingresso (rialzista: massimo dei massimi M1 - bordo alto; opposto
+  per la ribassista). Per ogni operazione in zona (margine 0,5 x rischio, come
+  sempre) si tiene l'escursione MASSIMA fra le zone concordi che la
+  contengono. Tutto causale.
+- Soglie D: 0 (base attuale) / 10 / 20 / 50 $, misurate su TUTTI e quattro i
+  TF: la mappa dell'utente (50 sui medio-alti, 10-20 sui medio-bassi) e'
+  l'ipotesi da confermare, non una griglia da minare.
+- Test: fra le operazioni IN zona, delta R/op fra tocco con escursione >= D e
+  tocco con escursione < D, con permutazione; controllo che la base D=0 su
+  M33 riproduca i flag del laboratorio; verifica avversariale su un TF.
+
+Previsioni: (1) plausibile che il vantaggio degli OB si concentri nei tocchi
+con un minimo di escursione (il ritorno DOPO l'allontanamento e' il retest
+"vero") - 50/50 che regga la permutazione; (2) D=50 sui TF piccoli lascera'
+pochissime operazioni, stime instabili; (3) se non discrimina, il filtro
+attuale resta com'e'.
+
+## Appendice AA: entrare SUL livello invece che alla chiusura (registrazione)
+
+Critica dell'utente, la piu' fondata ricevuta finora: «non stai usando bene i
+miei livelli, ci sono un sacco di OB su M6/M12/M33/H3/H6; ci sono operazioni
+valide ma non entra bene sui livelli, quindi le apre storpiate, sono meno e
+troppe in perdita».
+
+Ha ragione su un fatto: la strategia entra **a mercato alla chiusura della
+candela M6 del segnale**, cioe' dove il prezzo si trova in quel momento, non
+dove sta il livello. Gli order block finora sono stati usati solo come
+ETICHETTA (l'ingresso cadeva o no dentro una zona), mai come **prezzo di
+ingresso**. Questo studio prova la sua versione.
+
+### Regole registrate PRIMA dei risultati
+
+- Zone `zone_ob` su CINQUE timeframe: M6, M12, M33, H3, H6 (quelli citati).
+- Segnale invariato (reclaim del VWAP con contesto H6+H2), due campioni:
+  (A) regola ufficiale completa, (B) campione largo senza le conferme.
+- Ingresso: NON al prezzo di chiusura. Ordine LIMITE sul bordo vicino della
+  zona concorde piu' vicina dalla parte del ritracciamento (long: zona sotto,
+  limite sul bordo alto). Distanza massima ammessa dal prezzo di segnale:
+  5 / 10 / 20 $. Valido fino a fine giornata: se non riempito, niente
+  operazione.
+- Stop: lato lontano della zona ± 0,30 di margine; rischio accettato 0,5-20 $.
+- Obiettivi 1:3 / 1:5 / 1:10, pareggio nessuno e +3R, spread 0,30 e 0,63.
+- Conservativo: nello stesso minuto lo stop prevale sull'obiettivo.
+
+### Previsioni (scritte prima di misurare)
+
+1. Il rischio medio per operazione SCENDE (stop sulla zona invece che sulla
+   struttura): e' il meccanismo vero che l'utente intuisce, e da solo alza il
+   rendimento in R a parita' di movimento del prezzo.
+2. Il numero di operazioni scende rispetto al campione di partenza: parte dei
+   segnali non trova zona vicina, parte non viene mai riempita.
+3. Contro-effetto: entrando in ritracciamento si PERDONO i vincitori che
+   scappano senza tornare indietro, che nella strategia in vigore sono quelli
+   che pagano tutto (il 3,2% che tocca 1:10 fa il grosso del +171R).
+4. Saldo netto incerto, 50/50. La percentuale di stop presi salira' (stop piu'
+   stretto), quindi la domanda giusta NON e' «quanti stop prendo» ma «quanto
+   rende per operazione».
+
+### Risultati (misurati dopo la registrazione qui sopra)
+
+46.667 zone sui cinque timeframe, 1.897 segnali. Confronto sulla regola
+ufficiale (spread 0,30, esito ufficiale):
+
+| versione | op | R/op | R tot | stop presi | anni + |
+|---|---|---|---|---|---|
+| **a mercato (in vigore)** | 348 | **+0,492** | **+171,1** | 54% | **7/7** |
+| sul livello, stop sulla zona (10 $, 1:10) | 206 | +0,288 | +59,3 | 72% | 4/7 |
+| sul livello, stop strutturale (10 $, 1:10, +3R) | 189 | +0,367 | +69,4 | 64% | 4/7 |
+
+Previsione 1 CONFERMATA: il rischio mediano crolla da 4,23 a ~2,2 $. Lo stop
+strutturale batte quello appoggiato alla zona (+0,367 contro +0,288): il bordo
+e' fragile, il prezzo lo penetra di qualche dollaro e torna. Ma entrambe
+perdono contro la versione a mercato, e la costanza per anno crolla a 4/7.
+
+### Perche': il ritracciamento SELEZIONA i fallimenti
+
+Il risultato decisivo. Delle 348 operazioni ufficiali, 222 tornano su un
+livello (e quindi verrebbero riempite da un ordine limite), 126 no. Nella
+strategia IN VIGORE, quelle stesse operazioni rendono:
+
+| gruppo | op | R/op | R tot |
+|---|---|---|---|
+| tornano sul livello | 222 | **-0,387** | **-85,9** |
+| non tornano mai | 126 | **+2,040** | **+257,0** |
+
+**Il ritracciamento e' un segnale negativo, non un'occasione di prezzo
+migliore.** Su questa strategia il vantaggio sta tutto nella prosecuzione
+immediata: le 12 operazioni che superano +8R valgono +117,5 R, il 69% del
+risultato di sette anni, e solo 3 di esse tornano su un livello. Aspettare il
+livello significa, sistematicamente, farsi riempire dalle operazioni che
+stanno fallendo e restare fuori da quelle che pagano.
+
+Non e' un difetto di taratura ne' un caso: e' la logica del segnale. Il
+reclaim del VWAP con la struttura allineata cattura una ripartenza; se il
+prezzo torna indietro fino a un order block, la ripartenza non c'e' stata.
+
+**Conseguenza operativa**: l'ordine limite sul livello e' respinto per QUESTA
+strategia. Resta valido l'uso degli order block come FILTRO (appendice P) —
+ingresso a mercato, ma sapendo di essere dentro una zona. E resta l'avvertenza
+per l'operativita' manuale: su questo segnale, l'ingresso in ritracciamento
+non e' un prezzo migliore, e' un'operazione diversa e peggiore.
+
+## Appendice AB: strategia AVWAP a eventi — scrematura (registrazione)
+
+Proposta dell'utente, strategia NUOVA da zero su XAUUSD: AVWAP ancorati agli
+estremi non rotti con tre livelli (VWAP e bande), session volume profile,
+segnali = tocco del livello / rottura con chiusura oltre / retest / incrocio
+delle bande dei due AVWAP; estensioni di Fibonacci e vuoti di liquidita' come
+zone TP. Scrematura su M3/M6/M12/M20/M33/M66/H2/H3/H6.
+
+Avvertenze registrate: la VICINANZA all'AVWAP e' gia' morta contro placebo
+(app. Y), il volume profile come discriminante pure (app. V), i ritracciamenti
+Fibo pure (app. O). La parte mai testata sono gli EVENTI DINAMICI: rotture,
+retest, incroci di bande. La scrematura decide su quelli.
+
+### Regole registrate PRIMA dei risultati
+
+- Ancore come in appendice Y (swing k=3, non rotti da chiusure del TF,
+  ri-ancoraggio causale). AVWAP su M1 (tipico, peso volume tick) + sigma
+  pesata causale. Livelli per ancora: VWAP, +-1, +-2, +-3 sigma.
+- Eventi per candela del TF, tutti causali (livello noto alla candela
+  precedente):
+  - TOCCO: la candela tocca il livello e chiude dallo stesso lato di prima.
+    Ipotesi: il livello tiene, il prezzo riparte dal lato di provenienza.
+  - ROTTURA: chiusura oltre il livello (lato diverso dalla candela prima).
+    Ipotesi: continuazione nel verso della rottura.
+  - RETEST: dopo una rottura del VWAP (entro 30 candele), primo ritorno sul
+    livello con chiusura ancora dal lato della rottura. Ipotesi: riparte nel
+    verso della rottura.
+  - COMPRESSIONE: le bande 1-sigma dei due AVWAP (ancora alta e bassa)
+    iniziano a sovrapporsi. Ipotesi non direzionale: espansione del movimento.
+- Esito: spostamento della chiusura a 5 e 20 candele, in unita' di ATR
+  giornaliero, nel verso dell'ipotesi (assoluto per la compressione).
+- PLACEBO integrale: stessa pipeline con ancore su swing confermati scelti a
+  caso con eta' simile (seme fisso). Un evento sopravvive solo se batte SIA
+  il caso SIA il placebo.
+- Soglia di sopravvivenza: ~144 celle testate (9 TF x 2 ancore x famiglie),
+  quindi p < 0,0003 (Bonferroni) su entrambi gli orizzonti E delta positivo
+  contro placebo. Sotto soglia = bocciato, senza appello ne' seconde griglie.
+- Fibo-estensioni e vuoti di liquidita' come TP: SOLO per gli eventi
+  sopravvissuti, in una fase 2 con placebo dedicato. Niente "ecc": quello che
+  non e' scritto qui non viene testato.
+
+Previsione: i tocchi faranno la fine dell'appendice Y (placebo li replica);
+per rotture e retest 60/40 che non sopravviva nulla alla soglia; la
+compressione e' la piu' plausibile come segnale di volatilita' (non di
+direzione). M20 aggiunto ai timeframe canonici per questo studio.
+
+### Risultati (misurati dopo la registrazione qui sopra)
+
+8,7 milioni di eventi su nove timeframe (implementazione unica in
+`run_avwap_eventi.py`; conteggio degli swing identico a quello trovato dagli
+agenti indipendenti dell'appendice Y sui TF in comune: controllo incrociato
+superato). 261 celle contro la soglia registrata.
+
+**Eventi direzionali: bocciatura totale, zero celle su 232.** Nessun tocco,
+nessuna rottura, nessun retest, su nessun livello (VWAP o bande 1/2/3 sigma),
+nessuna ancora e nessun timeframe supera p<0,0003 con delta positivo sul
+placebo. La cella direzionale migliore in assoluto (tocco banda -2 sigma H6,
+ancora alta) fa p 0,03 sull'orizzonte corto: sarebbe bocciata anche senza
+correzione per i test multipli. Previsione 1 confermata; la 60/40 su rotture
+e retest si e' risolta sul lato "niente".
+
+**Compressione: quattro celle passano il criterio formale, ma e' un artefatto
+del criterio.** L'esito della compressione e' uno spostamento ASSOLUTO,
+sempre positivo per costruzione: il test "batte il caso" e' privo di senso su
+una grandezza assoluta, e infatti "passa" con qualunque n grande. Il
+confronto che conta e' col placebo: da +0,003 a +0,007 ATR, cioe' 10-20
+centesimi di dollaro su XAUUSD — meno di un terzo dello spread reale. Sui TF
+alti il segno del delta oscilla pure (H2 e M66 negativi). Nessun segnale
+sfruttabile; al massimo conferma l'ovvio, che bande compresse precedono
+espansione, con un'entita' indistinguibile dal placebo.
+
+**Conclusione**: la strategia "AVWAP a eventi" non ha superato la scrematura
+in nessuna componente. La fase 2 (Fibo-estensioni, vuoti di liquidita' come
+TP) non si apre: era condizionata ai sopravvissuti, e non ce ne sono. Grezzi
+ricalcolabili con lo script; nel repo resta l'aggregato
+(`avwap-eventi-aggregato.parquet`, 522 righe).
+
+## Appendice AC: audit di sensibilita' di TUTTI i parametri (registrazione)
+
+Richiesta dell'utente: "testa tutto e valutiamo tutti i parametri". Non e' una
+ri-taratura: e' la mappa dell'altopiano. Ogni parametro della taratura
+ufficiale viene mosso UNO ALLA VOLTA (26 varianti registrate qui sotto, prima
+di misurare) e si osserva il risultato 2020-2026 con esito ufficiale.
+
+Varianti: ora_inizio 6/8; ora_fine 17/18/20; ora_chiusura 20/22; max
+operazioni/giorno 2/5; attesa 0/60 minuti; media macro 30/100; fattore alta
+volatilita' 1,3/1,7; k dei frattali 2/4; buffer 0,15/0,60; impulso minimo
+3/5; rischio minimo 0,5/2; rischio massimo 7/15; barre dello stop 3/8.
+(RR, pareggio, conferme e tipi di stop: gia' misurati, appendici K/L/Q/T.)
+
+Interpretazione REGISTRATA: un parametro e' FRAGILE se una variante adiacente
+taglia il totale oltre il 40% o fa passare gli anni positivi sotto 6/7. La
+taratura NON cambia in base a questo audit, qualunque cosa esca: una cella
+migliore del base qui non e' una scoperta, e' rumore di vicinato finche' non
+passa la procedura fuori campione. Lo scopo e' sapere se il bot poggia su un
+altopiano o su una punta.
+
+### Risultati: ALTOPIANO, zero parametri fragili su 26 varianti
+
+Base riprodotta al decimale (348 op, +171,1R, 7/7, conto 49.321). Tutte le 26
+varianti restano positive, fra +121 e +186 R totali; nessuna taglia oltre il
+40% ne' scende sotto 6 anni positivi su 7. Perdita massima sempre fra il 12 e
+il 19,6%.
+
+I parametri piu' sensibili (e comunque dentro l'altopiano):
+
+| variante | n | R tot | delta | anni+ |
+|---|---|---|---|---|
+| frattale_k 3→4 | 360 | +121,1 | -29% | 6/7 |
+| impulso_min 4→5 | 290 | +125,5 | -27% | 6/7 |
+| ora_inizio 7→8 | 316 | +143,7 | -16% | 7/7 |
+| buffer 0,30→0,60 | 347 | +149,0 | -13% | 6/7 |
+
+Lettura: le due leve vere della strategia sono la DEFINIZIONE della struttura
+(k dei frattali) e la SOGLIA di impulso — sensato, sono il cuore del segnale.
+Orari, macro, cooldown, limiti di rischio, barre dello stop e fattore di
+volatilita' spostano poco o nulla (il fattore alta volatilita' quasi zero:
+1,3/1,5/1,7 danno lo stesso risultato).
+
+Cinque varianti escono sopra il base (massimo +9%: frattale_k=2, attesa 0,
+impulso 3, macro 100, ora_fine 18). Come registrato: rumore di vicinato, la
+taratura NON cambia. Se mai, sono candidati per una futura verifica fuori
+campione — non adesso, non su questi dati.
+
+**Conclusione per il bot**: la strategia poggia su un altopiano largo. Un EA
+che sbagliasse di poco un orario, una soglia o un parametro strutturale
+resterebbe profittevole: il rischio di implementazione e' basso. Dati in
+`sensibilita.parquet`.
+
+## Appendice AD: k=2 governata dal livello preciso dell'OB — non aggiunge
+
+Idea dell'utente dopo l'audit AC: tenere la k=3 (7/7) ma recuperare la
+variante k=2 usando la zona raffinata dell'order block come cancello di
+qualita'. Due forme, misurate subito dopo la registrazione in chat:
+
+| configurazione | n | R tot | R/op | anni+ |
+|---|---|---|---|---|
+| ufficiale k=3 | 348 | +171,1 | +0,492 | **7/7** |
+| k=2 tutte | 331 | +186,1 | +0,562 | 6/7 |
+| A: k=2 solo in zona piena | 77 | +27,3 | +0,355 | 5/7 |
+| A': k=2 solo in zona raffinata | 31 | +24,3 | +0,785 | 4/7 |
+| segnali solo-k2 (non visti dalla k=3) | 117 | +33,0 | +0,282 | 4/7 |
+| — di questi, in zona piena | 27 | **-6,9** | -0,257 | 2/7 |
+| — di questi, in zona raffinata | 9 | +0,6 | +0,071 | — |
+| B: innesto k3 + solo-k2 in piena | 375 | +164,2 | +0,438 | 7/7 |
+| B': innesto k3 + solo-k2 in raffinata | 357 | +171,7 | +0,481 | 7/7 |
+
+Il filtro duro (A/A') decima il campione come sempre. L'innesto (B/B') non
+danneggia ma non aggiunge: +0,6 R in sette anni con la raffinata, -6,9 con la
+piena. Il dato interessante e' che il cancello OB, che sulle operazioni
+UFFICIALI seleziona bene (appendice P), sui segnali extra della k=2 non
+seleziona nulla (in piena addirittura sceglie peggio del mucchio): quei
+segnali anticipati sono rumore strutturale che nessun livello ripulisce.
+
+**Conclusione**: taratura invariata (k=3). La strada "recuperare segnali in
+piu' con un cancello di qualita'" e' misurata e chiusa anche in questa forma.
+
+## Appendice AE: obiettivo sui livelli strutturali (registrazione)
+
+Richiesta dell'utente: tenere la taratura ufficiale e cercare livelli
+(resistenze/supporti, OB, ecc.) su cui appoggiare l'obiettivo, per aumentare
+i TP presi (oggi 11 su 348) ed essere piu' precisi.
+
+Meccanismo dichiarato (vincolo dell'appendice V): il prezzo rigetta sui
+livelli strutturali VISIBILI; obiettivo appena prima del livello = incassare
+la corsa prima del rigetto. Diverso dalla mappa di liquidita' (falsificata).
+Asticella: battere il 1:10 fisso, +171,1R sulle stesse 348 operazioni.
+
+### Regole registrate PRIMA dei risultati
+
+- Operazioni: le 348 ufficiali, stop e pareggio +3R invariati, spread 0,30.
+- Famiglie di livelli (tutte causali al momento dell'ingresso), per i long il
+  livello sta SOPRA l'entry, speculare per gli short:
+  1. swing confermati (k=3) non ancora superati da una chiusura, su M33 / H2 / H6;
+  2. bordo vicino della zona OB CONTRARIA attiva su M33 (per i long, zona
+     ribassista sopra il prezzo);
+  3. massimo/minimo del giorno precedente;
+  4. massimo/minimo della sessione Asia del giorno (00-07 UTC);
+  5. numeri tondi (multipli di 10 $ e di 25 $) — comparatore senza struttura.
+- Obiettivo = livello piu' vicino oltre l'entry, meno 0,10 $ (long; +0,10
+  short). Due varianti per famiglia: senza distanza minima, e distanza minima
+  3R. Se nessun livello: si resta al 1:10 ufficiale.
+- Esito ricalcolato al minuto con lo stesso motore (stop batte obiettivo,
+  pareggio +3R, chiusura 21).
+- PLACEBO A DISTANZE UGUALI, il controllo decisivo: per ogni famiglia, le
+  stesse distanze in R rimescolate a caso fra le operazioni (500 giri, seme
+  fisso). Se la famiglia non batte il suo placebo, il livello non aggiunge
+  nulla oltre alla propria distribuzione di distanze.
+- Metriche: R totale (asticella +171,1), % TP presi, anni positivi, delta
+  contro placebo.
+
+Previsioni: (1) i TP presi saliranno molto (ovvio: obiettivi piu' vicini);
+(2) il totale NON batter'a il 1:10 per le famiglie vicine (decapitano le
+corse, meccanismo appendice K); (3) l'unica con una chance e' lo swing H6 o
+il giorno-prima con minimo 3R (lontani quanto basta); (4) 60/40 che nessuna
+batta il placebo a distanze uguali.
+
+### Risultati: nessuna famiglia batte il 1:10 fisso
+
+Base riprodotta al decimale (+171,1 R, 11 TP = 3,2%). Otto famiglie, due
+varianti di distanza minima; ``ob_contrario`` scartata (meno di 30 operazioni
+con una zona contraria attiva sopra/sotto l'ingresso: gli OB contrari quasi
+non esistono nel verso giusto al momento dell'ingresso).
+
+| famiglia | min | n | rr med | R tot | TP presi | anni+ | placebo | p |
+|---|---|---|---|---|---|---|---|---|
+| asia | — | 292 | 1,2 | **-14,1** | 22% | 2/7 | -19,6 | 0,14 |
+| tondi 10 $ | — | 324 | 1,0 | **-31,7** | 24% | 2/7 | -31,6 | 0,50 |
+| giorno prima | — | 187 | 1,5 | +78,9 | 11% | 6/7 | +81,7 | 0,65 |
+| tondi 25 $ | — | 335 | 2,5 | +73,6 | 18% | 4/7 | +38,4 | 0,00 |
+| swing M33 | — | 336 | 193 | +121,4 | 7% | 5/7 | +117,0 | 0,47 |
+| swing H2 | — | 342 | 184 | +150,5 | 6% | 5/7 | +120,4 | 0,04 |
+| swing H6 | — | 346 | 177 | +173,2 | 5% | 6/7 | +128,8 | **0,00** |
+| swing H6 | 3R | 277 | 335 | **+184,4** | 2% | 7/7 | +173,3 | 0,11 |
+| tondi 25 $ | 3R | 138 | 4,8 | +182,8 | 5% | 7/7 | +156,0 | 0,01 |
+
+Previsione 1 confermata in pieno: i TP presi salgono fino al 24% (asia 22%,
+tondi 22-24%). Previsione 2 pure: **quelle stesse famiglie sono le peggiori**
+— asia -14,1 R e tondi 10 $ -31,7 R, cioe' da +171 a sotto zero. Piu' TP
+presi = strategia distrutta, con la relazione monotona: piu' e' vicino il
+livello, peggio va (rr mediano 1,0 -> -31,7; 1,2 -> -14,1; 1,5 -> +78,9;
+2,5 -> +73,6; 4,8 -> +182,8).
+
+Le due celle che sfiorano il base sono un abbaglio da leggere bene: swing H6
+e swing M33 con minimo 3R hanno **rr mediano 335 e 345**, cioe' un obiettivo
+cosi' lontano da non essere mai raggiunto (TP 2%). Non sono "obiettivi sui
+livelli": sono la strategia SENZA tetto, che infatti rende +181/+184 contro
++171. Il livello non c'entra — lo dice il placebo, che alle stesse distanze
+fa +173/+181.
+
+Un solo segnale genuino: **swing H6 senza minimo batte nettamente il proprio
+placebo** (+173,2 contro +128,8 ± 18,6, p<0,005). Alle stesse distanze
+casuali si perderebbero 45 R: il livello H6 sa dove NON mettere l'obiettivo.
+Ma pareggia soltanto il 1:10 fisso (+173,2 contro +171,1) con meno anni
+positivi (6/7 contro 7/7), quindi non e' adottabile. L'informazione c'e', il
+vantaggio operativo no.
+
+Nota di metodo: la famiglia dei numeri tondi — il comparatore SENZA struttura
+— e' fra quelle con p piu' basso (0,00 e 0,01). Un comparatore nullo che
+"vince" e' il segno che a queste distanze il confronto e' dominato dal
+rumore, non che i numeri tondi funzionino.
+
+**Conclusione**: l'obiettivo sui livelli e' respinto. Aumentare i TP presi si
+puo' (fino al 24%) ma costa l'intera redditivita': il 1:10 resta, ed e' ormai
+il quarto studio che lo conferma (K, V, AB, AE). Dati in
+`tp-livelli.parquet`.
+
+## Appendice AF: stop strutturale scalato x obiettivo (registrazione)
+
+Ultima prova richiesta dall'utente su stop e RR. L'asse mai testato: non stop
+fissi in punti (gia' fatto, app. Q/T) ma un MOLTIPLICATORE sullo stop
+strutturale, incrociato con obiettivi fino a 1:20.
+
+- 348 operazioni ufficiali, spread 0,30, chiusura 21, motore invariato.
+- Moltiplicatore m dello stop: 0,50 / 0,75 / 1,00 / 1,25 / 1,50 / 2,00
+  (m=1 = taratura in vigore). Il percorso in R si riscala di 1/m, e con esso
+  il costo dello spread: uno stop doppio dimezza le R guadagnate ma dimezza
+  anche il peso del costo.
+- Obiettivo: 2 / 3 / 5 / 8 / 10 / 15 / 20. Pareggio: nessuno e +3R.
+- 84 celle. Asticella: +171,1 R e 7 anni positivi su 7.
+
+Previsioni: (1) m=1 vicino all'ottimo, con la campana gia' osservata sulla
+larghezza dello stop; (2) m<1 peggiora molto (lo stop stretto viene preso dal
+rumore: e' la lezione di Q, U e AA); (3) m>1 perde poco e potrebbe pareggiare
+(meno stop presi, ma ogni R vale meno); (4) l'obiettivo migliore resta 10 o
+sale a 15-20 quando lo stop e' largo, perche' in R l'obiettivo si avvicina;
+(5) nessuna cella batte il base in modo netto E con 7/7.
+
+### Risultati: m=1 e' il crinale, 84 celle su 84 confermano la taratura
+
+R totale, pareggio +3R (la riga m=1,00 e' la taratura in vigore):
+
+| m \ obiettivo | 1:2 | 1:3 | 1:5 | 1:8 | **1:10** | 1:15 | 1:20 |
+|---|---|---|---|---|---|---|---|
+| 0,50 | -75,6 | 22,4 | 28,4 | 51,5 | 66,9 | 94,9 | 118,1 |
+| 0,75 | -34,3 | 55,7 | 83,3 | 92,5 | 98,9 | 113,4 | 114,3 |
+| **1,00** | 17,4 | 108,4 | 126,9 | 151,0 | **171,1** | 168,0 | 173,0 |
+| 1,25 | 16,3 | 91,3 | 95,3 | 126,8 | 122,3 | 127,3 | 132,3 |
+| 1,50 | 30,9 | 91,9 | 95,5 | 111,6 | 112,0 | 117,0 | 121,4 |
+| 2,00 | 40,8 | 79,8 | 99,1 | 100,6 | 104,6 | 109,8 | 109,8 |
+
+Tutte e cinque le previsioni confermate. La riga m=1 domina l'intera griglia
+per ogni obiettivo da 1:3 in su: **lo stop strutturale e' un crinale, non un
+punto scelto a caso**. Sotto (m<1) si crolla — a m=0,50 gli stop presi vanno
+al 77% — e sopra (m>1) si perde il 25-40% pur prendendo meno stop, perche'
+ogni R vale meno. La colonna 1:2 e' negativa o quasi ovunque: e' la firma
+della strategia, che vive delle corse lunghe.
+
+Le uniche due celle sopra il base:
+
+| cella | R tot | anni+ | DD | conto |
+|---|---|---|---|---|
+| m=0,50, 1:20, senza pareggio | **+187,9** | 6/7 | **30,0%** | 49.249 EUR |
+| m=1,00, 1:20, pareggio +3R | +173,0 | 7/7 | 16,3% | **49.922 EUR** |
+| **m=1,00, 1:10, +3R (in vigore)** | +171,1 | **7/7** | **16,3%** | 49.321 EUR |
+
+La prima e' un miraggio da manuale: +10% di R ma con **il doppio del
+drawdown** (30% contro 16,3%), un anno in perdita e il 77% di stop presi. A
+parita' di dolore rende MENO del base, e in euro fa gia' meno (49.249 contro
+49.321) perche' la composizione punisce i cali profondi.
+
+La seconda e' la stessa taratura con l'obiettivo a 1:20 invece che 1:10:
++1,9 R e 600 EUR su sette anni, con TP presi allo 0,29% (una operazione su
+348). Non e' un'altra strategia, e' il tetto alzato ancora di piu' — la
+conferma finale che il 1:10 e' gia' "praticamente nessun tetto", e che oltre
+quel punto non c'e' piu' niente da guadagnare.
+
+**Conclusione**: taratura invariata, con la mappa completa alle spalle. Dati
+in `stop-rr.parquet`.
+
+## Appendice AG: la frontiera a parita' di drawdown (stabilita' contro rendimento)
+
+Domanda dell'utente: col 1:10 solo il 3% tocca l'obiettivo; esistono
+condizioni con piu' stabilita' e meno stop, magari anche piu' redditizie?
+Confronto onesto: ogni cella (moltiplicatore stop x obiettivo x pareggio)
+portata allo STESSO drawdown del base (16,3%) muovendo il rischio, poi
+confrontata su conto finale e su tre misure di stabilita' (anni positivi,
+anno peggiore, operazioni consecutive sotto il massimo precedente).
+
+| cella | rischio | conto | stop presi | vinte | anni+ | anno peggiore | sotto-max |
+|---|---|---|---|---|---|---|---|
+| m1, 1:20, +3R | 1,00% | 49.929 | 54% | 35% | 7/7 | +4,2R | 33 |
+| **m1, 1:10, +3R (in vigore)** | **1,00%** | **49.328** | 54% | 35% | **7/7** | **+6,9R** | **33** |
+| m1, 1:10, +2R | 1,13% | 48.552 | **49%** | 32% | 7/7 | +2,4R | 49 |
+| m1, 1:8, +3R | 1,00% | 41.027 | 54% | 35% | 7/7 | +6,7R | 33 |
+| m1,5, 1:3, qualunque | 0,94% | 22.916 | **47%** | **47%** | 6/7 | **-7,6R** | 32 |
+
+Il risultato che risponde alla domanda: **abbassare l'obiettivo compra
+percentuali di successo, non stabilita'**. La cella con meno stop e piu'
+operazioni vinte in assoluto (stop largo 1,5x, obiettivo 1:3: 47% di stop,
+47% di vinte, TP toccato nel 17,5% dei casi) e' anche quella con l'unico
+ANNO IN PERDITA (-7,6R) e con meno della meta' del conto finale (22.916
+contro 49.328). Piu' vittorie, meno soldi, meno costanza: esattamente la
+legge gia' vista in appendice S.
+
+Il pareggio a +2R e' l'unico scambio reale disponibile: -5 punti di stop
+presi (49% contro 54%) e anno peggiore piu' vicino a zero, pagati con il 2%
+di conto e con 49 operazioni consecutive sotto il massimo invece di 33 —
+cioe' MENO stabilita' nel senso che conta davvero, il tempo passato sotto
+acqua. Il 1:20 fa 600 EUR in piu' del 1:10 con TP allo 0,29%: irrilevante.
+
+**Conclusione**: sulla frontiera a pari drawdown la configurazione in vigore
+e' gia' sul bordo efficiente. Non esiste, in 84 celle, una combinazione di
+stop e obiettivo che dia insieme piu' soldi e piu' stabilita'.
+
+## Appendice AH: togliere la chiusura serale (ottica prop firm)
+
+Domanda dell'utente: senza chiusura giornaliera, tenendo solo quella del
+venerdi', quante operazioni arrivano all'obiettivo e quante muoiono? Tre
+regimi sulle stesse 348 operazioni, obiettivo 1:10, pareggio +3R, spread 0,30.
+
+| regime | R tot | stop | obiettivo | pareggio | scadenza | ore medie | anni+ |
+|---|---|---|---|---|---|---|---|
+| giornaliera (in vigore) | +171,1 | 189 (54,3%) | **11 (3,2%)** | 24 (6,9%) | 124 (35,6%) | 4,2 | **7/7** |
+| settimanale | +182,4 | 214 (61,5%) | **25 (7,2%)** | 56 (16,1%) | 53 (15,2%) | 11,2 | 6/7 |
+| aperta (fino a stop/obiettivo) | **+224,1** | 221 (63,5%) | **47 (13,5%)** | 80 (23,0%) | 0 | 16,3 | 6/7 |
+
+Risposta secca: **gli obiettivi pieni passano da 11 a 25 (settimanale) o 47
+(nessuna scadenza)**, ma gli stop passano da 189 a 214-221 e i pareggi da 24 a
+56-80. Le operazioni "morte" non spariscono, cambiano nome: la chiusura di
+fine giornata (124 casi, +2,44 R medi) viene sostituita da stop e pareggi.
+
+### Perche' non e' il regalo che sembra
+
+A parita' di drawdown (bisezione sul rischio, bersaglio 16,3%):
+
+| regime | rischio pari-DD | conto | DD a 1% | anno peggiore |
+|---|---|---|---|---|
+| giornaliera | 1,00% | **49.321** | **16,3%** | **+6,9 R** |
+| settimanale | 0,81% | 39.399 | 19,7% | **-10,6 R** |
+| aperta | 0,73% | 45.000 | 21,8% | **-10,6 R** |
+
+Il +224 R della tenuta aperta e' comprato con volatilita': a parita' di dolore
+rende MENO del base (45.000 contro 49.321), il drawdown a rischio uguale sale
+al 21,8%, e in entrambi i regimi lunghi compare un anno in perdita (-10,6 R)
+dove la chiusura serale ne ha sette positivi. La costanza si paga.
+
+### Avvertenze non modellate (peggiorano i regimi lunghi, non il base)
+
+- **Swap**: il 24% delle operazioni resterebbe aperto oltre sera; su XAU e' un
+  costo reale per notte, qui non conteggiato.
+- **Gap del fine settimana**: presenti nei prezzi M1, ma con lo stop che puo'
+  essere saltato — il modello assume il fill al livello, ottimistico.
+- **Posizioni sovrapposte**: media 1,4 e massimo 4 aperte insieme (contro 1,2
+  e 3 del base): con rischio 1% ciascuna, fino al 4% esposto in un istante.
+
+**Per una prop firm** il punto e' proprio questo: le regole tipiche puniscono
+il drawdown giornaliero e l'esposizione simultanea, cioe' esattamente le due
+cose che i regimi lunghi peggiorano. La chiusura serale non e' un limite da
+togliere: e' il meccanismo che tiene 7 anni su 7 e il drawdown sotto controllo.
+
+## Appendice AI: OB + volumetrica + Fibonacci insieme, ricerca libera (registrazione)
+
+Richiesta dell'utente: rianalizzare order block, profilo volume, ritracciamenti
+ED estensioni di Fibonacci INSIEME, scegliendo io i parametri migliori per i
+livelli d'ingresso, per trovare una strategia solida e bilanciata nel tempo.
+
+Precedenti da tenere presenti: Fibo respinto col placebo da solo (app. O),
+profilo volume respinto come discriminante (app. V), OB respinto come
+ingresso (app. W) ma valido come filtro (app. P). Mai provata la
+COMBINAZIONE, ne' le estensioni Fibo come obiettivo.
+
+### Protocollo registrato PRIMA di guardare i risultati
+
+- Campione: le 1.897 operazioni del campione largo (contesto H6+H2 gia' nel
+  segnale), esito al minuto, spread 0,30, chiusura 21 UTC.
+- SEPARAZIONE OBBLIGATORIA: la ricerca dei parametri usa SOLO 2020-2023;
+  2024-2026 non viene guardato finche' la scelta non e' congelata. Il verdetto
+  e' il fuori campione, non la cella migliore in ricerca.
+- Griglia (450 celle): OB M33 {nessuno, piena, raffinata} x margine {0,5R, 1R};
+  profilo volume {nessuno, terzile basso, terzile alto}; ritracciamento Fibo
+  della gamba M33 {nessuno, 50%, 61,8%, 70,5%, 78,6%} con tolleranza 0,5R;
+  obiettivo {1:10 fisso, estensione 1,272, estensione 1,618}; pareggio
+  {nessuno, +3R}.
+- Scelta: la cella con R/op migliore in ricerca, con almeno 60 operazioni.
+- Verdetto: quella cella sul 2024-2026, confrontata con l'ufficiale sullo
+  stesso periodo. Si riportano anche le prime 10 celle, per far vedere quante
+  sopravvivono al passaggio.
+- Controllo del data mining: si dichiara quante celle battono il riferimento
+  IN RICERCA (per costruzione saranno molte) e quante lo battono FUORI. Se la
+  media delle prime 10 crolla fuori campione, la ricerca ha trovato rumore.
+
+Previsione: molte celle brillanti in ricerca (e' il senso di 450 tentativi),
+crollo fuori campione, e nessuna combinazione stabilmente sopra l'ufficiale.
+Se invece una regge, va comunque considerata candidata e non adottata.
+
+### Risultati: sopravvive l'order block, muore Fibonacci
+
+136 celle valutabili (almeno 60 operazioni in ricerca) su 600. Riferimento:
+tutte le operazioni con 1:10 e pareggio +3R, +0,138 R/op in ricerca e
++0,176 fuori campione. **49 celle su 136 battono il riferimento in ricerca**:
+esattamente il numero che ci si aspetta cercando fra centinaia, ed e' il
+motivo per cui il verdetto e' solo il fuori campione.
+
+Le prime dieci celle scelte SOLO su 2020-2023, misurate su 2024-2026:
+
+| # | order block | volume | fibo | R/op ricerca | n | **R/op fuori** | tot fuori |
+|---|---|---|---|---|---|---|---|
+| 1 | piena, margine 0,5R | terzile alto | — | +0,589 | 46 | **+1,168** | +53,7 |
+| 3 | raffinata, margine 1R | terzile alto | — | +0,535 | 51 | **+1,139** | +58,1 |
+| 5 | piena, margine 0,5R | qualunque | — | +0,436 | 68 | **+0,916** | +62,3 |
+| 9 | nessuno | terzile medio | **50%** | +0,359 | 87 | **-0,092** | -8,0 |
+| 10 | piena, margine 1R | terzile alto | — | +0,344 | 76 | +0,880 | +66,9 |
+
+Lettura netta, e coerente con tutto lo studio:
+
+1. **Le celle con l'order block reggono il passaggio fuori campione** e anzi
+   migliorano (+0,59 in ricerca, +1,17 fuori). E' la conferma indipendente
+   dell'appendice P, ora su un campione e un periodo diversi.
+2. **L'unica cella con Fibonacci fra le prime dieci e' anche l'unica che
+   CROLLA** (+0,359 in ricerca, -0,092 fuori). Terza falsificazione dopo il
+   placebo dell'appendice O e la scrematura AB.
+3. **Il profilo volume da solo non compare mai**; in coppia con l'OB il
+   terzile alto sembra aggiungere (+1,168 contro +0,916 senza), ma su 46
+   operazioni la differenza non e' distinguibile: resta un indizio.
+
+### Verifica di causalita' (dubbio sollevato dall'utente)
+
+Il motore e' a scorrimento: swing noti k barre DOPO l'estremo, zone attive
+dalla chiusura della candela che rompe, ingresso su candele chiuse, uscita
+risolta minuto per minuto con lo stop che prevale sull'obiettivo. Per
+escludere una fuga di informazione sottile, la cella migliore e' stata
+ricalcolata pretendendo le zone note con 33 e 66 minuti di RITARDO:
+
+| ritardo imposto | n in zona | R/op ricerca | R/op fuori campione |
+|---|---|---|---|
+| nessuno | 160 | +0,589 | +1,168 |
+| una candela M33 (33') | 157 | +0,592 | +1,168 |
+| due candele M33 (66') | 151 | +0,649 | +0,962 |
+
+Il risultato non dipende dal sapere le cose in anticipo: ritardando
+l'informazione resta identico. Se ci fosse lookahead, crollerebbe.
+
+**Conclusione**: la ricerca libera su tre famiglie di livelli riporta allo
+stesso posto di sempre — l'order block come filtro funziona, Fibonacci no, il
+volume al massimo accompagna. Nessuna adozione: 46-51 operazioni fuori
+campione sono poche, e la strada corretta e' verificarlo in avanti.
+
+## Appendice AJ: backtest completo 7 anni, zona piena contro zona raffinata
+
+Richiesta dell'utente: backtest completo sui sette anni di OB pieno piu' OB
+raffinato. Margine 0,5 x rischio, obiettivo 1:10, pareggio +3R, spread 0,30.
+
+### Sulla regola ufficiale (348 operazioni)
+
+| sottoinsieme | n | R tot | R/op | utile | stop | TP | DD | anni+ | PF |
+|---|---|---|---|---|---|---|---|---|---|
+| tutte | 348 | +171,1 | +0,492 | 35% | 54% | 3,2% | 16,3% | **7/7** | 1,81 |
+| in zona piena | 69 | +54,8 | +0,795 | 45% | 43% | 4,3% | 8,0% | 5/7 | 2,63 |
+| **in zona raffinata** | 29 | +36,4 | **+1,256** | 52% | 38% | **10,3%** | **4,3%** | 5/7 | **4,07** |
+| piena ma NON raffinata | 40 | +18,4 | +0,461 | 40% | 48% | **0,0%** | 7,1% | 4/7 | 1,85 |
+
+### Sul campione largo (1.344 operazioni)
+
+| sottoinsieme | n | R tot | R/op | utile | stop | TP | DD | anni+ | PF |
+|---|---|---|---|---|---|---|---|---|---|
+| tutte | 1344 | +205,2 | +0,153 | 29% | 59% | 2,2% | 41,9% | 5/7 | 1,23 |
+| in zona piena | 160 | +102,4 | +0,640 | 41% | 49% | 3,8% | 11,6% | 6/7 | 2,17 |
+| **in zona raffinata** | 63 | +84,5 | **+1,342** | 56% | 35% | **9,5%** | **3,3%** | **7/7** | **4,50** |
+| piena ma NON raffinata | 97 | +17,9 | +0,184 | 32% | 58% | **0,0%** | 16,9% | 4/7 | 1,28 |
+
+### Il risultato che conta: e' la RAFFINATA a fare tutto
+
+Separando le due parti della zona piena si vede che il vantaggio dell'order
+block sta INTERAMENTE nella parte raffinata (la definizione dell'utente):
+
+- campione largo: raffinata +1,342 R/op su 63 operazioni, il resto della zona
+  piena +0,184 su 97 — praticamente il campione senza filtro.
+- **zero TP pieni** fuori dalla zona raffinata, in entrambi i campioni: le
+  corse fino a 1:10 avvengono solo dentro la zona stretta.
+- la raffinata sul campione largo e' l'unico sottoinsieme con 7 anni positivi
+  su 7, drawdown 3,3% e fattore di profitto 4,50.
+
+Limite serio e dichiarato: 29 e 63 operazioni sono poche, circa 4-9 all'anno.
+Come filtro DURO la raffinata butta il 92% del campione e chiude a +36,4 R
+contro +171,1: non e' una strategia sostitutiva. Il suo posto e' altrove —
+sovrappeso di rischio (appendice X: +26,7% a pari drawdown, p 0,06) e
+selezione delle occasioni migliori nell'operativita' manuale.
+
+## Appendice AK: si puo' arrivare a 100 operazioni l'anno?
+
+Richiesta dell'utente: una configurazione con 100-120 operazioni l'anno che
+porti allo stesso risultato. Scala di frequenza costruita allentando le
+conferme sul campione largo (macro sempre attivo), obiettivi 5/8/10,
+pareggio +3R. Confronto a PARITA' DI DRAWDOWN (16,3%, bisezione sul rischio):
+e' l'unico modo onesto di confrontare configurazioni che oscillano di piu'.
+
+| conferme | M12 | rr | n | op/anno | R tot | R/op | anni+ | DD a 1% | conto a 1% | **conto a pari DD** |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **M33+H12 (in vigore)** | pullback | 10 | 348 | **53** | +171,1 | **+0,492** | **7/7** | **16,3%** | 49.321 | **49.321** |
+| M33+H12+M66 | pullback | 10 | 320 | 49 | +149,8 | +0,468 | 7/7 | 16,3% | 40.292 | 40.336 |
+| M33 | pullback | 10 | 388 | 60 | +169,4 | +0,437 | 7/7 | 18,8% | 47.971 | 38.682 |
+| M33+H12 | — | 10 | 627 | **96** | **+238,3** | +0,380 | 7/7 | **26,7%** | **88.313** | 36.823 |
+| H12 | pullback | 10 | 628 | 96 | +164,4 | +0,262 | 6/7 | 18,7% | 44.242 | 36.768 |
+| nessuna | pullback | 10 | 730 | **112** | +171,8 | +0,235 | 6/7 | 19,9% | 46.267 | 35.522 |
+| M33 | — | 10 | 698 | 107 | +236,7 | +0,339 | 6/7 | 28,5% | 85.406 | 33.143 |
+
+Si arriva a 96-112 operazioni l'anno, e in R si fa anche molto di piu': la
+riga M33+H12 senza il vincolo di pullback fa **+238,3 R e 88.313 EUR a
+rischio 1%**, con 7 anni positivi. Ma il drawdown sale al **26,7%**, e a
+parita' di dolore il conto scende a 36.823: **il 25% in meno del base**.
+
+E' la legge della frequenza gia' vista tre volte (appendici M, S, W), qui
+misurata sulla scala completa: ogni allentamento porta operazioni con meno
+vantaggio per operazione (da +0,492 a +0,235), quindi per fare lo stesso
+risultato serve piu' rischio, e il drawdown cresce piu' in fretta del
+guadagno. **Nessuna delle 18 configurazioni da 90-140 op/anno batte la
+taratura a parita' di drawdown.**
+
+Nota per chi cerca volume di operazioni: la riga M33+H12 senza pullback e'
+comunque la migliore di quella fascia, ed e' l'unica con 7/7 anni. Se un
+giorno servisse frequenza (per un conto prop con obiettivi di attivita'),
+quella e' la candidata — al prezzo dichiarato di un quarto del rendimento a
+parita' di rischio.
+
+## Appendice AL: scale di trailing x obiettivi 1:5-1:12
+
+Richiesta dell'utente: verificare gli obiettivi fini da 1:5 a 1:9 e provare
+vere SCALE di trailing (a +3R stop a pari, a +5R stop a +2R, ecc.), che
+finora non erano mai state misurate — il pareggio era sempre stato provato
+come soglia unica.
+
+84 celle: 12 gestioni x 7 obiettivi, sulle 348 operazioni ufficiali, spread
+0,30. Convenzione conservativa: dentro il minuto lo stop prevale
+sull'obiettivo, e la scala si aggiorna DOPO il controllo dello stop.
+
+### Conto a parita' di drawdown (16,3%), euro da 10.000
+
+| gestione | 1:5 | 1:6 | 1:7 | 1:8 | 1:9 | **1:10** | 1:12 |
+|---|---|---|---|---|---|---|---|
+| **pari a +3R (in uso)** | 32.962 | 36.399 | 36.931 | 41.022 | 45.742 | **49.321** | 46.918 |
+| pari a +2R | — | — | — | — | 45.559 | 48.545 | 46.266 |
+| scala 3>0 5>2 | 32.962 | 34.562 | 34.877 | 38.381 | 42.404 | 45.305 | 43.704 |
+| scala 3>0 5>2 7>4 | 32.962 | 34.562 | 34.877 | 37.552 | 39.583 | 38.764 | 37.338 |
+| scala 2>0 4>2 6>4 | 29.169 | 32.486 | 34.478 | 36.288 | 37.311 | 37.631 | 35.088 |
+| scala 5>0 8>4 | 28.518 | 31.491 | 31.952 | 35.492 | 37.759 | 37.318 | 35.446 |
+| stop fisso | 28.518 | 31.430 | 31.571 | 35.068 | 39.103 | 42.162 | 40.108 |
+| trail MFE-2 da +3R | 30.445 | 30.614 | 30.374 | 31.783 | 31.538 | 31.689 | 31.520 |
+| trail MFE-3 da +4R | 29.891 | 30.713 | 31.317 | 33.342 | 35.149 | 35.437 | 32.200 |
+| trail MFE-4 da +6R | 28.518 | 31.430 | 31.149 | 33.616 | 35.757 | 36.028 | 32.524 |
+
+### Tre risultati
+
+**1. Nessuna scala batte la soglia singola.** La configurazione in uso
+(pareggio a +3R, nessun gradino successivo) e' la migliore di tutte e 84 le
+celle, sia in R (+171,1) sia in euro a parita' di drawdown. Aggiungere il
+secondo gradino (3>0 poi 5>2) costa **-9,1 R**; aggiungerne un terzo (7>4)
+costa **-25,7 R**. Ogni gradino in piu' toglie, e toglie in modo monotono.
+
+**2. Il trailing continuo e' il peggiore in assoluto.** Stop sempre a MFE-2:
++122,5 R contro +171,1, cioe' **-28%**, ed e' l'unica gestione che non migliora
+alzando l'obiettivo (resta piatta a ~31.000 EUR da 1:5 a 1:12). Il motivo e'
+quello di sempre: il trailing stretto taglia proprio le corse lunghe, che
+sono il 69% del risultato. Piu' e' lasco (MFE-4) meno danneggia, e al limite
+coincide con il non farlo.
+
+**3. Fra 1:5 e 1:9 non c'e' niente di nascosto.** La colonna cresce in modo
+regolare fino a 1:10 e poi cala a 1:12: 32.962 → 36.399 → 36.931 → 41.022 →
+45.742 → **49.321** → 46.918. Nessun massimo intermedio, nessuna sorpresa
+fra 1:5 e 1:9: l'ottimo e' 1:10 e la curva e' liscia.
+
+**Conclusione**: taratura invariata. La domanda "il trailing migliora?" ha
+risposta netta e negativa su 84 celle — e ora e' agli atti invece di essere
+un'ipotesi mai verificata. Dati in `scale-trailing.parquet`.
+
+## Appendice AM: stabilita' a lotti fissi (la costante di profitto)
+
+Osservazione dell'utente: le tabelle mostrano quanto si guadagna, non quanto
+si e' stabili, e il conto in euro col rischio percentuale confonde il
+vantaggio con l'effetto della composizione. Rifatto tutto a **lotti fissi**:
+10.000 EUR di conto, **100 EUR rischiati a ogni operazione, sempre**. Cosi'
+ogni operazione pesa uguale e resta solo il vantaggio.
+
+### La configurazione in uso, a lotti fissi
+
+| | |
+|---|---|
+| risultato | +171,1 R = **27.111 EUR** (da 10.000, in 6 anni e mezzo) |
+| costante annua | ~+26 R, cioe' **+2.600 EUR all'anno** a rischio 100 EUR |
+| operazioni in perdita | 64,7% |
+| perdite di fila (massimo) | 13 |
+| perdita massima | **17,6 R** (1.762 EUR) |
+| tempo sotto il massimo precedente | 33 operazioni |
+| recupero (risultato / perdita massima) | **9,71** |
+| mesi positivi | 50,7% |
+| anni positivi | 7/7, il peggiore **+6,9 R** |
+| fattore di profitto | 1,81 |
+
+### Il confronto sulle misure di stabilita', non sul profitto
+
+Nessuna delle 84 celle batte quella in uso su **tutte** le misure insieme.
+Nel dettaglio:
+
+- **65 celle hanno meno operazioni in perdita**, ma **nessuna di queste rende
+  di piu'**. Il caso limite e' il trailing continuo MFE-2: perse 57,8% contro
+  64,7% — sette punti in meno, esattamente quello che si cerca guardando le
+  perdite — ma rende 122,5 R contro 171,1, cioe' **22.246 EUR contro 27.111**,
+  e il rapporto recupero scende da 9,71 a 6,95. Meno perdite, meno soldi,
+  meno robustezza.
+- **Una sola cella ha un recupero migliore**: pareggio a +2R con 1:10, e per
+  un soffio (9,720 contro 9,708). Ma paga con 49 operazioni sotto il massimo
+  invece di 33 (cioe' quasi il doppio del tempo passato sott'acqua), con
+  l'anno peggiore a +2,4 R invece di +6,9 e con meno mesi positivi (45,1%
+  contro 50,7%). Un pareggio numerico che nella pratica e' peggiore.
+- **Zero celle hanno un anno peggiore migliore** di +6,9 R.
+
+### Cosa dice davvero questa tabella
+
+La "costante di profitto" della strategia, ripulita dalla composizione, e'
+**+26 R all'anno con una perdita massima di 17,6 R**: si guadagna circa una
+volta e mezza il proprio peggior periodo, ogni anno. Il rapporto di recupero
+9,71 su sette anni e' il numero piu' onesto che questo lavoro produce.
+
+E la lezione ripetuta per l'ennesima volta, ora anche sulle misure di
+stabilita': **la percentuale di operazioni in perdita non e' una leva da
+migliorare**. Si puo' comprare (65 celle lo fanno) ma il prezzo e' sempre lo
+stesso — meno risultato e meno robustezza. Dati in `stabilita.parquet`.
+
+## Appendice AN: scrematura delle 84 gestioni, e dove cadono le serie
+
+### Le celle che sopravvivono al confronto
+
+Delle 84 combinazioni, **10 non sono dominate** da nessun'altra (cioe' non
+esiste una cella che le batta insieme su risultato, drawdown in R, quota di
+vinte, tempo sotto il massimo e anni positivi). Le altre 74 si possono
+scartare senza pensarci: c'e' sempre qualcosa di meglio sotto ogni aspetto.
+
+| gestione | rr | R tot | % vinte | DD R | sotto max | mesi+ | anni+ | peggiore | PF |
+|---|---|---|---|---|---|---|---|---|---|
+| **pari a +3R (in uso)** | 10 | **171,1** | 35,3 | 17,6 | 33 | 36 | 7 | **+6,9** | **1,81** |
+| scala 3>0 5>2 | 10 | 162,0 | 36,2 | 17,6 | 33 | 35 | 7 | +0,8 | 1,77 |
+| stop fisso | 10 | 155,6 | 36,5 | 17,6 | 33 | 35 | 7 | +4,8 | 1,68 |
+| pari a +2R | 10 | 151,9 | 32,5 | **15,6** | 49 | 32 | 7 | +2,4 | 1,78 |
+| scala 4>1 7>4 | 9 | 148,4 | 38,5 | 17,6 | 33 | 35 | 7 | +3,7 | 1,66 |
+| trail MFE-2 da +3R | 8 | 122,7 | **42,2** | 17,6 | 45 | **37** | 7 | +1,2 | 1,59 |
+
+(le altre quattro sono varianti peggiori delle stesse famiglie)
+
+Solo tre scelte hanno senso: **massimo risultato** (quella in uso), **minimo
+drawdown** (pari a +2R: 15,6 R contro 17,6, ma 49 operazioni sott'acqua invece
+di 33 e 19 R in meno), **massima quota di vinte** (trailing MFE-2: 42,2%, al
+prezzo di 48 R). Nessuna combinazione dà due cose insieme.
+
+### Le serie sono un fatto del mercato, non della gestione
+
+Osservazione dell'utente: le serie di vittorie e sconfitte sono identiche in
+quasi tutte le celle. E' vero, e il motivo e' che **la gestione cambia quanto
+rende un'operazione, non se e' vinta o persa**: rispetto alla configurazione
+in uso, lo stop fisso cambia segno a 4 operazioni su 348, la scala a 16, il
+trailing continuo a 24. Il resto e' identico.
+
+Dove cadono, sulla configurazione in uso:
+
+| serie | quando | durata | esito |
+|---|---|---|---|
+| **13 perdite di fila** | 24/02/2026 → 09/06/2026 | 105 giorni | -13,3 R |
+| 6 vittorie di fila | 14/04/2020 → 29/06/2020 | 76 giorni | +7,9 R |
+
+L'intuizione dell'utente e' corretta: la serie nera **e' esattamente il
+drawdown massimo**. La curva era a +164,1 R (massimo +168,4), scende a
++150,8 R: sono i 17,6 R di perdita massima, e il periodo va dal 20/10/2025 al
+09/06/2026, 27 operazioni in tutto.
+
+Due cose che questo dice, e che valgono piu' di qualunque ottimizzazione:
+
+1. **La peggiore attraversata dei sette anni e' l'ultima**, ancora in corso a
+   fine campione. Non e' un guasto della strategia: e' il tipo di periodo che
+   capita, e chi comincia adesso potrebbe partire proprio da li'.
+2. **Tre mesi e mezzo con 13 perdite di fila sono nel copione.** Nessuna delle
+   84 gestioni le riduce: il massimo di perdite consecutive e' 13 in TUTTE le
+   celle. Si puo' cambiare quanto costano, non quante sono.
+
+## Appendice AO: le otto gestioni senza la chiusura di fine giornata
+
+Domanda dell'utente: se il conto non ha il vincolo prop sull'overnight, cosa
+succede alle otto gestioni sopravvissute alla scrematura? Tre regimi: chiusura
+alle 21 (in vigore), chiusura al venerdi' sera, nessuna chiusura per tempo
+(tetto 30 giorni). Lotti fissi, 100 EUR per operazione.
+
+| gestione | rr | giornaliera | settimanale | aperta | DD R (gio→apert) | anni+ |
+|---|---|---|---|---|---|---|
+| pari a +3R (in uso) | 10 | +171,1 | +182,4 | **+224,1** | 17,6 → **24,0** | 7 → **6** |
+| pari a +3R | 9 | +162,8 | +187,3 | **+231,1** | 17,6 → 25,7 | 7 → 7 |
+| **pari a +3R** | **8** | +151,0 | **+191,8** | +218,1 | 17,6 → **14,3** (sett.) | 7 → 7 |
+| scala 3>0 5>2 | 10 | +162,0 | +142,4 | +184,1 | 17,6 → 20,7 | 7 → 6 |
+| stop fisso | 10 | +155,6 | +172,9 | +221,1 | 17,6 → **38,6** | 7 → 6 |
+| pari a +2R | 10 | +151,9 | +167,1 | +193,1 | 15,6 → 19,6 | 7 → 6 |
+| **scala 4>1 7>4** | **9** | +148,4 | +176,4 | +178,1 | 17,6 → **16,5** | 7 → **7** |
+| **trail MFE-2** | **8** | +122,7 | +161,4 | +172,3 | 17,6 → **14,3** | 7 → **7** |
+
+### Il ribaltamento: senza chiusura serale servono gestioni diverse
+
+Tenendo aperto, **le gestioni cambiano di ruolo**. Con la chiusura serale il
+trailing era il peggiore di tutti (+122,7, ultimo su otto); senza chiusura
+diventa una delle migliori scelte: +172,3 R con il **drawdown piu' basso in
+assoluto (14,3 R contro i 24,0 della configurazione in uso)**, 37 mesi
+positivi su 71 e 7 anni su 7. Il motivo e' evidente: quando la posizione puo'
+restare aperta giorni, qualcuno deve proteggere il guadagno — di notte non c'e'
+piu' la campanella a farlo.
+
+Specularmente, il pareggio a +3R con 1:10 e' quello che guadagna di piu' in
+assoluto senza chiusura (+224,1), ma il conto e' salato: drawdown da 17,6 a
+**24,0 R**, la quota di operazioni vinte crolla dal 35,3% al **13,5%**, le
+perdite di fila passano da 13 a **28**, e si perde un anno positivo. Lo stop
+fisso e' il caso estremo: +221 R con **38,6 R di drawdown**, piu' del doppio.
+
+### Le due combinazioni che migliorano su tutto
+
+Solo due celle stanno meglio senza chiusura serale **senza pagare in rischio**:
+
+- **pari a +3R con obiettivo 1:8, chiusura settimanale**: +191,8 R (contro
+  151,0), drawdown **14,3 R invece di 17,6**, perdite di fila 15, 7 anni su 7,
+  anno peggiore +11,4 R — il migliore di tutta la tabella.
+- **trailing MFE-2 con 1:8, tenuta aperta**: +172,3 R (contro 122,7),
+  drawdown 14,3, 34 operazioni sott'acqua, 37 mesi positivi.
+
+Avvertenza obbligatoria, la stessa dell'appendice AH: **swap, gap del fine
+settimana e posizioni sovrapposte non sono modellati**, e penalizzano solo i
+regimi lunghi. Il 24% delle operazioni resterebbe aperto oltre sera, con fino
+a 4 posizioni contemporanee: a rischio 1% ciascuna sono il 4% esposto in un
+istante. Prima di adottare uno di questi due profili serve misurare lo swap
+reale del broker e mettere un tetto alle posizioni contemporanee.
+
+## Appendice AP: scheda completa delle due candidate senza chiusura serale
+
+Tutto quello che serve per decidere fra le due combinazioni emerse
+nell'appendice AO e quella in vigore. Lotti fissi, 100 EUR per operazione,
+spread 0,30.
+
+| | **A** pari +3R, 1:8, venerdi' | **B** trail MFE-2, 1:8, aperta | in uso: pari +3R, 1:10, sera |
+|---|---|---|---|
+| operazioni | 348 | 348 | 348 |
+| **risultato** | **+191,8 R** (29.182 EUR) | +172,3 R (27.234) | +171,1 R (27.111) |
+| per operazione | +0,55 | +0,50 | +0,49 |
+| **vinte** | **81 (23,3%)** | 127 (36,5%) | 123 (35,3%) |
+| media vinta / persa | **+5,27** / -0,88 | +3,22 / -1,07 | +3,11 / -0,94 |
+| fattore di profitto | **1,82** | 1,73 | 1,81 |
+| vittorie / perdite di fila | 3 / **15** | **7** / 14 | 6 / 13 |
+| **perdita massima** | **14,3 R** | **14,3 R** | 17,6 R |
+| operazioni sotto il massimo | **59** | 34 | 33 |
+| mesi positivi | 32/71 | **37/71** | 36/71 |
+| anni positivi | **7/7** | **7/7** | **7/7** |
+| **anno peggiore** | **+11,5 R** | +10,4 R | +6,9 R |
+
+### Come esce, ciascuna
+
+| uscita | A | B | in uso |
+|---|---|---|---|
+| stop pieno | 214 | 221 | 189 |
+| obiettivo | **36** | 17 | 11 |
+| pareggio | 50 | 0 | 24 |
+| stop in utile | 0 | **110** | 0 |
+| scadenza (venerdi'/sera) | 48 | 0 | 124 |
+
+Sono due meccanismi opposti. **A vince poco e grosso**: solo 81 operazioni in
+utile su 348, ma la vincita media e' +5,27 R (contro +3,11) perche' le lascia
+correre tutta la settimana. **B vince spesso e medio**: 127 operazioni in
+utile, di cui 110 chiuse dal trailing a un livello gia' in guadagno — e' il
+trailing a fare tutto il lavoro.
+
+### I costi non modellati, misurati
+
+| | A | B | in uso |
+|---|---|---|---|
+| durata mediana | 3,0 ore | 2,5 ore | 2,7 ore |
+| durata media | 10,9 ore | 10,4 ore | 4,2 ore |
+| operazione piu' lunga | 4,3 giorni | 5,8 giorni | 14 ore |
+| operazioni oltre la notte | 25,0% | 24,1% | **0%** |
+| **notti totali da pagare** | **128** | **141** | **0** |
+| **fine settimana attraversati** | **0** | **22** | **0** |
+| posizioni contemporanee (max) | **4** | 3 | 3 |
+
+Numeri concreti per il conto: A paga **128 notti di swap** in sette anni, B ne
+paga 141 e attraversa **22 fine settimana** col rischio di gap sopra lo stop.
+Con uno swap tipico di 1-3 EUR per notte su 0,10 lotti, sono 130-400 EUR su
+sette anni: poco rispetto ai ~9.000 EUR di differenza, ma va verificato sul
+listino vero di FP, perche' su XAUUSD lo swap short e long non sono simmetrici
+e in certi periodi sono molto piu' alti.
+
+### Risultato per anno (R)
+
+| anno | A | B | in uso |
+|---|---|---|---|
+| 2020 | +17,4 | **+27,0** | +6,9 |
+| 2021 | +14,2 | +10,4 | +9,8 |
+| 2022 | +34,2 | +28,3 | +37,2 |
+| 2023 | +27,5 | +17,5 | +27,7 |
+| 2024 | +26,4 | +20,6 | +38,4 |
+| 2025 | **+60,7** | +55,2 | +44,1 |
+| 2026 | +11,5 | +13,3 | +7,0 |
+
+### Cosa manca prima di adottarle
+
+1. **Swap reale di FP** su XAUUSD, long e short, e ricalcolo con quel costo.
+2. **Gap del fine settimana**: il modello assume il fill esatto allo stop, che
+   in un gap non avviene. Riguarda solo B (22 weekend).
+3. **Tetto alle posizioni contemporanee**: A arriva a 4 aperte insieme, cioe'
+   il 4% esposto a rischio 1% ciascuna. Va messo un limite esplicito.
+4. **Verifica fuori campione**: queste due sono state scelte guardando gli
+   stessi sette anni, quindi vale l'avvertenza di sempre — sono candidate,
+   non adottate.
+
+## Appendice AQ: lo swap reale di FP ribalta le candidate overnight
+
+Specifiche del simbolo XAUUSD sul conto FP, lette dall'utente il 03/08/2026:
+swap **in punti**, long **-71,5**, short **+32,5**, lotto 100 once,
+coefficiente **x3 il mercoledi'**. Su XAUUSD un punto vale 0,01 $ di prezzo,
+che su 100 once fa **1 $ per lotto**: una notte di long costa **71,50 $ per
+lotto**, una di short ne rende 32,50.
+
+Tradotto in multipli del rischio (swap_R = punti / (100 x stop in $)), con lo
+stop mediano di 4,72 $: **una notte di long costa 0,151 R**, cioe' il 15% del
+rischio dell'operazione. Il rollover cade alle 00:00 del server (UTC+3) = le
+21:00 UTC, esattamente l'ora della chiusura di fine giornata: **chi chiude alle
+21 non paga swap, mai**.
+
+| configurazione | lordo | swap | **netto** | notti pesate | vinte | DD | anni+ | peggiore |
+|---|---|---|---|---|---|---|---|---|
+| **in uso: pari +3R 1:10, sera** | +171,1 | **0,0** | **+171,1** | 0 | 35,3% | 17,6 | 7/7 | +6,9 |
+| A: pari +3R 1:8, venerdi' | +191,8 | **-13,4** | +178,4 | 230 | 25,6% | **14,3** | 7/7 | **+11,3** |
+| B: trail MFE-2 1:8, aperta | +172,3 | -9,3 | +163,0 | 189 | 36,5% | **14,3** | 7/7 | +10,1 |
+| B': trail MFE-2 1:8, venerdi' | +161,4 | -6,8 | +154,6 | 139 | 37,6% | **14,3** | 7/7 | **+12,8** |
+
+### Cosa cambia
+
+Lo swap **mangia da 7 a 13 R** e riordina la classifica:
+
+- **B, la candidata che sembrava migliore, scende sotto la configurazione in
+  vigore**: +163,0 contro +171,1. Il vantaggio apparente era swap non pagato.
+- **B' (chiusura al venerdi', come chiesto dall'utente) e' ancora peggio**:
+  +154,6 R. Chiudere il venerdi' evita i gap del fine settimana ma taglia
+  anche le corse lunghe, e le notti restano comunque 139.
+- **A resta sopra**: +178,4 contro +171,1, cioe' **+7,3 R in sette anni** —
+  circa 730 EUR a lotti fissi, l'1% l'anno. In cambio di 230 notti di
+  esposizione, gap non modellati e una quota di vinte che scende al 25,6%.
+
+Da notare: il 69% delle operazioni e' long, cioe' proprio il lato che paga.
+Se la strategia fosse prevalentemente short lo swap sarebbe un ricavo (+32,5
+punti a notte) e la conclusione si rovescerebbe.
+
+### Conclusione
+
+**La chiusura alle 21 UTC non e' un vincolo da subire: e' gratis e vale
+quanto tenere aperto.** Il piccolo vantaggio residuo di A (+4%) non ripaga
+gap del weekend, fino a 4 posizioni contemporanee e 15 perdite di fila. La
+taratura resta quella in vigore, e adesso lo si sa con il listino vero in
+mano invece che con una stima.
+
+### Le stesse tre, a rischio percentuale invece che a lotti fissi
+
+Con reinvestimento (1% e 0,5% del capitale corrente, da 10.000 EUR), swap
+reale gia' sottratto:
+
+| | in uso 1:10 sera | A: pari +3R 1:8 venerdi' | B: trail 1:8 venerdi' |
+|---|---|---|---|
+| **conto all'1%** | 49.321 | **51.524** | 42.707 |
+| rendimento | +393% | **+415%** | +327% |
+| **perdita max** | 16% (7.901 EUR) | 13% (6.480) | **13% (5.371)** |
+| conto allo 0,5% | 22.844 | **23.516** | 21.151 |
+| perdita max allo 0,5% | 8% (1.914 EUR) | 7% (1.575) | **7% (1.417)** |
+| mesi positivi | 36/71 | 31/71 | 36/71 |
+| anno peggiore | +646 EUR | +1.267 | **+1.445** |
+
+Per anno, a rischio 1% (euro):
+
+| anno | in uso | A | B |
+|---|---|---|---|
+| 2020 | 646 | 1.544 | **2.083** |
+| 2021 | 920 | 1.267 | **1.445** |
+| 2022 | 4.971 | 4.851 | **5.206** |
+| 2023 | **4.857** | 4.866 | 2.977 |
+| 2024 | **9.251** | 5.374 | 3.363 |
+| 2025 | 15.797 | **18.749** | 12.845 |
+| 2026 | 2.878 | **4.873** | 4.788 |
+
+Il quadro con la composizione e' lo stesso dei lotti fissi, con due sfumature
+che contano:
+
+- **A vince di 2.200 EUR su 6 anni e mezzo (+4,5%) e con drawdown minore**
+  (13% contro 16%): a parita' di rischio percentuale e' la sola configurazione
+  che migliora davvero, non solo in R.
+- **B resta sotto** (42.707 contro 49.321) ma ha la perdita massima piu' bassa
+  in assoluto (5.371 EUR contro 7.901) e l'anno peggiore piu' alto: e' il
+  profilo piu' tranquillo, pagato con un quinto del rendimento.
+
+Resta il motivo per cui nessuna delle due viene adottata: 230 e 139 notti di
+esposizione a mercato non sorvegliato, fino a 4 posizioni contemporanee, e
+soprattutto la scelta fatta guardando gli stessi sette anni. Il vantaggio di A
+(+4,5%) e' dentro il margine di rumore di una selezione fra 84 celle.
+
+## Appendice AR: vale la pena attraversare il fine settimana?
+
+Domanda dell'utente su B: meglio farla correre anche nel weekend o chiudere il
+venerdi'? Nel modello **correre rende di piu'**: +163,0 R contro +154,6, cioe'
+chiudere il venerdi' costa 8,4 R. Ma quel guadagno sta esattamente dove il
+modello e' cieco: i salti del lunedi'.
+
+Misurati sui 340 fine settimana dello storico 2020-2026 (differenza fra
+chiusura del venerdi' e apertura successiva, in valore assoluto):
+
+| | dollari | in R con stop 4,72 $ |
+|---|---|---|
+| mediana | 1,31 | 0,28 |
+| p75 | 3,52 | 0,75 |
+| p90 | 13,15 | 2,79 |
+| p95 | 19,59 | **4,15** |
+| p99 | 59,22 | 12,55 |
+| **massimo** | **111,94** | **23,72** |
+
+Il 21% dei fine settimana apre oltre 1 R di distanza, il 12% oltre 2 R.
+
+### Il conto
+
+B attraversa 22 fine settimana in sette anni e ne ricava **+8,4 R, cioe'
++0,38 R per weekend**. Contro: quando il salto supera lo stop nella direzione
+sbagliata, l'operazione non esce a -1 R ma alla riapertura, e i gap oltre 1 R
+valgono in media **3,96 R**. Con 22 attraversamenti e il 21% di gap oltre 1 R,
+l'attesa e' di circa 4-5 episodi: se anche solo uno o due cadono dalla parte
+sbagliata di una posizione aperta, il guadagno di 8,4 R e' bruciato.
+
+E c'e' l'asimmetria che conta di piu': il modello **conta i gap favorevoli**
+(il prezzo salta verso l'obiettivo e l'operazione chiude meglio) ma **non
+penalizza quelli contrari** oltre lo stop, perche' assume il fill esatto al
+livello. Quindi i +8,4 R sono gonfiati proprio dal meccanismo che li rende
+inaffidabili.
+
+**Risposta: chiudere il venerdi'.** Si rinuncia a un guadagno modellato di
+8,4 R (5%) per togliere una coda che nel caso peggiore osservato vale 23,7 R
+su una singola operazione — piu' del drawdown massimo di tutta la strategia.
+Vale comunque solo come nota di metodo: B in entrambe le versioni resta sotto
+la configurazione in vigore.
+
+## Appendice AS: i gap contrari, contati davvero
+
+Difetto del motore segnalato dall'utente: quando il prezzo riapre OLTRE lo
+stop, l'uscita non avviene al livello ma al prezzo di riapertura. Il modello
+assumeva il riempimento esatto, quindi incassava i gap favorevoli senza pagare
+quelli contrari. Corretto: ora si guarda l'APERTURA di ogni minuto — se apre
+oltre lo stop si esce li', se apre oltre l'obiettivo si incassa li'.
+
+### Il risultato non cambia, ma per un pelo
+
+| configurazione | netto con gap pagati | gap contrari pagati |
+|---|---|---|
+| in uso 1:10 sera | +171,1 R | **0,0** (non attraversa mai una riapertura) |
+| A pari +3R 1:8 venerdi' | +178,4 R | **0,0** (chiude prima del weekend) |
+| B trail 1:8 venerdi' | +154,6 R | **0,0** |
+| B trail 1:8 aperta | +163,0 R | **0,0** su 23 attraversamenti |
+
+Zero non e' un errore: **solo 23 operazioni su 348 restano vive attraverso una
+chiusura del mercato**, e in quelle 23 il lunedi' ha riaperto sempre sopra lo
+stop (da +0,66 a +2,65 R). Ma e' fortuna, non robustezza.
+
+### Quanto vale quella fortuna
+
+Simulazione: agli stessi 23 attraversamenti si assegnano salti pescati a caso
+dalla distribuzione reale dei 340 fine settimana dello storico (con segno),
+20.000 storie alternative. Il margine mediano fra prezzo e stop al venerdi'
+sera e' 1,58 R, il minimo 0,20 R.
+
+| costo dei gap contrari | R |
+|---|---|
+| mediana | 2,6 |
+| media | **5,4** |
+| p90 | 14,5 |
+| p99 | 32,2 |
+| massimo osservato in simulazione | 74,9 |
+| storie a costo zero | **14%** |
+| **storie che bruciano gli 8,4 R di vantaggio** | **22%** |
+
+La storia reale che abbiamo (costo zero) e' fra il 14% piu' fortunato. In una
+storia media il costo sarebbe 5,4 R, cioe' i due terzi del vantaggio di
+tenere aperto; una volta su cinque lo brucia del tutto, e nella coda peggiore
+si perde piu' del drawdown massimo dell'intera strategia.
+
+**Conclusione**: il vantaggio di attraversare il fine settimana (+8,4 R) e'
+piu' piccolo della sua stessa incertezza (5,4 R di costo atteso, 32 R al
+percentile 99). Confermata la scelta di chiudere il venerdi', e confermato
+che la configurazione in vigore — che non attraversa neanche la notte — non
+ha affatto questa esposizione.
+
+## Appendice AT: filtro sul fine settimana e stop alla chiusura del venerdi'
+
+Due proposte dell'utente per rendere sostenibile il tenere aperto: attraversare
+il fine settimana solo se gia' sopra una soglia (+3R o +5R), e portare lo stop
+al prezzo di chiusura del venerdi' per congelare il guadagno. Motore completo:
+gap pagati al prezzo di riapertura, swap reale di FP.
+
+| variante | netto | swap | vinte | uscite per gap | chiuse dal filtro |
+|---|---|---|---|---|---|
+| **sempre aperta** | **+163,0** | -9,3 | 36,5% | 0 | — |
+| weekend solo sopra +3R | +158,5 | -8,7 | **37,9%** | **0** | 16 |
+| weekend solo sopra +5R | +157,2 | -7,6 | **37,9%** | **0** | 22 |
+| chiude sempre il venerdi' | +154,6 | -6,8 | 37,6% | 0 | — |
+| +5R e stop a chiusura | +156,0 | -7,6 | 37,9% | 1 | 22 |
+| +3R e stop a chiusura | +153,7 | -8,7 | 37,9% | **5** | 16 |
+| stop a chiusura, senza filtro | +152,5 | -9,0 | 37,9% | **10** | — |
+
+### Il filtro funziona come sperato, ma costa
+
+Le due varianti con filtro fanno esattamente il loro mestiere: **zero uscite
+per gap** e la quota di operazioni vinte sale al 37,9% (contro 36,5%). Il
+prezzo e' 4,5-5,8 R rispetto al tenere sempre aperto — meno di quanto costava
+chiudere sempre il venerdi' (8,4 R). Quindi il filtro **e' meglio di entrambe
+le regole secche**: prende meta' del vantaggio del tenere aperto e ne toglie
+quasi tutta l'esposizione.
+
+### Lo stop portato alla chiusura fa il contrario di quello che si spera
+
+L'idea era proteggere il guadagno; il risultato e' che **crea gli stop che
+voleva evitare**. Senza filtro le uscite per gap passano da 0 a **10**, e il
+netto scende da +163,0 a +152,5 — la peggiore di tutte le varianti. Il motivo
+e' aritmetico: portando lo stop al prezzo del venerdi' si azzera il margine,
+e a quel punto **qualunque riapertura anche solo di pochi centesimi sotto
+chiude l'operazione**. Il margine mediano fra prezzo e stop era 1,58 R e
+serviva proprio ad assorbire il salto.
+
+Aggiunto al filtro il danno si riduce (5 uscite per gap con +3R, una sola con
++5R) ma resta un peggioramento: -4,8 e -1,2 R rispetto al solo filtro.
+
+### Conclusione
+
+Il filtro sopra +3R e' la versione migliore del tenere aperto: +158,5 R con
+zero uscite per gap. Ma resta sotto la configurazione in vigore (+171,1 R con
+zero notti, zero swap e zero esposizione) — quindi non cambia la conclusione,
+migliora solo la comprensione: **se un giorno servisse tenere aperto, si tiene
+solo quando si e' gia' avanti, e lo stop NON si porta alla chiusura**.
+
+### Stop a PAREGGIO prima del fine settimana (precisazione dell'utente)
+
+L'idea non era portare lo stop al prezzo del venerdi' ma **al prezzo
+d'ingresso**: si garantisce di non perdere e si lascia intatto il margine che
+serve ad assorbire il salto. E' una regola diversa, e infatti va molto meglio.
+
+| variante | netto | vinte | uscite per gap | chiuse dal filtro |
+|---|---|---|---|---|
+| sempre aperta (riferimento) | +163,0 | 36,5% | 0 | — |
+| **stop a pareggio nel weekend** | **+161,2** | 37,1% | 3 | — |
+| **pareggio + solo sopra +1R** | **+160,8** | 37,4% | **0** | 11 |
+| pareggio + solo sopra +3R | +158,5 | 37,9% | 0 | 16 |
+| pareggio + solo sopra +5R | +157,2 | 37,9% | 0 | 22 |
+| chiude sempre il venerdi' | +154,6 | 37,6% | 0 | — |
+| stop alla chiusura del venerdi' | +152,5 | 37,9% | **10** | — |
+
+Lo stop a pareggio costa **1,8 R** contro gli 8,4 del chiudere sempre: e' il
+modo piu' economico di proteggersi. Da solo lascia ancora 3 uscite per gap
+(operazioni che il lunedi' riaprono sotto il prezzo d'ingresso); **aggiungendo
+il filtro sopra +1R le uscite per gap vanno a zero** e il costo totale resta
+2,2 R.
+
+La differenza con lo stop alla chiusura e' istruttiva: stessa intenzione, esiti
+opposti (+161,2 contro +152,5, 3 uscite per gap contro 10). Il motivo e' il
+margine: al pareggio resta tutto il guadagno accumulato come cuscinetto, alla
+chiusura del venerdi' il cuscinetto e' zero.
+
+**La regola migliore per tenere aperto** e' quindi: *stop a pareggio prima
+della sosta, e si resta aperti solo se si e' almeno a +1R*. Costa 2,2 R su
+163,0 (l'1,3%) e azzera l'esposizione ai gap. Resta comunque sotto la
+configurazione in vigore (+171,1 R), ma e' la versione giusta se un giorno
+servisse.
+
+### Le stesse regole contro gap generici, non solo quelli capitati
+
+Sui gap realmente accaduti tutte le regole con filtro escono a costo zero, ma
+e' un campione di 23 attraversamenti: dice poco. Ripetuto il metodo
+dell'appendice AS — salti pescati a caso dai 340 fine settimana dello storico,
+20.000 storie alternative — su ciascuna regola:
+
+| regola | attraversamenti | margine mediano | costo mediano | media | p90 | p99 | storie a costo zero |
+|---|---|---|---|---|---|---|---|
+| nessuna protezione | 23 | 1,58 R | 2,7 | 5,3 | 14,2 | 32,9 | 15% |
+| stop a pareggio | 23 | 1,09 R | 5,5 | **8,1** | 18,1 | 37,3 | **0%** |
+| **pareggio + solo sopra +1R** | **12** | 1,55 R | **0,0** | **2,1** | 7,2 | 23,8 | **56%** |
+| pareggio + solo sopra +3R | 7 | 1,38 R | 0,0 | **1,6** | 4,8 | 24,0 | **66%** |
+| stop alla chiusura | 23 | 0,00 R | 7,9 | 10,4 | 21,3 | 41,0 | 0% |
+
+### Il risultato che rovescia la lettura di prima
+
+Sui gap capitati lo stop a pareggio DA SOLO sembrava quasi gratis (1,8 R). Su
+storie generiche e' **la seconda regola peggiore**: costo atteso 8,1 R, e in
+nessuna delle 20.000 storie esce a zero. Il motivo si legge nella colonna del
+margine: portando lo stop a pareggio si **riduce** il cuscinetto da 1,58 a
+1,09 R, perche' le operazioni con lo stop gia' sopra il pareggio non
+guadagnano nulla mentre quelle sotto perdono margine. Protegge dal caso
+"chiudo in perdita" e peggiora il caso "gap oltre lo stop".
+
+**Il filtro invece regge**, ed e' l'unico che regge: tenendo solo le
+operazioni gia' sopra +1R gli attraversamenti scendono da 23 a 12, il costo
+atteso crolla a **2,1 R** e piu' della meta' delle storie esce a zero. Con la
+soglia a +3R si scende a 1,6 R ma restano solo 7 attraversamenti, quindi il
+guadagno del tenere aperto si assottiglia.
+
+**Conclusione rivista**: quello che protegge non e' spostare lo stop, e'
+**non attraversare il fine settimana con le operazioni deboli**. Lo stop a
+pareggio da solo e' controproducente; il filtro sopra +1R e' la regola giusta,
+e va tenuta anche senza toccare lo stop.
+
+### Correzione: la metrica giusta e' il risultato, non lo scarto dallo stop
+
+Obiezione dell'utente, fondata: se il lunedi' riapre sotto lo stop, si esce al
+prezzo di RIAPERTURA, non allo stop. Quindi due regole con stop diversi ma
+entrambe superate dal salto **chiudono allo stesso prezzo**: il "costo rispetto
+allo stop" misurato sopra non e' una differenza di soldi fra le regole, e' solo
+lo scarto rispetto al piano. La tabella precedente esagerava le differenze.
+
+Rifatto misurando il **risultato finale** delle sole 23 operazioni vive al fine
+settimana, sulle stesse 20.000 storie (quando il salto non supera lo stop
+l'operazione prosegue, col percorso reale traslato del salto):
+
+| regola | reale | mediana | media | p10 | p90 |
+|---|---|---|---|---|---|
+| sempre aperta, stop dov'e' | 51,8 | 50,7 | 49,4 | 36,5 | 60,5 |
+| stop a pareggio | 51,8 | 52,3 | **50,8** | 37,6 | 62,0 |
+| **pareggio + solo sopra +1R** | **56,5** | 56,3 | **54,9** | **46,5** | 61,3 |
+| **solo sopra +1R, stop invariato** | **56,5** | 56,3 | **54,9** | **46,4** | 61,2 |
+| chiude sempre il venerdi' | 43,1 | 43,1 | 43,1 | 43,1 | 43,1 |
+
+Tre correzioni alla lettura precedente:
+
+1. **Lo stop a pareggio non e' controproducente**: aggiunge +1,4 R in media
+   (50,8 contro 49,4). Poco, ma positivo — l'opposto di quanto diceva la
+   metrica sbagliata. Serve nei casi in cui il salto e' piccolo e il prezzo
+   torna indietro senza gap, non contro i gap grossi.
+2. **Il filtro sopra +1R resta la regola che conta**, e da sola: +5,5 R di
+   media rispetto al non filtrare, e soprattutto alza il decimo percentile da
+   36,5 a 46,5 — cioe' migliora le storie sfortunate, che e' il punto.
+3. **Stop a pareggio e filtro insieme valgono quanto il solo filtro** (54,9 in
+   entrambi i casi): una volta tolte le operazioni deboli, spostare lo stop non
+   aggiunge nulla. E' il filtro a fare tutto.
+
+Confermata invece la conclusione di fondo: **chiudere sempre il venerdi' e' la
+peggiore** (43,1 fisso contro 54,9 di media), ma e' anche l'unica senza
+incertezza. La differenza fra tenere aperto col filtro e chiudere e' 11,8 R
+sulle sole 23 operazioni interessate, con una dispersione fra 46,5 e 61,3.
+
+### Controllo della variante proposta (filtro +3R con stop a +1R)
+
+| variante | netto | vinte | uscite per gap | chiuse dal filtro |
+|---|---|---|---|---|
+| sempre aperta | +163,0 | 36,5% | 0 | — |
+| **solo sopra +1R** | **+167,6** | 37,6% | **0** | 11 |
+| +1R e stop a pareggio | +160,8 | 37,4% | 0 | 11 |
+| solo sopra +3R | +158,5 | 37,9% | 0 | 16 |
+| **+3R e stop a +1R** | **+158,5** | 37,9% | 0 | 16 |
+| +3R e stop a pareggio | +158,5 | 37,9% | 0 | 16 |
+
+Le tre righe con soglia +3R danno **lo stesso identico risultato**: quando
+l'operazione e' gia' sopra +3R il trailing ha portato lo stop ad almeno +1R da
+solo (MFE-2), quindi ordinare di spostarlo a +1R o a pareggio non cambia nulla.
+La regola proposta e' gia' contenuta nel trailing.
+
+**La soglia migliore e' +1R, non +3R**: +167,6 contro +158,5, cioe' 9 R di
+differenza. A +3R si filtrano 16 operazioni invece di 11, e le 5 in piu' che
+si chiudono erano mediamente in guadagno. Entrambe azzerano le uscite per gap.
+
+## Appendice AU: undici anni mai visti — lo storico esteso al 2009
+
+Tutto quello che sta sopra e' misurato sul 2020-2026. La strategia e' stata
+costruita li' dentro: le verifiche "per anno" e i train/test 2020-2023 contro
+2024-2026 condividono tutti lo stesso mercato, l'oro che sale da 1.500 a
+5.500 con due strappi. Un fuori campione dentro il proprio periodo non e' un
+fuori campione.
+
+Il feed Dukascopy serve gli stessi file giornalieri fino al 2009, quindi
+l'archivio si allunga senza cambiare fonte ne' formato:
+`trading/scripts/estendi_storico.py`. Prima di fidarsi, la verifica: sul
+2020-06-10, giorno gia' in archivio, il convertitore riproduce le 1.379
+candele con **differenza massima 0,0** su tutte e cinque le colonne. E il
+riscontro esterno torna al centesimo: massimo **1920,66 il 06/09/2011**,
+minimo **1046,23 nel 2015**.
+
+Sono **undici anni** (2009-2019, 3,93 milioni di candele) che nessuna scelta
+di questo progetto ha mai visto, e contengono esattamente i regimi che
+mancavano: il picco del 2011, il crollo 2012-2015, il laterale 2016-2019.
+
+### Il risultato
+
+| periodo | strategia | op | R | R/op | vinte | DD | anni+ | PF |
+|---|---|---|---|---|---|---|---|---|
+| **2009-2019** | **in uso** | 382 | **-39,3** | -0,10 | 28,0% | **47,8** | **3/11** | 0,86 |
+| 2009-2019 | A | 382 | -47,5 | -0,12 | 17,0% | 71,1 | 4/11 | 0,86 |
+| 2009-2019 | B | 382 | -90,8 | -0,24 | 22,5% | 89,8 | 2/11 | 0,72 |
+| **2020-2026** | **in uso** | 350 | **+157,1** | +0,45 | 34,9% | 17,6 | 6/7 | 1,73 |
+| 2020-2026 | A | 350 | +169,7 | +0,48 | 24,9% | 14,6 | 7/7 | 1,69 |
+| 2020-2026 | B | 350 | +170,5 | +0,49 | 36,9% | 14,4 | 7/7 | 1,72 |
+| 2009-2026 | in uso | 732 | +117,8 | +0,16 | 31,3% | 54,5 | 9/18 | 1,24 |
+
+Tutte e tre le candidate **perdono** sugli undici anni nuovi. Non "guadagnano
+meno": perdono, con tre anni positivi su undici e una perdita massima di 47,8
+R contro i 17,6 del periodo di casa — quasi tre volte tanto, cioe' il 48% del
+conto al rischio dell'1%.
+
+### Per anno (R, lotti fissi)
+
+| anno | in uso | A | B | op | | anno | in uso | A | B | op |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2009 | -6,5 | -16,5 | -13,8 | 35 | | 2018 | -14,8 | +9,8 | -2,2 | 25 |
+| 2010 | -16,7 | -31,7 | -23,6 | 33 | | 2019 | -4,9 | -3,4 | -7,3 | 32 |
+| 2011 | +22,7 | +37,2 | +6,2 | 49 | | 2020 | -6,5 | +10,4 | +25,7 | 55 |
+| 2012 | -17,8 | -22,2 | -27,8 | 46 | | 2021 | +13,1 | +15,7 | +16,6 | 51 |
+| 2013 | -3,7 | -16,3 | -8,1 | 48 | | 2022 | +37,2 | +33,7 | +30,7 | 37 |
+| 2014 | -6,9 | -6,5 | -9,7 | 22 | | 2023 | +23,5 | +19,1 | +13,6 | 47 |
+| 2015 | +2,5 | +15,5 | +5,5 | 29 | | 2024 | +38,9 | +24,5 | +19,9 | 53 |
+| 2016 | +14,1 | +1,1 | -3,8 | 45 | | 2025 | +44,0 | +55,1 | +50,8 | 82 |
+| 2017 | -7,3 | -14,5 | -6,3 | 18 | | 2026 | +7,0 | +11,3 | +13,2 | 25 |
+
+La riga di separazione non e' graduale: **tutti gli anni dal 2021 in poi sono
+positivi, otto degli undici precedenti sono negativi.** Non e' un
+peggioramento progressivo, e' un interruttore.
+
+### Dove sta davvero il vantaggio: nel lato lungo
+
+| periodo | long | short |
+|---|---|---|
+| 2009-2019 | 230 op, **-29,5 R** (-0,13/op) | 152 op, -9,8 R (-0,06/op) |
+| 2020-2026 | 243 op, **+141,1 R** (+0,58/op) | 107 op, +16,0 R (+0,15/op) |
+| 2009-2026 | 473 op, +111,6 R (+0,24/op) | 259 op, **+6,2 R (+0,02/op)** |
+
+Su diciotto anni il lato **corto non ha vantaggio**: +6,2 R su 259 operazioni,
+cioe' due centesimi di R per operazione, indistinguibile da zero. E il 90% del
+risultato del 2020-2026 viene dalle operazioni lunghe. Letto con calma: quello
+che si e' misurato non e' una strategia che legge la struttura, e' un modo di
+salire sul treno dell'oro mentre saliva.
+
+### Nota sui numeri del periodo di casa
+
+Caricando anche il 2009-2019, il 2020-2026 non da' piu' +171,1 R ma +157,1 su
+350 operazioni invece di 348. Non e' un errore: `high_volatility_months` usa
+una finestra **espansiva** sul passato, quindi con undici anni di storia in
+piu' la mediana di riferimento cambia e qualche mese cambia regime. E' un
+calcolo causale in entrambi i casi — quello nuovo e' semplicemente meglio
+informato. Con `XAU_ANNI=2020-2026` si riottengono esattamente **348
+operazioni e +171,1 R**, cioe' il numero pubblicato.
+
+## Appendice AV: e' regime o unita' di misura? (ipotesi pre-registrata)
+
+Prima di concludere qualcosa dall'appendice AU va escluso il sospetto ovvio.
+Le soglie della taratura sono in **dollari**: impulso 4,00, buffer 0,30,
+rischio fra 1,00 e 10,00. La conversione all'ATR scatta solo nei mesi ad alta
+volatilita', quindi quasi mai prima del 2020. Quattro dollari valgono 0,16-0,34
+ATR nel 2009-2019 e 0,03-0,17 ATR nel 2020-2026: la stessa soglia e' due o tre
+volte piu' severa nel periodo vecchio.
+
+**Ipotesi pre-registrata**: se il vantaggio appartiene alla strategia e non al
+periodo, misurando TUTTE le soglie in ATR il 2009-2019 deve tornare positivo.
+
+| variante | 2009-2019 | 2020-2026 | op tot |
+|---|---|---|---|
+| ufficiale (dollari) | **-39,3** (3/11 anni) | +157,1 | 732 |
+| sempre ATR, rif. 2020-2024 | **-67,1** (3/11 anni) | +147,1 | 959 |
+| sempre ATR, rif. 2009-2013 | **-105,3** (2/11 anni) | +142,8 | 810 |
+
+**Ipotesi respinta.** Normalizzare all'ATR non recupera niente: peggiora, e
+peggiora di piu' quanto piu' il riferimento e' onesto (mediana nota all'epoca
+invece che presa dal futuro). Il periodo di casa resta positivo in tutte e tre
+le versioni. Non e' un problema di unita' di misura.
+
+### Cosa resta in piedi
+
+1. **Il vantaggio misurato appartiene al 2020-2026**, non alla strategia. Su
+   undici anni indipendenti la stessa identica regola perde.
+2. **La perdita massima vera non e' 16-17 R ma almeno 47,8 R** (89,8 per B).
+   Al rischio dell'1% per operazione sono 48 punti di conto, non 16. Qualunque
+   dimensionamento tarato sul 2020-2026 e' ottimista di un fattore tre.
+3. **Il lato corto e' da considerare senza vantaggio** finche' non lo si
+   dimostra altrove: 259 operazioni su diciotto anni per +6,2 R.
+4. Le conclusioni *relative* fra gestioni reggono anche fuori campione — A e B
+   restano vicine fra loro e in uso, e l'ordine non si ribalta. Quello che non
+   regge e' il segno.
+
+Questo non dice che la strategia sia sbagliata: dice che **l'unica prova che
+esiste a suo favore viene dal periodo su cui e' stata costruita**, e che gli
+undici anni indipendenti dicono il contrario. Prima di metterla su un conto
+reale — a maggior ragione su tre conti — la domanda da risolvere e' questa,
+non quale variante di trailing renda mezzo R in piu'.
+
+## Appendice AW: esiste un regime che salva il 2009-2019? No
+
+Se il vantaggio del 2020-2026 vivesse in un regime preciso, la parte di
+2009-2019 che somiglia a quel regime dovrebbe guadagnare. Il filtro si
+**definisce sul periodo buono** (fra il 10simo e il 90simo percentile della
+misura sulle 350 operazioni del 2020-2026) e si **applica al 2009-2019**, che
+resta intatto. Tre misure, tutte causali e note all'apertura della giornata.
+
+| misura | intervallo del 2020+ | dentro | fuori |
+|---|---|---|---|
+| volatilita' (ATR in % del prezzo) | 1,04 - 2,04 | 262 op, **-18,3 R** (4/11 anni) | 100 op, -11,5 R |
+| distanza dalla media 50 (in ATR) | -2,80 - 5,88 | 298 op, **-20,9 R** (3/11) | 64 op, -8,9 R |
+| distanza dalla media 200 (in ATR) | -2,24 - 11,76 | 249 op, **-23,3 R** (3/11) | 113 op, -6,6 R |
+| tutte e tre insieme | — | 160 op, **-15,9 R** (3/11) | — |
+
+**Nessun taglio funziona.** Dentro e fuori perdono entrambi, e la parte
+"simile al 2020" perde piu' di quella diversa in tutte e tre le misure. Non
+c'e' un sottoinsieme di condizioni che spieghi la differenza: il 2009-2019 non
+e' un periodo sbagliato per la strategia, e' un periodo in cui la strategia non
+ha vantaggio.
+
+## Appendice AX: togliere il lato corto
+
+| periodo | selezione | op | R | R/op | DD | anni+ |
+|---|---|---|---|---|---|---|
+| 2009-2019 | long+short | 382 | -39,3 | -0,10 | 47,8 | 3/11 |
+| 2009-2019 | **solo long** | 230 | **-29,5** | **-0,13** | 30,8 | 5/11 |
+| 2009-2019 | solo short | 152 | -9,8 | -0,06 | 25,2 | 4/11 |
+| 2020-2026 | long+short | 350 | +157,1 | +0,45 | 17,6 | 6/7 |
+| 2020-2026 | **solo long** | 243 | **+141,1** | **+0,58** | **12,9** | 5/7 |
+| 2020-2026 | solo short | 107 | +16,0 | +0,15 | 21,2 | 4/7 |
+| 2009-2026 | long+short | 732 | +117,8 | +0,16 | 54,5 | 9/18 |
+| 2009-2026 | **solo long** | 473 | **+111,6** | **+0,24** | **39,2** | 10/18 |
+
+Il solo long **migliora il rischio ma non cambia il segno**: sui diciotto anni
+tiene il 95% del risultato con il 72% della perdita massima (39,2 contro 54,5)
+e un anno positivo in piu'. Sul 2020-2026 rende di piu' per operazione (+0,58
+contro +0,45) con un drawdown di 12,9 invece di 17,6. Ma sul 2009-2019 resta
+negativo, e per operazione fa **peggio** del sistema completo (-0,13 contro
+-0,10): lo short li' dentro faceva da ammortizzatore, non da zavorra.
+
+Conclusione: rinunciare allo short e' una buona idea di igiene — 259 operazioni
+in diciotto anni per +6,2 R non pagano il rischio — ma non e' il rimedio.
+
+## Appendice AY: la taratura invertita, cioe' la prova del metodo
+
+Non e' una ricerca di parametri migliori. E' la stessa identica ricerca
+ripetuta sui due periodi: **12 gestioni x 7 obiettivi x 27 combinazioni di
+conferme = 2.268 celle** (M33, H12 e M12 ciascuno allineato, contrario o
+ignorato; H6 e H2 restano la struttura), minimo 60 operazioni per cella. Ogni
+vincitore viene poi verificato sull'ALTRO periodo.
+
+### Cercando sul 2009-2019 (1.932 celle valide)
+
+| conferme | gestione | RR | dove e' stata scelta | verificata sul 2020-2026 |
+|---|---|---|---|---|
+| H12- · M12- | trail MFE-2 | 1:10 | **+6,9 R** su 100 op (5/11 anni) | -24,6 R su 98 op (1/7) |
+| H12- · M12- | scala 2>0 4>2 6>4 | 1:10 | +6,7 R su 100 op (5/11) | -7,9 R su 98 op (3/7) |
+| H12- · M12- | trail MFE-2 | 1:9 | +5,9 R su 100 op (5/11) | -24,6 R su 98 op (1/7) |
+
+Il **migliore** di 1.932 modi di combinare la strategia su undici anni rende
+**+6,9 R**, cioe' 0,07 R per operazione: dentro il costo dello spread. Non
+esiste una taratura che funzioni sul 2009-2019 — non e' che abbiamo scelto
+male i parametri, e' che li' dentro non c'e' niente da scegliere.
+
+### Cercando sul 2020-2026 (2.016 celle valide)
+
+| conferme | gestione | RR | dove e' stata scelta | verificata sul 2009-2019 |
+|---|---|---|---|---|
+| M33+ | pari a +3R | 1:10 | +223,4 R su 695 op (6/7 anni) | **-107,0 R** su 793 op (4/11) |
+| M33+ · H12+ | pari a +3R | 1:10 | +221,6 R su 628 op (6/7) | **-85,6 R** su 685 op (5/11) |
+| H12+ | pari a +3R | 1:10 | +219,4 R su 1.176 op (5/7) | **-183,0 R** su 1.250 op (2/11) |
+
+### Il numero che chiude la questione
+
+| ricerca fatta su | celle valide | positive anche sull'altro periodo |
+|---|---|---|
+| 2009-2019 | 1.932 | 1.231 (**64%**) |
+| **2020-2026** | 2.016 | **17 (1%)** |
+
+Cercando sul periodo vecchio, due celle su tre restano positive sul nuovo —
+perche' nel 2020-2026 guadagnava quasi tutto. Cercando sul periodo nuovo,
+**una cella su cento** resta positiva sul vecchio.
+
+Questa asimmetria e' la diagnosi. Una ricerca su duemila celle dentro il
+2020-2026 produce vincitori spettacolari (+223 R) che quasi mai sopravvivono
+altrove: e' esattamente la firma del sovradattamento, e la taratura in vigore
+e' uno di quei vincitori. Il problema non e' quale configurazione si e'
+scelta, e' che **il 2020-2026 da solo non e' in grado di distinguere una
+regola buona da una fortunata**.
+
+### Cosa fare di questo
+
+1. Il 2020-2026 non puo' piu' essere l'unico giudice: qualunque prova futura
+   va chiusa sui diciotto anni, o almeno verificata sul 2009-2019.
+2. Le tre verifiche chieste sono tutte negative: **AW** nessun regime salva il
+   periodo vecchio, **AX** togliere lo short migliora il rischio ma non il
+   segno, **AY** nessuna delle 2.268 configurazioni funziona sul 2009-2019.
+3. Quello che resta in piedi non e' la strategia, e' il metodo di misura:
+   motore causale, spread e swap reali, gap pagati alla riapertura, placebo e
+   permutazioni. Serve applicarlo a un'idea nuova, non a un'altra variante di
+   questa.
+
+## Appendice AZ: tutti i livelli come INGRESSO, 18 anni, 720 configurazioni
+
+Richiesta: usare i livelli del progetto — order block, vuoti di volume,
+massimi di volume — con l'ATR a compensare la volatilita', e trovare una
+combinazione vincente. Ogni famiglia diventa una banda misurata in ATR, cosi'
+la stessa regola vale con l'oro a 1.000 e a 5.000 dollari.
+
+| | |
+|---|---|
+| famiglie | ob pieno, ob raffinato, POC di ieri, estremi area di valore, vuoti |
+| timeframe | M33, M66, H2, H6 |
+| modi | reazione, rottura, retest (tutti decisi alla chiusura della candela) |
+| stop | 0,25 · 0,5 · 1,0 ATR giornaliero |
+| obiettivi | 1:2 · 1:3 · 1:5 · 1:10, uscita a fine giornata |
+| eventi | **168.833 veri**, 124.225 placebo, 2009-2026 |
+
+Protocollo fissato prima di guardare i numeri: ricerca sul 2009-2019,
+verifica sul 2020-2026, ogni cella con il proprio placebo (lo stesso livello
+spostato a caso di 0,2-0,6 ATR: resta dove il prezzo passa, ma non e' piu' il
+livello).
+
+### Il risultato
+
+| | |
+|---|---|
+| celle misurabili (>= 80 operazioni) | 708 |
+| con R/op > 0 sul periodo di ricerca | **8 (1%)** |
+| positive su ENTRAMBI i periodi | **4** |
+| vantaggio sul placebo, mediana | **+0,003 R/op** |
+| che passano la scrematura pre-registrata | **0** |
+
+R/op medio di TUTTE le celle, per famiglia:
+
+| famiglia | 2009-2019 | 2020-2026 |
+|---|---|---|
+| ob pieno | -0,200 | -0,171 |
+| ob raffinato | -0,202 | -0,162 |
+| poc ieri | -0,194 | -0,157 |
+| va ieri | -0,181 | -0,148 |
+| vuoto ieri | -0,221 | -0,173 |
+
+**Nessuna famiglia, su nessun timeframe, con nessuno stop e nessun obiettivo.**
+Le quattro celle positive su entrambi i periodi sono la stessa (M66, ob pieno,
+retest) contata per quattro obiettivi che non vengono mai raggiunti, e rende
++0,0008 e +0,0088 R/op: tre ordini di grandezza sotto il costo dello spread.
+La percentuale di operazioni vinte si ferma al 48%, cioe' testa o croce.
+
+### Le confluenze non selezionano niente
+
+Domanda: quando piu' famiglie si accendono insieme, va meglio? Contate come
+famiglie diverse **allo stesso prezzo** (entro 0,25 ATR) e nella stessa
+mezz'ora, la risposta e' che la confluenza non e' un caso speciale ma **lo
+stato normale**: 167.808 eventi su 168.833 hanno gia' quattro famiglie
+sovrapposte. I livelli di famiglie diverse stanno uno sull'altro quasi
+sempre, perche' sono tutti costruiti intorno a dove il prezzo ha lavorato. I
+mille casi rari a bassa confluenza non vanno meglio degli altri.
+
+Nota metodologica, due tarature del placebo imparate sbagliando: lo
+spostamento va estratto UNA volta per livello (a ogni barra la banda balla e
+le condizioni sulla barra precedente non si formano mai), e deve essere
+PICCOLO — a 0,5-2 ATR il livello finto finisce fuori dal range della giornata
+e il placebo produce un quarto degli eventi, rendendo il confronto inutile.
+
+## Appendice BA: e la zona raffinata come filtro? Anche quella sparisce
+
+L'appendice AZ prova i livelli come ingresso. Ma il risultato positivo del
+progetto (appendici P e AJ) era un'altra cosa: la zona raffinata come **voto
+di qualita' su un segnale gia' valido**, +1,342 R/op sul campione largo, sette
+anni su sette. Misurato pero' solo sul 2020-2026 — il periodo che l'appendice
+AY ha mostrato incapace di distinguere una regola buona da una fortunata.
+
+Rifatta sui diciotto anni, campione largo, differenza fra dentro e fuori la
+zona:
+
+| tf | zona raffinata: 2009-2019 | 2020-2026 | 2009-2026 |
+|---|---|---|---|
+| M12 | -0,286 (27 op) | -0,252 (24 op) | **-0,274** (51 op) |
+| M33 | **+0,400** (19 op) | **-0,595** (31 op) | **-0,171** (50 op) |
+| M66 | -0,419 (19 op) | — | -0,315 (31 op) |
+| H2 | — | +0,513 (15 op) | +0,065 (28 op) |
+| H3 | — | — | -0,535 (18 op) |
+| H6 | — | — | -0,339 (20 op) |
+
+**Su M33 il segno si ribalta fra i due periodi**: +0,400 prima, -0,595 dopo.
+Su diciotto anni cinque timeframe su sei danno differenza negativa, e l'unico
+positivo (H2, +0,065) sta su 28 operazioni.
+
+E il motivo per cui non ce ne eravamo accorti e' nei conteggi: sul campione
+ufficiale, in **diciotto anni**, gli ingressi che cadono dentro una zona
+raffinata sono **20 su M12, 12 su M33, 5 su M66, 4 su H2, 4 su H3, 3 su H6**.
+Il risultato piu' promettente del progetto poggiava su qualche decina di
+operazioni. Con numeri cosi' non si distingue un vantaggio dal rumore, e
+infatti allungando la storia il vantaggio non c'e' piu'.
+
+### Conclusione delle due appendici
+
+I livelli — order block pieni e raffinati, POC, area di valore, vuoti di
+volume — **non portano vantaggio misurabile su diciotto anni**, ne' come
+ingresso (720 configurazioni, zero sopravvissuti) ne' come filtro (segno che
+si ribalta, campioni da qualche decina). Anche normalizzando tutto all'ATR,
+che era l'ipotesi da provare.
+
+Con AU-AY questo chiude il quadro: non c'e' un pezzo di questa famiglia di
+strategie che sopravviva alla storia lunga. Quello che regge e' il metodo di
+misura, che ha appena bocciato il proprio risultato migliore.
+
+## Appendice BB: gli order block ridefiniti come li usa l'utente
+
+Obiezione dell'utente al modo in cui li segnavamo: una zona non deve morire
+dopo trenta candele, deve restare buona **finche' non viene toccata**; e una
+gia' toccata, se il prezzo ci torna una seconda o terza volta, non e' piu' un
+order block ma un supporto o una resistenza. Il tocco e' la **chiusura dentro
+la zona**, non l'ombra: su un timeframe grande e' una conferma piu' forte.
+
+Misurato su **1.228.881 tocchi** in diciotto anni (M33, M66, H2, H6; quattro
+definizioni di tocco; stop 0,25-1 ATR; obiettivi 1:2-1:10; uscita serale),
+ciascuno col suo placebo — la stessa zona spostata a caso di 0,2-0,6 ATR.
+
+### Prima: un errore mio, trovato e corretto
+
+La prima versione registrava l'evento all'**apertura** della candela invece
+che alla chiusura: si entrava al prezzo di chiusura e poi si ripercorreva la
+candela stessa sapendo gia' come finiva. Su H6 sono sei ore di futuro
+regalate, e il risultato era spettacolare — **+0,98 R/op, 73% di operazioni
+vinte, 11 anni positivi su 11**. L'indizio che l'ha smascherato: **il placebo
+faceva il 73,5%**, identico. Una zona spostata a caso non puo' funzionare
+come una vera; se lo fa, non e' la zona che funziona. Corretto, e bloccato da
+un test che verifica l'invariante (l'istante di un evento e' la chiusura
+della candela il cui prezzo e' quello d'ingresso).
+
+### 1. La scadenza a 30 candele buttava via zone buone? No
+
+| eta' al tocco | R/op | placebo | anni positivi |
+|---|---|---|---|
+| 0-5 candele | -0,041 | -0,047 | 3/11 |
+| 6-15 | -0,029 | -0,022 | 3/11 |
+| 16-30 | -0,041 | -0,046 | 2/11 |
+| 31-60 | -0,017 | -0,024 | 3/11 |
+| 61-120 | -0,024 | -0,026 | 3/11 |
+| **oltre 120** | **-0,094** | -0,099 | **0/11** |
+
+Le zone vecchie non rendono quanto le fresche: rendono **peggio**, e la
+fascia oltre le 120 candele non ha un solo anno positivo su undici. Tenerle
+vive piu' a lungo aggiunge occasioni scadenti, non occasioni perse.
+
+### 2. Il primo tocco vale piu' del secondo e del terzo? No
+
+| tocco | R/op | placebo | operazioni |
+|---|---|---|---|
+| primo | -0,041 | -0,061 | 5.978 |
+| secondo | -0,041 | -0,057 | 2.171 |
+| terzo | -0,081 | +0,009 | 908 |
+| quarto o oltre | -0,064 | -0,076 | 1.045 |
+
+Nessuna progressione: il secondo tocco vale come il primo, il terzo e' il
+peggiore. **Una zona ritoccata non diventa un supporto migliore.**
+
+### 3. Quale definizione di tocco? Non cambia niente
+
+| definizione | R/op | placebo | differenza |
+|---|---|---|---|
+| chiusura sul TF della zona | -0,047 | -0,056 | +0,009 |
+| chiusura su M12 | -0,045 | -0,048 | +0,003 |
+| chiusura su M6 | -0,050 | -0,046 | -0,004 |
+| ombra | -0,039 | -0,051 | +0,011 |
+
+La chiusura dentro, che doveva essere la conferma piu' forte, non batte
+l'ombra. Tutte e quattro stanno a un passo dal proprio placebo.
+
+### 4. La zona rotta si ribalta in supporto/resistenza? No
+
+Su **circa 180.000 tocchi per definizione** dopo l'invalidazione, operati al
+contrario: da -0,023 a -0,031 R/op, con differenze dal placebo fra +0,000 e
++0,005. Il supporto rotto non diventa resistenza in modo utilizzabile.
+
+### Il quadro completo
+
+720 celle (timeframe x definizione x tocco x stop x obiettivo). Positive e
+sopra il placebo sul 2009-2019: **22**. Ancora positive sul 2020-2026: **5**.
+Il 3% che passa il primo filtro e il 23% che sopravvive al secondo sono
+esattamente quello che darebbe il caso, e la migliore rende +0,036 R/op su
+292 operazioni.
+
+## Appendice BC: perche' il win rate non e' una leva
+
+Richiesta dell'utente: una strategia con **oltre il 50% di operazioni vinte a
+RR 1:1,5-1:2**. La misura dice che la prima meta' e' facile e non serve a
+niente. Decomposizione degli esiti sugli stessi 15.974 tocchi (zone OB,
+chiusura sul TF, tutte le fasce):
+
+| stop | RR | stop pieno | obiettivo preso | uscita serale | vinte | R/op | media vinta | media persa |
+|---|---|---|---|---|---|---|---|---|
+| 0,25 ATR | 1:2 | 42,1% | 14,2% | 43,7% | **41,8%** | -0,07 | +1,02 | -0,85 |
+| 0,50 ATR | 1:2 | 20,3% | 3,6% | 76,1% | **47,5%** | -0,04 | +0,55 | -0,57 |
+| 1,00 ATR | 1:2 | 5,4% | **0,2%** | 94,5% | **48,8%** | -0,03 | +0,28 | -0,32 |
+
+Allargando lo stop la quota di operazioni vinte sale da 41,8% a 48,8% — ma
+l'obiettivo 1:2 viene raggiunto nello **0,2% dei casi** invece che nel 14%, e
+il risultato resta negativo. Le "vinte" diventano semplicemente chiusure
+serali in leggero utile: la vincita media scende da +1,02 a +0,28 R e la
+perdita media da -0,85 a -0,32.
+
+**Il win rate si porta dove si vuole** stringendo o allargando lo stop, o
+uscendo prima: e' una conseguenza della geometria, non una proprieta' del
+vantaggio. Infatti il placebo ha le stesse quote (40,6% / 47,1% / 48,3%): una
+zona finta produce lo stesso win rate di una vera.
+
+A RR 1:2, delle 180 celle misurate **9 superano il 50% di operazioni vinte e
+nessuna di quelle 9 ha risultato positivo**.
+
+Il conto teorico dice che a 1:2 basterebbe il 33,3% di vinte per pareggiare,
+e a 1:1,5 il 40%: sembrano soglie gia' superate. Non lo sono, perche' quel
+conto vale solo se ogni operazione finisce a +RR o a -1R. Con l'uscita serale
+la maggior parte finisce in mezzo, e allora l'unico numero che conta e' **R
+per operazione**. Un obiettivo sensato non e' "oltre il 50% di vinte" ma
+"R/op stabilmente sopra zero al netto di spread e swap", e la quota di vinte
+che ne esce e' quello che e'.
+
+## Appendice BD: il filtro di fondo contava le domeniche come giornate
+
+Incoerenza nota del progetto, confermata dalla verifica avversariale:
+``segnali.filtro_macro`` faceva ``resample("1D")`` senza soglia di barre
+minime, mentre ``volatility.daily_bars`` — usata dall'ATR — scarta le sessioni
+sotto le 300 candele perche' non sono giornate.
+
+Misura sull'archivio: **il 17% delle giornate D1 grezze sono spezzoni**, e 104
+su 108 sono domeniche sera (mediana 120 minuti di scambi alla riapertura).
+Quindi la media a 50 giorni copriva ~42 giornate vere, e una volta a settimana
+ci entrava un valore quasi identico alla chiusura del venerdi'.
+
+| | come'era | senza domeniche |
+|---|---|---|
+| giornate classificate diversamente | — | **229 su 4.524 (5,1%)** |
+| operazioni (2009-2026) | 732 | 712 |
+| 2009-2019 | -39,3 R (-0,103/op) | -39,6 R (-0,106/op) |
+| 2020-2026 | +157,1 R (+0,449/op) | +154,7 R (+0,458/op) |
+| 2009-2026 | +117,8 R | +115,1 R |
+
+Il difetto e' reale e il 5,1% di giornate ribaltate non e' poco, ma **nessuna
+conclusione cambia**: il risultato per operazione e' identico a tre decimali
+in tutti i periodi. Corretto in `framework/segnali.py`, con la misura scritta
+nel docstring perche' i numeri pubblicati prima si spostano di poco e chi li
+ritrova sappia perche'.
+
+## Appendice BE: order block M12 + vuoto di volume, il setup dell'utente
+
+Arrivato con un'operazione vera: innesco su un order block M12, e sopra una
+fascia a volume quasi nullo "da riempire" come bersaglio. Richiesta: una
+strategia semi-scalp intraday, una o piu' operazioni al giorno, RR 1:1,5-1:2.
+
+Era l'unico pezzo mai misurato: l'appendice AZ aveva provato i vuoti come
+INGRESSO, l'appendice AE l'obiettivo appoggiato ai livelli **strutturali** —
+mai i vuoti di volume come bersaglio, rimasti dall'appendice AB come "fase 2
+mai aperta".
+
+### Il risultato che sembrava, e cosa era
+
+La prima misura dava numeri fuori scala: sugli stessi inneschi, chiedere che
+nella direzione dell'operazione esistesse un vuoto portava il risultato da
+**-0,20 a +0,50 R/op** con obiettivo fisso 1:2, con **18 anni positivi su 18**,
++0,476 R/op sul 2009-2019 e +0,545 sul 2020-2026, ~340 operazioni l'anno e il
+58-60% di operazioni vinte. Esattamente quello che era stato chiesto.
+
+Tre controlli l'hanno smontato, nell'ordine in cui li ho fatti.
+
+**1. L'aritmetica delle barriere.** Con lo stop a 0,25 ATR e l'obiettivo a
+1,61 ATR (fascia oltre 5R), l'obiettivo risultava raggiunto nel **59%** dei
+casi e lo stop nel **24%**. Una barriera sei volte piu' lontana non puo'
+essere colpita piu' spesso di una vicina: nessun percorso di prezzo lo
+permette. Il calcolo degli esiti e' stato riverificato con
+un'implementazione indipendente su 200 operazioni — zero discordanze — quindi
+l'errore stava a monte, nella selezione.
+
+**2. Il confronto con ingressi a caso.** Stesse ore, stessa geometria, entrata
+casuale: stop 43,5%, obiettivo 16,6%. Il sottoinsieme "con vuoto": stop 33,5%,
+obiettivo 38,1%. Piu' del doppio, in una direzione che il caso non spiega.
+
+**3. La divisione per LATO**, che ha dato la risposta:
+
+| lato | senza vuoto | con vuoto | eventi con vuoto |
+|---|---|---|---|
+| short | -0,395 | **+0,468** | 19.460 |
+| long | -0,145 | **-0,279** | 2.506 |
+
+Tutto l'effetto stava sugli **short**, e i long — dieci volte meno numerosi —
+andavano perfino peggio. Un'asimmetria del genere non e' un fatto di mercato,
+e' la firma di un difetto.
+
+### Il difetto
+
+L'istogramma del profilo copriva **l'intera escursione della giornata, futuro
+compreso**. I livelli sotto al minimo toccato fino a quel momento erano tutti
+a zero; quella fascia veniva chiusa dal primo livello scambiato e registrata
+come un vuoto, il cui bordo lontano era **il minimo futuro del giorno** — un
+prezzo che la giornata avrebbe raggiunto per definizione. Verso l'alto la coda
+non veniva mai chiusa, quindi i long non avevano l'equivalente: da qui
+l'asimmetria.
+
+Corretto limitando la ricerca al tratto **gia' scambiato**, e bloccato da un
+test che verifica che nessun vuoto cada fuori da li'.
+
+### I numeri veri
+
+539.708 valutazioni su diciotto anni, ogni chiusura M12 nella finestra
+operativa, stop 0,25 ATR, obiettivo 1:2, uscita serale.
+
+| lato | senza vuoto | con vuoto |
+|---|---|---|
+| short | -0,016 (227.548 op) | **-0,090** (42.306) |
+| long | -0,092 (251.881 op) | **-0,134** (17.973) |
+
+**Il vuoto peggiora il risultato in entrambe le direzioni.** E dentro ogni
+fascia di posizione nel range il quadro non cambia: da -0,057 a -0,154.
+
+L'order block non aggiunge niente: -0,077 contro -0,082 sul bordo, -0,025
+contro -0,063 a meta' range, -0,007 contro -0,051 piu' su.
+
+Il **setup completo** (order block e vuoto concordi, 2.008 occasioni in
+diciotto anni, circa 110 l'anno): **-0,050 R/op**, -0,097 sul 2009-2019 e
++0,042 sul 2020-2026, **6 anni positivi su 18**.
+
+### Cosa resta
+
+La posizione nel range gia' scambiato non e' un vantaggio (tutte le fasce fra
+-0,041 e -0,082), il vuoto non lo e', l'order block nemmeno, e le tre cose
+insieme neanche. L'idea era ben posta e l'unica parte non ancora misurata del
+progetto: adesso e' misurata.
+
+Vale la pena tenere il metodo che l'ha smontata, perche' e' piu' rapido di
+qualunque backtest: **quando l'obiettivo lontano viene raggiunto piu' spesso
+dello stop vicino, non serve cercare oltre — c'e' del futuro nel calcolo.**
+
+## Appendice BG: appendici AZ e BA ricalcolate dopo la correzione dell'istante
+
+Le appendici AZ e BA sono state calcolate PRIMA che si scoprisse il difetto
+dell'appendice BB: l'istante di un evento veniva registrato all'apertura della
+candela invece che alla chiusura, quindi l'operazione ripercorreva la candela
+stessa sapendo gia' come finiva. L'errore GONFIA i risultati, quindi le
+conclusioni negative reggevano a maggior ragione — ma le cifre no, e vanno
+sostituite.
+
+Ricalcolo completo, 168.833 eventi veri e 124.225 placebo su diciotto anni,
+720 configurazioni (5 famiglie di livelli x 3 modi di interazione x 4
+timeframe x 3 stop x 4 obiettivi):
+
+| | |
+|---|---|
+| celle con almeno 80 operazioni sul 2009-2019 | 708 |
+| con risultato per operazione positivo | 53 (7%) |
+| positive su ENTRAMBI i periodi | 19 |
+| vantaggio mediano sul placebo | **-0,005 R/op** |
+| **scelte** (>= 80 op, R/op > 0, +0,05 sul placebo) | **11** |
+| **quante ne darebbe il caso** (stessi filtri applicati al placebo) | **18** |
+| delle 11 scelte, sopravvivono sul 2020-2026 | 5 (45%) |
+
+Il numero che conta e' l'ultimo confronto: **le celle vere che superano la
+scrematura sono 11, quelle finte 18**. La selezione sui livelli veri produce
+MENO sopravvissuti del caso. Non c'e' niente da salvare, e stavolta il conto
+e' pulito.
+
+La cella migliore su tutti e diciotto gli anni — retest degli estremi
+dell'area di valore di ieri su H6, stop 0,25 ATR — rende +0,071 R/op su **242
+operazioni in diciotto anni**, cioe' tredici l'anno: troppo poche per
+distinguerle dal rumore, e comunque sotto qualunque soglia operativa.
+
+Conclusione invariata: **i livelli non funzionano come ingresso**, in nessuna
+delle 720 configurazioni, ne' sul periodo di ricerca ne' su quello di
+verifica.
+
+## Appendice BH: ricognizione da zero su 18 anni, e cosa dice la letteratura sull'ORB
+
+Campagna con undici agenti in parallelo: quattro a mappare la struttura grezza
+dei diciotto anni senza proporre niente, sei a provare famiglie di ipotesi
+pre-registrate, uno a cercare online cosa si sa davvero dell'Opening Range
+Breakout. Vincolo comune: dividere sempre 2009-2019 (ricerca) da 2020-2026
+(verifica), sottrarre i costi, e riportare la scomposizione degli esiti con il
+controllo di assurdita' (uno stop vicino deve essere colpito piu' spesso di un
+obiettivo lontano).
+
+### La mappa: cinque fatti solidi
+
+**1. La gobba di volatilita' e' il fatto piu' robusto del mercato.** Escursione
+mediana al minuto: minimo alle 04 UTC (0,170 $ nel 2009-19, 0,310 $ nel
+2020-26), massimo alle 13 UTC (0,510 $ e 1,120 $). Rapporto **3,12x e 3,44x**.
+Ampiezza dell'ora intera: 10,11 $ alle 13 contro 2,90 $ alle 04.
+
+**2. L'orologio del mercato e' LOCALE, non UTC.** Rapporto picco/mediana del
+profilo a blocchi di 5 minuti: UTC 2,318 — New York 2,496 — Londra 2,492
+(2009-19); UTC 2,700 — New York 2,906 — Londra 2,877 (2020-26). L'orologio
+locale e' piu' nitido in **entrambi** i periodi. Caso da manuale: in UTC
+l'apertura di Londra da' due picchi gemelli alle 07:00 e alle 08:00; sull'ora
+di Londra ne da' **uno solo**, alle 08:00 locali.
+
+> Conseguenza per il progetto: le sessioni del framework (asia 0-7, london
+> 7-12, ny 12-21 UTC) e la candela D1 a mezzanotte UTC **tagliano la giornata
+> nel posto sbagliato**. Schedulare in UTC spalma ogni evento su due ore e
+> dimezza il contrasto fra ora calda e ora fredda. La giornata vera va da
+> 18:00 a 17:00 di New York.
+
+**3. Nessuna ora e' direzionale.** Rapporto di varianza sui rendimenti
+standardizzati sotto 1 in **21 ore su 24** in entrambi i periodi. Le uniche
+che arrivano a 1 sono le 12-14 UTC. Trappola in cui l'agente e' caduto e da
+cui e' uscito: senza standardizzare, le 11 UTC sembravano l'ora piu'
+direzionale (VR 1,67) — era solo la finestra che sconfinava nelle 12-13, tre
+volte piu' agitate.
+
+**4. Dopo un impulso il prezzo CONTRASTA, non continua** — in tutte e 14 le
+celle fascia x periodo, senza una sola eccezione. Ma il vantaggio lordo e'
+**sempre piu' piccolo dello spread**: con |X| >= 0,20 ATR il lordo vale +0,121
+R contro un costo di 0,370 R. **R netto negativo in tutte e 42 le
+combinazioni.** E ha tre invarianze insieme — indifferente alla velocita'
+dell'impulso, indifferente all'orizzonte, vivo solo entro 0,10 ATR
+dall'ingresso — che sono la firma della microstruttura, non di un
+comportamento del mercato.
+
+**5. Una sola deriva sopravvive al placebo: la riapertura giornaliera delle
+18:00 ET.** I 120 minuti successivi rendono +2,89 bp (t=7,5) nel 2009-19 e
++2,90 bp (t=4,7) nel 2020-26, positiva in tutti e quattro i sotto-periodi. Il
+placebo ancorato 6 ore prima o 3 dopo da' +1,10/+1,12 bp nel periodo vecchio e
+-0,06/-0,65 nel nuovo. In dollari vale +0,37 e +0,56 $ contro 0,30 $ di spread
+nominale — cioe' **il vantaggio e' dell'ordine di UNO spread**, e lo spread
+vero al rollover e' molto piu' largo di quello medio. Unico spunto rimasto in
+piedi, e va misurato con lo spread di quella finestra prima di crederci.
+
+### Le sei ipotesi: tutte respinte
+
+| ipotesi | 2009-2019 | 2020-2026 | anni positivi |
+|---|---|---|---|
+| opening range breakout | **-0,118** (2.813 op) | -0,005 (1.673) | 5/18 |
+| ORB con filtri di contesto | -0,030 (1.342) | -0,015 (875) | 7/18 |
+| ritorno alla media dopo impulso | -0,162 (20.393) | -0,122 (13.320) | **0/18** |
+| estremi del giorno precedente | -0,017 (1.046) | -0,013 (690) | 7/18 |
+| persistenza pura | -0,120 (6.426) | -0,043 (3.967) | 2/18 |
+| calendario | -0,104 (525) | +0,063 (316) | 6/18 |
+
+Nessuna e' arrivata alla fase di demolizione, e in ognuna la scomposizione e'
+fisicamente sana (stop colpito piu' spesso dell'obiettivo): stavolta non
+c'erano artefatti da smascherare, c'era solo assenza di vantaggio.
+
+### Cosa si sa dell'ORB, davvero
+
+**Esiste letteratura seria, ed e' positiva ma vecchia e circoscritta.**
+Formalizzata da Toby Crabel (1990) sui futures. Misurata da Holmberg,
+Lonnbark e Lundstrom (*Finance Research Letters* 2013) su petrolio e S&P 500:
+rendimenti sopra i costi. Il meccanismo economico ha un nome ed e' pubblicato
+sul *Journal of Financial Economics*: **momentum intraday** (Gao, Han, Li,
+Zhou 2018) — la prima mezz'ora predice l'ultima, ed e' **piu' forte nei giorni
+volatili, ad alto volume e con dati macro**. Lundstrom quantifica: 150-200
+punti base al giorno di differenza fra terzile alto e basso di volatilita'.
+
+**Ma tre cose vanno nella direzione opposta.**
+
+1. **L'unico studio recente costruito per falsificare non trova niente.**
+   Mesfin (2026), 947 giorni di MNQ 2021-2025, quattordici famiglie di segnali
+   fra cui l'ORB, walk-forward con costi realistici: nessun segnale supera i
+   criteri, il vantaggio lordo (0,07-1,50 punti) non copre i costi.
+2. **L'inventore dice che e' rotta, e spiega perche'.** Crabel, 2025: l'ORB e'
+   nel periodo peggiore dagli anni Sessanta, e la causa e' strutturale — i
+   mercati 24 ore hanno cancellato il riferimento su cui era costruita.
+   *"C'e' cosi' tanto volume nelle sessioni 24 ore che e' impossibile
+   determinare quale sia l'apertura."*
+3. **Sull'oro e sul forex non esiste NESSUNO studio serio.** Zero. La *London
+   Breakout* — rottura del range asiatico all'apertura di Londra, che e' la
+   versione oro/forex — e' materiale da blog di broker, senza eccezione.
+
+**L'obiezione decisiva per il nostro caso.** L'ORB non e' una regola
+geometrica: sfrutta un fatto istituzionale. Alle 9:30 di New York, dopo
+diciassette ore in cui l'informazione si e' accumulata senza poter essere
+scambiata, tutti gli ordini arrivano insieme su un prezzo unico osservato da
+tutti. **L'oro spot non ha niente di tutto questo**: scambia in continuo, non
+c'e' asta di apertura, non c'e' gap informativo da smaltire. Applicare l'ORB
+all'oro vuol dire **scegliere un'ora e chiamarla apertura** — e le candidate
+sono quattro (Londra, COMEX, mezzanotte UTC, apertura del broker), cioe'
+quattro strategie diverse fra cui scegliere dopo aver visto i risultati e'
+data snooping travestito da definizione.
+
+C'e' anche la conferma empirica diretta: uno studio sui futures cinesi su oro
+e argento (*Global Finance Journal* 2025) misura che **prima** dell'aggiunta
+della sessione notturna era la prima mezz'ora diurna a predire l'ultima;
+**dopo**, il predittore diventa la prima mezz'ora notturna. L'apertura che
+conta e' quella dove arriva l'informazione nuova, e si sposta quando cambia
+l'orario di negoziazione.
+
+### Conclusione della campagna
+
+Il test empirico e la letteratura dicono la stessa cosa, arrivandoci da
+strade diverse: **l'ORB sull'oro parte senza il meccanismo che lo fa
+funzionare altrove**, e infatti misurato da' -0,118 R/op sul periodo di
+ricerca con 5 anni positivi su 18.
+
+Restano due cose utili, nessuna delle quali e' una strategia:
+
+- **la correzione dell'orologio** (sessioni e giornata da ridefinire in ora
+  locale, non UTC), che e' un miglioramento del framework valido comunque;
+- **la deriva della riapertura delle 18:00 ET**, unico effetto sopravvissuto
+  al placebo, da misurare con lo spread vero di quella finestra prima di
+  farci qualunque ipotesi.
+
+---
+
+## Appendice BJ: l'ORB dove dovrebbe funzionare (S&P 500), e cosa dice davvero la documentazione
+
+Richiesta dell'utente: *"non su oro, io non so l'ORB su che mercato giri ma e'
+su quello che dobbiamo stare"*. Giusto: l'ORB nasce sui futures su indici, che
+hanno l'asta di apertura che l'oro spot non ha. Quindi va misurato li'.
+
+### I dati
+
+S&P 500 a un minuto, **2010-11 -> 2018-12, 2.117.667 barre**, da HistData
+tramite il repository pubblico `FutureSharks/financial-data`. Fonte del tutto
+indipendente dal resto del progetto. Il fuso e' stato determinato **per
+misura**: il minuto piu' scambiato cade alle 09:30 sia in gennaio-febbraio sia
+in giugno-agosto, quindi i timestamp seguono gia' l'ora di New York con l'ora
+legale (se fossero EST fisso, d'estate il picco cadrebbe alle 08:30).
+
+Sessione di cassa 09:30-16:00, 1.938 giornate piene, costo 0,5 punti indice
+andata e ritorno. Ricerca 2011-2014, verifica 2015-2018 (`run_orb_sp500.py`).
+
+### Ipotesi A: la regola originale di Crabel, e le finestre classiche
+
+| finestra | ricerca R/op | verifica R/op | vinte% (ver.) | anni+ ricerca | anni+ verifica |
+|---|---|---|---|---|---|
+| 5 min   | -0,143 | -0,110 | 22,5 | 0/4 | 0/4 |
+| 15 min  | -0,161 | -0,134 | 30,2 | 0/4 | 1/4 |
+| 30 min  | -0,106 | -0,073 | 36,9 | 0/4 | 1/4 |
+| 60 min  | -0,054 | -0,018 | 44,2 | 0/4 | 1/4 |
+| Stretch | -0,026 | -0,029 | 40,5 | 0/4 | 2/4 |
+
+**Ipotesi A respinta su tutta la linea.** Nessuna finestra e' positiva in
+nessuno dei due periodi. Per anno la regola originale fa: 2011 -5,97 R, 2012
+-3,51, 2013 -8,91, 2014 -5,71, 2015 +19,21, 2016 -21,63, 2017 -27,07, 2018
++1,88 -> **2 anni positivi su 8**, saldo -46 R su 1.679 operazioni.
+
+Nota strutturale: piu' la finestra e' larga, meno si perde. E' la firma di una
+strategia che paga solo il costo del falso segnale: allargando la soglia si
+fanno meno rotture false, ma non compare mai un vantaggio. Lo Stretch, che e'
+la soglia *adattiva* di Crabel, e' il meno peggio proprio perche' e' quello che
+si adatta.
+
+### Ipotesi B: il vantaggio vive nei giorni volatili?
+
+| regime | ricerca R/op | verifica R/op |
+|---|---|---|
+| basso | -0,109 | -0,095 |
+| medio | +0,114 | -0,003 |
+| alto  | -0,066 | +0,004 |
+
+La letteratura (Lundstrom; Gao et al., *JFE*) prevede vantaggio nei giorni
+volatili. In ricerca il segno migliore e' nel regime **medio** (+0,114), in
+verifica nel regime **alto** (+0,004, cioe' zero). **La struttura non si
+replica**: il regime che "funziona" cambia fra i due periodi. Ipotesi B
+respinta.
+
+### Limiti da dichiarare
+
+1. I dati finiscono nel **2018**. Crabel sostiene che il decadimento e'
+   recente, quindi questo test non puo' dire se l'ORB funziona *oggi*: dice
+   che gia' **non funzionava dal 2011**, il che e' un'informazione piu' forte,
+   non piu' debole.
+2. E' l'indice cash (CFD SPXUSD), non il future ES. Manca il volume vero e i
+   costi reali del future sono diversi. Ma il *prezzo* e' lo stesso, e la
+   regola di Crabel e' fatta solo di prezzi.
+
+### Cosa dice la documentazione online, letta bene
+
+La ricerca in rete cambia il quadro, e va riportata con precisione perche' e'
+facile confondere tre cose diverse che si chiamano tutte "ORB".
+
+**1. Crabel originale (1990), Stretch, futures.** Crabel stesso, intervistato
+su *Futures Magazine* (nov. 2019) e ripreso nel 2025, dice che l'ORB **si e'
+rotto**: il passaggio ai mercati 24 ore ha cancellato il punto di riferimento
+su cui poggiava, cioe' l'apertura. Testuale: gli ultimi anni sono i peggiori
+per l'ORB dagli anni Sessanta, e Crabel Capital ha riequilibrato il momentum
+con la mean reversion. La nostra misura sull'S&P e' coerente e anzi anticipa
+la data.
+
+**2. ORB accademico su futures su indici (TORB, 2013-2019).** Lo studio
+*Assessing the Profitability of Timely Opening Range Breakout on Index Futures
+Markets* misura DJIA, S&P 500, NASDAQ, HSI, TAIEX dal 2003 al 2013 e trova
+oltre 8% annuo con p-value < 3% su tutti e cinque, fino al 20,3% sul TAIEX.
+Ma e' un ORB **filtrato e temporizzato** (da qui la T di *Timely*), non la
+regola nuda, ed e' un periodo che finisce nel 2013 — cioe' proprio dove i
+nostri numeri sull'S&P sono meno negativi.
+
+**3. L'ORB che oggi viene documentato come profittevole NON e' quello di
+Crabel e NON e' su un indice.** E' Zarattini-Barbon-Aziz, *A Profitable Day
+Trading Strategy For The U.S. Equity Market* (SSRN 4729284, 2024-25), e gira
+su **azioni singole americane**, non su un indice, non sull'oro. Regole:
+
+- range di apertura = **prima barra da 5 minuti**; long se rompe il massimo
+  quando la barra e' rialzista, short se rompe il minimo quando e' ribassista;
+- **stop a 10% dell'ATR a 14 giorni** dall'entrata (non l'altro estremo);
+- **nessun obiettivo**: si chiude a fine sessione;
+- filtri di ammissibilita': prezzo > 5 $, volume medio 14 giorni > 1.000.000
+  azioni, ATR 14 giorni > 0,50 $;
+- **e qui sta tutto**: si opera solo dove il volume dei primi 5 minuti supera
+  il 100% del normale (*relative volume*), e solo le **prime 20 azioni del
+  giorno** per quel rapporto. Sono le "Stocks in Play", cioe' i titoli che
+  quella mattina hanno una notizia.
+
+Risultato dichiarato 2016-2023: +1.637% totale, 41,6% annuo, Sharpe 2,4, beta
+~0 al netto delle commissioni.
+
+**4. La versione su QQQ (Zarattini-Aziz 2023)** — quella con obiettivo a 10R e
++1.484% dal 2016 — e' la piu' citata ed e' quella con cui bisogna stare piu'
+attenti: e' un solo strumento, un solo periodo, e la leva a 3x fa il grosso del
+numero. Ha esattamente la forma dei risultati che in questo progetto abbiamo
+gia' smontato quattro volte.
+
+### Conclusione operativa
+
+- **L'ORB alla Crabel e' morto**, e non solo sull'oro: sull'S&P 500 perde da
+  almeno il 2011, e l'autore stesso lo dice. Non ci si costruisce un bot.
+- **Il meccanismo che l'ORB sfruttava non e' l'apertura in se': e' la notizia
+  che arriva quando il mercato e' chiuso.** Per questo oggi sopravvive dove la
+  notizia c'e' — le singole azioni in giornata di news — e muore dove il
+  prezzo si forma 24 ore su 24 (oro, e ormai anche gli indici).
+- Se l'utente vuole comunque un ORB **da mettere in produzione**, l'unica
+  versione documentata e replicabile e' la 3: azioni americane, filtro sul
+  volume relativo dei primi 5 minuti, stop a 0,1 ATR, uscita a fine sessione,
+  venti nomi al giorno. E' un'altra infrastruttura (serve il dato azionario
+  intraday su migliaia di titoli, non un solo simbolo), e va **verificata da
+  noi** prima di crederci, perche' il paper e' 2016-2023 e non ha fuori
+  campione.
+
+---
+
+## Appendice BK: l'ORB completo di Crabel, e perche' il 9% della letteratura e' un numero LORDO
+
+L'utente contesta l'appendice BJ con un argomento giusto: *"la strategia
+originale prevede un rendimento annuo circa 9%"*. Aveva ragione su due cose e
+la revisione le conferma entrambe.
+
+### Errore 1: avevo implementato meta' strategia
+
+Il libro si chiama *Day Trading with **Short Term Price Patterns** and Opening
+Range Breakout*. La rottura dello Stretch e' il grilletto; i pattern di
+contrazione sono la **selezione**. In BJ avevo preso la rottura tutti i giorni,
+cioe' Crabel senza la parte che decide quando operare. Aggiunti i quattro
+pattern del libro, misurati sulla giornata precedente (`shift(1)`, mai sul
+giorno in corso): NR4, NR7, inside day, ID/NR4.
+
+### Errore 2: il costo era nascosto dentro un numero fisso
+
+Il rischio mediano e' **6,5 punti indice**. Mezzo punto di costo tondo e' il
+**7,8% del rischio**. Con 235 operazioni l'anno, un'ipotesi sui costi non e' un
+dettaglio: e' la strategia. Rifatto tutto riportando LORDO e NETTO a tre
+livelli (0,25 = spread di un tick sull'E-mini senza slittamento; 0,35 =
+realistico con commissione; 0,50 = pessimista).
+
+### Il fatto centrale: il vantaggio lordo esiste, ed e' proprio ~9-12% annuo
+
+| | ricerca 2011-14 | verifica 2015-18 |
+|---|---|---|
+| tutti i giorni, **lordo** | **+0,060 R/op** (931 op) | **+0,042 R/op** (966 op) |
+| tutti i giorni, netto 0,25 | +0,017 | +0,007 |
+| tutti i giorni, netto 0,35 | −0,000 | −0,007 |
+| tutti i giorni, netto 0,50 | −0,026 | −0,029 |
+
+A 235 operazioni l'anno e rischio 1% per operazione, il lordo vale
+**+14,1% annuo in ricerca e +9,9% in verifica**. Ecco da dove viene il ~9%
+della letteratura: **e' sostanzialmente il risultato lordo**. Il pareggio cade
+a ~0,32 punti tondi. Sopra quella soglia non resta niente.
+
+Questo cambia il verdetto di BJ: non e' vero che l'ORB sull'S&P "non c'e'". Il
+segnale c'e' ed e' stabile su 1.897 operazioni e due periodi separati. E'
+**della stessa taglia dei costi di esecuzione**, ed e' un'altra cosa.
+
+### Ipotesi A: i pattern selezionano? Solo NR4, e non abbastanza
+
+Lordo, uscita a fine sessione:
+
+| | ricerca | verifica |
+|---|---|---|
+| tutti | +0,060 | +0,042 |
+| **NR4** | **+0,116** | **+0,082** |
+| NR7 | +0,093 | −0,014 |
+| ID | +0,017 | −0,028 |
+| ID/NR4 | +0,087 | −0,088 |
+
+NR4 **raddoppia** il vantaggio lordo e lo fa in entrambi i periodi. Gli altri
+tre funzionano in ricerca e crollano in verifica: sono rumore. Netto 0,35 NR4
+resta +0,056 / +0,033 (65 operazioni l'anno, ~3,5% e ~2,2% annuo all'1%).
+
+**Ma il placebo non lo assolve.** Cinquemila selezioni casuali della stessa
+numerosita': NR4 batte solo il **79,7%** dei casuali in ricerca e il **71,2%**
+in verifica. Tradotto: una selezione a caso di 250 giorni fa altrettanto bene
+una volta su quattro. E anno per anno NR4 fa **5 positivi su 9**, con il 2011
+(+16,4 R) che da solo vale piu' di tutto il resto messo insieme.
+
+Verdetto onesto: NR4 punta nella direzione giusta — la contrazione precede
+l'espansione, il gross raddoppia, e questo e' coerente su due periodi — ma
+**non e' distinguibile dal caso** con questa numerosita'. Su quattro pattern
+provati, uno sopravvive: e' esattamente cio' che ci si aspetta pescando.
+
+### Ipotesi C: l'obiettivo 1:1 (proposta dell'utente) e' peggio
+
+Costo 0,35, verifica: tutti i giorni **−0,049 R/op con 1:1** contro −0,007 con
+uscita a fine sessione; NR4 **−0,055 con 1:1** contro +0,033. Zero anni
+positivi su quattro per l'1:1 in verifica, su ogni selezione.
+
+Conferma quello che dice la letteratura accademica: l'ORB e' una scommessa sul
+**momentum che prosegue fino alla chiusura**, non una regola a bersaglio.
+Tagliare a 1:1 elimina la coda lunga che paga tutte le perdite. Ipotesi C
+confermata, proposta 1:1 respinta.
+
+### Conclusione, corretta rispetto a BJ
+
+1. **L'ORB sull'S&P 500 e' reale in lordo** (+0,05 R/op su 1.897 operazioni,
+   stabile sui due periodi) e vale ~10-14% annuo all'1% di rischio. Il ~9%
+   della letteratura non e' un errore: e' quel numero.
+2. **Ma e' interamente dentro i costi.** Pareggio a 0,32 punti tondi. Sopra,
+   zero; a 0,50, perdita netta. Un bot su questo non ha margine di sicurezza:
+   basta un tick di slittamento sugli ordini stop per azzerarlo.
+3. **I pattern di Crabel non lo salvano in modo dimostrabile.** Solo NR4
+   sopravvive ai due periodi, ma non batte il caso e dipende da un anno.
+4. Se si vuole insistere, la strada NON e' un altro filtro: e' **abbassare il
+   costo in rapporto al rischio**. Due modi soli: uno strumento con Stretch
+   piu' largo a parita' di spread, oppure entrare in limite invece che in stop
+   (Crabel operava nel mercato a voce, dove la microstruttura era un'altra).
+   Sono ipotesi da misurare, non conclusioni.
+
+---
+
+## Appendice BM: lo scalp a punti fissi e l'uscita in tre scaglioni
+
+Specifica dell'utente: entrare "anche da pochi punti" (stop 3 $ / obiettivo
+5 $, oppure 5 $ / 8 $) invece dello stop strutturale; oppure **tre operazioni
+da 0,25% di rischio**, la prima a 1:1, e quando incassa le altre due a
+pareggio con obiettivi 1:1,5 e 1:2.
+
+Campione: le stesse operazioni della strategia (333 ufficiali, 1.290 nel
+campione largo), 2020-2026. Cambia solo la gestione, cosi' il confronto isola
+una variabile sola. Spread 0,30 $ come nella taratura.
+
+### Campione ufficiale (333 operazioni)
+
+| gestione | costo %R | lordo R/op | **netto R/op** | vinte% | DD R | **R/DD** | anni+ |
+|---|---|---|---|---|---|---|---|
+| **ufficiale 1:10, pareggio +3R** | 7,2% | +0,724 | **+0,652** | 13,5% | 20,8 | **10,45** | 6/7 |
+| strutturale, 3 scaglioni | 7,2% | +0,169 | +0,097 | 55,6% | **14,2** | 2,27 | 5/7 |
+| stop 3 $, obiettivo 5 $ | **10,0%** | +0,188 | +0,088 | 44,4% | 19,4 | 1,51 | 6/7 |
+| stop 5 $, obiettivo 8 $ | 6,0% | +0,156 | +0,096 | 44,4% | 21,4 | 1,49 | 6/7 |
+| stop 3 $, 3 scaglioni | 10,0% | +0,156 | +0,056 | 56,2% | 16,3 | 1,14 | 6/7 |
+| stop 5 $, 3 scaglioni | 6,0% | +0,094 | +0,034 | 53,5% | 21,4 | 0,52 | 4/7 |
+
+### Campione largo (1.290 operazioni) — qui il segno cambia
+
+| gestione | lordo R/op | **netto R/op** | netto R | anni+ |
+|---|---|---|---|---|
+| ufficiale 1:10, pareggio +3R | +0,462 | **+0,386** | +497,9 | 6/7 |
+| strutturale, 3 scaglioni | +0,076 | 0,000 | +0,2 | 3/7 |
+| stop 3 $, obiettivo 5 $ | +0,049 | **−0,051** | −65,3 | 2/7 |
+| stop 5 $, obiettivo 8 $ | +0,049 | **−0,011** | −14,7 | 2/7 |
+| stop 3 $, 3 scaglioni | +0,038 | **−0,062** | −80,4 | 2/7 |
+| stop 5 $, 3 scaglioni | +0,021 | **−0,039** | −50,4 | 3/7 |
+
+### La riga che spiega tutto
+
+Sul campione largo, lo scalp 3/5 ha vantaggio lordo **+0,049 R/op** e costo
+**+0,100 R/op**. Il costo e' il **doppio** di tutto il vantaggio. Non e' una
+questione di regolare meglio l'ingresso: con uno stop di 3 $ e uno spread di
+0,30 $ si regalano dieci punti di rischio a ogni operazione, e il vantaggio
+misurato non arriva alla meta'.
+
+Ipotesi A confermata: lo stop a punti fissi peggiora sempre, su entrambi i
+campioni e con entrambe le gestioni.
+
+### Perche' i tre scaglioni ingannano
+
+Guardare la colonna "vinte%" fa capire l'attrazione: si passa dal **13,5%** di
+operazioni vincenti al **55,6%**. Psicologicamente e' un'altra vita: piu' di
+una su due va bene. Ma il netto passa da +0,652 a +0,097 R/op, cioe' si perde
+l'**85% del rendimento**.
+
+La perdita massima in effetti scende (20,8 -> 14,2 R, -32%), quindi lo scambio
+non e' assurdo in linea di principio: e' proprio il conto che non torna.
+**R/DD passa da 10,45 a 2,27**: si paga l'85% del rendimento per il 32% del
+rischio. Ipotesi B confermata nella direzione e respinta nel merito.
+
+Il motivo e' lo stesso gia' misurato nell'appendice L (chiusura parziale a
+meta': -27%) e nell'appendice BC (il win rate non e' una leva): questa
+strategia guadagna con le poche operazioni che corrono lontano. Chiudere un
+terzo a +1R e mettere il resto a pareggio significa incassare la parte piccola
+e farsi buttare fuori a zero proprio nelle giornate che pagavano l'anno.
+
+### Ipotesi C: 3 $ non e' lo stesso numero ogni anno (stop 3 $ / obiettivo 5 $)
+
+| anno | op | stop% | netto R/op |
+|---|---|---|---|
+| 2020 | 176 | 64,8 | −0,18 |
+| 2021 | 193 | 60,6 | −0,05 |
+| 2022 | 196 | 55,1 | **+0,10** |
+| 2023 | 224 | 54,0 | **+0,13** |
+| 2024 | 189 | 61,9 | −0,08 |
+| 2025 | 218 | 63,3 | −0,12 |
+| 2026 | 94 | **70,2** | **−0,31** |
+
+Confermata. La stessa regola con lo stesso numero passa da +0,13 a −0,31 R/op
+senza che nulla sia cambiato tranne l'ampiezza delle candele. Nel 2026, con
+l'escursione mediana dell'M1 a 2,27 $, uno stop di 3 $ sta dentro **una sola
+candela**: sette operazioni su dieci muoiono di rumore. Qualunque versione di
+questa idea va scritta in **ATR**, non in dollari — la voce gia' aperta in
+CLAUDE.md.
+
+### Conclusione
+
+Lo scalp a pochi punti sull'oro non e' rifiutabile per principio, ed e' bene
+dirlo con precisione: **non funziona con questo ingresso e con questo spread**.
+Perche' possa funzionare servirebbe almeno una delle due:
+
+1. **uno spread molto piu' basso** — a 0,10 $ il costo su stop 3 $ scende dal
+   10% al 3,3% e il 3/5 sul campione ufficiale tornerebbe intorno a +0,15
+   R/op. E' una questione di broker e di orario, non di strategia;
+2. **un ingresso molto piu' selettivo di quello attuale** — il vantaggio lordo
+   dovrebbe passare da 0,05 a oltre 0,20 R/op. E' quello che fanno le zone
+   raffinate (appendice AJ: +1,342 R/op su 63 operazioni), ma sono 9
+   occasioni l'anno, non uno scalp.
+
+Il punto tre, quello che NON serve, e' cambiare la gestione: e' misurato qui e
+va nella direzione sbagliata.
+
+---
+
+## Appendice BO: obiettivi fino a 10 $ e stop scritti in volatilita'
+
+Richiesta dell'utente dopo BM: obiettivi piu' larghi, **massimo 10 punti**, e
+la taglia decisa "in base alla situazione del momento, volatilita' ecc".
+Risolve anche il difetto che BM aveva trovato da sola — 3 $ fissi non sono lo
+stesso strumento nel 2021 e nel 2026.
+
+Stop e obiettivo sono scritti in **respiro corrente**: l'escursione media
+delle 30 candele M1 precedenti, spostata di uno (la candela in corso non e'
+ancora chiusa: usarla sarebbe un minuto di futuro a ogni operazione).
+
+### Campione largo, 1.290 operazioni, 2020-2026
+
+| gestione | stop $ | costo %R | lordo R/op | **netto R/op** | anni+ |
+|---|---|---|---|---|---|
+| **ufficiale 1:10 strutturale** | 4,54 | 7,6% | +0,462 | **+0,386** | 6/7 |
+| stop 1x respiro, obiettivo 2x (max 10 $) | 0,89 | **33,4%** | −0,039 | −0,373 | 0/7 |
+| stop 1x respiro, obiettivo 3x | 0,89 | 33,4% | −0,009 | −0,343 | 0/7 |
+| stop 1x respiro, obiettivo 5x | 0,89 | 33,4% | −0,027 | −0,361 | 0/7 |
+| stop 1,5x respiro, obiettivo 3x | 1,19 | 26,3% | −0,003 | −0,266 | 0/7 |
+| stop 2x respiro, obiettivo 3x | 1,56 | 20,6% | +0,012 | −0,195 | 0/7 |
+| stop 2x respiro, obiettivo 5x | 1,56 | 20,6% | +0,016 | −0,190 | 0/7 |
+| rif. stop 3 $ obiettivo 5 $ | 3,00 | 10,0% | +0,049 | −0,051 | 2/7 |
+| rif. stop 5 $ obiettivo 8 $ | 5,00 | 6,0% | +0,049 | −0,011 | 2/7 |
+
+### Ipotesi A: CONFERMATA — la regola in volatilita' e' finalmente stabile
+
+Percentuale di stop, stessa cella (1x respiro, obiettivo 3x) contro i 3 $ fissi
+di BM:
+
+| anno | respiro: stop $ | respiro: stop% | 3 $ fissi: stop% |
+|---|---|---|---|
+| 2020 | 0,85 | 79,5 | 64,8 |
+| 2022 | 0,77 | 73,6 | 55,1 |
+| 2024 | 0,83 | 71,2 | 61,9 |
+| 2026 | **2,47** | 77,7 | **70,2** |
+
+Lo stop in dollari cresce da solo (0,85 -> 2,47 $) e la percentuale di stop
+resta ferma fra 71 e 79 in sette anni, contro l'escursione 54-70 dei dollari
+fissi. **Scrivere le soglie in volatilita' funziona**, e questo e' un
+miglioramento del metodo che vale comunque, indipendentemente dal resto.
+
+### Ipotesi B: CONFERMATA — la stabilita' non basta
+
+Tutte le celle in volatilita' sono nette negative, e peggio dei dollari fissi.
+Il motivo e' aritmetico e si legge nella colonna "costo %R": il respiro M1
+mediano su sette anni e' **0,89 $**, quindi uno stop di un respiro fa pagare
+allo spread il **33% del rischio**. Il vantaggio lordo di quelle celle sta fra
+−0,04 e +0,02 R/op. Non c'e' nessuna taratura che recuperi trenta punti di
+handicap partendo da zero.
+
+Detto in modo che si ricordi: **piu' lo stop e' stretto, piu' la regola e'
+stabile fra gli anni, e piu' e' impossibile da pagare.** Le due cose vanno
+nella stessa direzione ed e' per questo che l'idea sembra sempre buona finche'
+non si sottrae lo spread.
+
+### Ipotesi C: CONFERMATA — il tetto di 10 $ taglia quello che paga
+
+L'ufficiale 1:10 resta davanti a ogni cella su entrambi i periodi
+(+0,202 R/op in ricerca, +0,529 in verifica) e con l'unico R/DD positivo
+(7,07). Gli obiettivi corti non perdono per poco: perdono di un ordine di
+grandezza.
+
+### Dove sta il numero che serve
+
+Il conto di BM diceva: il vantaggio lordo dell'ingresso deve passare da 0,05 a
+oltre 0,20 R/op. BO dimostra che **non ci si arriva cambiando stop e
+obiettivo**: sei celle in volatilita', tre riferimenti a punti fissi, e il
+lordo resta fra −0,04 e +0,05 ovunque. La leva non e' li'.
+
+Resta l'ingresso — ed e' esattamente cio' che misurano le appendici BP
+(conferme fini su M1/M3) e BQ (i ritracciamenti in zona).
+
+---
+
+## Appendice BP: cinque conferme fini su M1/M3, e il placebo che le batte tutte
+
+Richiesta dell'utente: *"miglioriamo la selezione, ma dentro M3 ed M1 trova
+nuovi livelli, altri tipi di conferme o indicatori"*.
+
+Cinque famiglie, ciascuna con un meccanismo dichiarato prima di misurare, piu'
+un **placebo** (un numero casuale trattato identicamente). Le operazioni sono
+sempre le stesse 1.290 con la gestione ufficiale invariata: cambia solo cosa
+si tiene. Ogni misura si divide in terzi; una famiglia conta solo se il terzo
+migliore in **ricerca 2020-2022** e' ancora il migliore in **verifica
+2023-2026**.
+
+### Il risultato, per intero
+
+| famiglia | migliore in ricerca | migliore in verifica | regge? |
+|---|---|---|---|
+| 1 volume relativo (le "Stocks in Play") | basso (+0,387) | alto (+0,599) | no |
+| 2 contrazione precedente (Crabel intraday) | medio (+0,232) | alto (+1,032) | no |
+| 3 distanza dal VWAP | medio (+0,386) | medio (+0,643) | **si** |
+| 4 livello ovvio vicino | alto (+0,391) | basso (+0,709) | no |
+| 5 l'M3 ha girato davvero | si (+0,223) | no (+0,917) | no |
+| **0 placebo (numero casuale)** | **medio (+0,495)** | basso (+0,975) | no |
+
+### La riga che conta e' quella del placebo
+
+Il placebo, che per costruzione non sa nulla, ha prodotto in ricerca una
+separazione fra terzi **piu' grande di ogni famiglia vera**: +0,495 contro
++0,387 del volume relativo e +0,386 della distanza dal VWAP. Non e' un
+aneddoto, e' la taratura dello strumento: **con 1.290 operazioni divise in tre
+fasce e due periodi, mezzo R per operazione di apparente separazione nasce dal
+nulla.**
+
+Ne segue che la famiglia 3, l'unica che "regge", non e' una scoperta. Con
+cinque famiglie e tre fasce, per puro caso ci si aspetta che **1,7 famiglie**
+ripetano il terzo migliore. Ne ha ripetuto una. E' esattamente la frequenza
+del caso.
+
+### Cosa e' e cosa non e' questo risultato
+
+Non e' "gli indicatori non servono". E' una cosa piu' precisa e piu' utile:
+**questo campione non e' abbastanza grande per rispondere alla domanda.** Per
+distinguere un filtro che alza il rendimento di 0,15 R/op dal rumore
+servirebbero alcune migliaia di operazioni, non milletrecento. Provare altre
+dieci famiglie sullo stesso campione non porterebbe informazione: porterebbe
+solo altri dieci sorteggi, e prima o poi uno "regge".
+
+E' anche la ragione per cui la strada giusta non e' cercare conferme sulle
+operazioni che gia' abbiamo, ma **cambiare l'insieme delle occasioni** — che
+e' quello che fa l'appendice BQ, dove i ritracciamenti in zona producono
+decine di migliaia di eventi invece di milletrecento.
+
+### Una nota tecnica che e' costata una misura
+
+La famiglia 1 alla prima esecuzione aveva prodotto **zero dati**, senza
+errore: il riferimento del volume orario era costruito con un groupby annidato
+che restituiva un indice non interrogabile, e ogni ricerca tornava NaN. Uno
+studio che stampa "troppo pochi dati" e va avanti e' innocuo; uno che avesse
+stampato una tabella basata su un decimo delle operazioni non lo sarebbe
+stato. Il riferimento ora e' una tabella giorni x ore con il rolling sui
+giorni dentro ciascuna ora, che e' anche il confronto giusto: senza dividere
+per ora si misurerebbe solo che le 14 UTC sono piu' attive delle 3.
+
+---
+
+## Appendice BQ: i ritracciamenti in zona, 27.127 occasioni — e cosa dicono davvero
+
+Richiesta dell'utente: *"cercare una strategia per prendere i vari
+ritracciamenti buy e sell durante la giornata"*, con lo stop 2-3 punti oltre
+la zona e l'obiettivo fino a 10 $.
+
+Tutte le zone order block **raffinate** su M6, M12, M33, M66, H2 — 41.710
+zone, 27.127 ritracciamenti effettivi fra le 7 e le 21 UTC, sette anni, due
+lati, nessun filtro macro. E' l'insieme di occasioni che l'appendice BP
+diceva servire: ventun volte piu' grande del campione da 1.290.
+
+### Le sei celle, tutto il periodo
+
+| cella | op | op/giorno | stop $ | costo %R | **lordo R/op** | netto R/op | stop% | obiett.% |
+|---|---|---|---|---|---|---|---|---|
+| tocco · stop 2 $ · obiettivo 10 $ | 17.162 | 10,2 | 2,26 | 12,6% | **+0,040** | −0,086 | 78,9 | 19,6 |
+| tocco · stop 1 respiro · obiettivo 10 $ | 15.302 | 9,2 | 1,18 | 27,2% | +0,034 | −0,238 | 85,7 | 12,9 |
+| chiusura · stop 2 $ · obiettivo 10 $ | 13.960 | 8,3 | 3,12 | 9,3% | −0,011 | −0,104 | 73,3 | 25,6 |
+| chiusura · stop 1 respiro · obiettivo 10 $ | 13.651 | 8,2 | 2,02 | 17,7% | −0,030 | −0,207 | 79,5 | 19,6 |
+| chiusura · stop 2 $ · obiettivo 1:2 | 13.960 | 8,3 | 3,12 | 9,3% | −0,017 | −0,111 | 66,5 | 32,4 |
+| chiusura · stop 2 $ · obiettivo 1:10 | 13.960 | 8,3 | 3,12 | 9,3% | +0,018 | −0,075 | 86,7 | 7,0 |
+
+Controllo di assurdita': superato in tutte e sei le celle — lo stop vicino e'
+colpito molto piu' spesso dell'obiettivo lontano (66-87% contro 7-32%). Non
+c'e' futuro nel calcolo.
+
+### Ipotesi C: CONFERMATA — le occasioni ci sono
+
+**8-10 ritracciamenti al giorno.** La frequenza non e' mai stata il problema.
+
+### Ipotesi A: RESPINTA — e questa e' la notizia
+
+Il vantaggio LORDO dei ritracciamenti in zona raffinata sta fra **−0,030 e
++0,040 R/op**. Il campione largo dell'appendice BM, senza nessuna zona, stava
+a **+0,049**. **La zona raffinata non seleziona niente.**
+
+Va detto con chiarezza perche' contraddice l'appendice AJ, dove la zona
+raffinata valeva +1,342 R/op: quel numero era misurato su **63 operazioni**,
+ed erano zone che coincidevano ANCHE col segnale VWAP e con tutte le
+condizioni ufficiali. L'appendice BP ha appena tarato quanto rumore ci sia in
+un campione piccolo: mezzo R per operazione di separazione apparente nasce dal
+nulla con 1.290 operazioni. Con 63 il margine e' molto piu' largo.
+
+Fra le due misure — 63 operazioni con +1,342 e 27.127 con +0,04 — la seconda
+e' quella da credere. La conclusione onesta e' che **l'appendice AJ misurava
+la congiunzione (zona + segnale + condizioni), non la zona**, e che una parte
+di quel +1,342 era rumore.
+
+Conseguenza operativa diretta: entrare su una zona raffinata perche' e' una
+zona raffinata non ha vantaggio dimostrabile. Cio' che eventualmente vale e'
+la **coincidenza** con il resto, ed e' rara per costruzione.
+
+### Ipotesi B: RESPINTA — aspettare la chiusura M6 costa piu' di quel che salva
+
++0,040 lordo con l'ingresso al tocco contro **−0,011** con l'ingresso alla
+chiusura della prima M6 fuori dalla zona. L'attesa evita qualche coltello che
+cade, ma il prezzo d'entrata peggiora di piu' di quanto la selezione migliori.
+Contro l'intuizione, e contro l'ipotesi che avevo scritto prima di guardare.
+
+### Per timeframe della zona
+
+| tf | op | op/giorno | lordo R/op | netto R/op |
+|---|---|---|---|---|
+| M6 | 7.210 | 4,3 | −0,022 | −0,120 |
+| M12 | 3.865 | 2,5 | **+0,019** | −0,074 |
+| M33 | 1.571 | 1,5 | −0,013 | −0,099 |
+| M66 | 847 | 1,2 | −0,021 | −0,100 |
+| H2 | 467 | 1,1 | −0,063 | −0,137 |
+
+Nessun timeframe si stacca. L'M12 e' il meno peggio in lordo e resta negativo
+in netto: la differenza fra M12 e H2 (0,08 R/op) e' dentro il rumore misurato
+in BP.
+
+### L'unica cosa che si ripete
+
+In verifica 2023-2026, la cella con **obiettivo 1:10** e' l'unica con lordo
+apprezzabile (+0,091) e l'unica che chiude in pari al netto (+0,003 R/op, 3
+anni positivi su 4). E' lo stesso fatto che ricorre in tutto il progetto e in
+tutte le appendici di oggi: **gli obiettivi lontani battono quelli vicini**,
+perche' il vantaggio di questo mercato sta nella coda, non nella frequenza.
+Non e' un risultato tradeable — +0,003 R/op e' zero — ma e' l'ennesima
+conferma della stessa direzione.
+
+### Conclusione
+
+Il ritracciamento in zona, preso come regola generale, **non e' una strategia**:
+il vantaggio lordo e' zero e i costi lo rendono negativo. Le tre strade
+tentate oggi si chiudono tutte con la stessa aritmetica:
+
+- **BM** (gestione): il costo e' il doppio del vantaggio;
+- **BO** (stop e obiettivi in volatilita'): stabilizza la regola ma non crea
+  vantaggio;
+- **BP** (conferme fini): il campione non distingue un filtro dal caso;
+- **BQ** (piu' occasioni): le occasioni ci sono, il vantaggio no.
+
+Il vantaggio misurabile di questo progetto resta dov'era: nella regola
+ufficiale, con obiettivo lontano e poche operazioni. Ogni tentativo di
+trasformarla in uno scalp riduce il vantaggio piu' velocemente di quanto
+aumenti la frequenza.
+
+---
+
+## Appendice BN: lo spread vero dell'oro, ora per ora — e una correzione alla taratura
+
+Richiesta dell'utente (la "strada 1" dell'appendice BM): misurare lo spread
+vero invece di ipotizzarlo, per sapere se esiste una finestra della giornata
+in cui uno scalp a pochi punti sia almeno pagabile.
+
+Campione sistematico: 64 giornate distribuite su 2021-2026, quattro per
+trimestre, 1.536 file orari, **6,1 milioni di tick** denaro-lettera da
+Dukascopy. Niente stime: e' il dato.
+
+### Ipotesi A: la forma oraria c'e', ma e' piccola
+
+| ora UTC | spread mediano | ora UTC | spread mediano |
+|---|---|---|---|
+| 07-11 (Londra) | 0,351-0,360 | 20 | 0,374 |
+| 12-13 | 0,365-0,370 | 21 | 0,417 |
+| **14-15 (sovrapposizione)** | **0,330-0,340** | **22** | **0,456** |
+| 16-19 (New York) | 0,344-0,358 | 23 | 0,420 |
+| 00-06 (Asia) | 0,360-0,390 | | |
+
+L'ora migliore (15 UTC) e la peggiore (22 UTC) distano il **38%**. La forma
+esiste ed e' quella attesa — minimo nella sovrapposizione Londra-New York,
+massimo nella pausa serale — ma e' un'increspatura, non un cambio di regime.
+
+### Ipotesi C: CONFERMATA, e con forza — lo spread e' RADDOPPIATO
+
+| anno | 2021 | 2022 | 2023 | 2024 | **2025** | **2026** |
+|---|---|---|---|---|---|---|
+| spread medio $ | 0,349 | 0,395 | 0,334 | 0,384 | **0,632** | **0,631** |
+
+Dal 2023 al 2025 lo spread e' passato da 0,33 a 0,63 $. Non e' rumore: sono
+milioni di tick per anno, ed e' coerente con l'esplosione di volatilita' gia'
+documentata (escursione M1 mediana da 0,45 a 2,27 $).
+
+### Ipotesi B: RESPINTA senza margine
+
+La soglia scritta prima di misurare era 0,120 $ — il livello sotto il quale
+uno stop di 3 $ diventa pagabile. Le cinque ore piu' economiche del 2025-2026:
+
+| ora UTC | spread | % di uno stop da 3 $ | vantaggio lordo necessario per pareggiare |
+|---|---|---|---|
+| 20 | 0,480 | 16,0% | 0,160 R/op |
+| 14 | 0,510 | 17,0% | 0,170 R/op |
+| 10 | 0,514 | 17,1% | 0,171 R/op |
+| 11 | 0,525 | 17,5% | 0,175 R/op |
+| 08 | 0,527 | 17,6% | 0,176 R/op |
+
+Il minimo e' **0,480 $, quattro volte la soglia**. Non esiste nessuna ora del
+giorno in cui uno stop di 3 $ sull'oro sia pagabile: nella migliore si parte
+con il 16% di handicap, e il vantaggio lordo misurato in BM e BQ e' 0,04-0,05.
+**La strada 1 e' chiusa, e l'utente aveva ragione a dire che non era quella a
+migliorare la strategia.**
+
+### La correzione alla taratura, ed e' la parte importante
+
+La taratura usa **0,30 $** di spread. Il vero e' 0,33-0,40 fino al 2024 e
+**0,63 dal 2025**. Ogni numero del progetto e' quindi calcolato con un costo
+ottimistico, e dal 2025 lo e' del doppio. Ricalcolando la strategia ufficiale
+(campione largo, 1.290 operazioni) con lo spread vero anno per anno:
+
+| anno | stop mediano $ | spread vero | con 0,30 $ | con spread vero | differenza |
+|---|---|---|---|---|---|
+| 2021 | 3,58 | 0,349 | −25,2 | −28,1 | −2,9 |
+| 2022 | 3,85 | 0,395 | +93,0 | +87,6 | −5,4 |
+| 2023 | 3,54 | 0,334 | +52,4 | +50,0 | −2,5 |
+| 2024 | 4,43 | 0,384 | +15,0 | +10,9 | −4,1 |
+| 2025 | **7,40** | 0,632 | +239,2 | +228,3 | −10,9 |
+| 2026 | **14,76** | 0,631 | +77,1 | +74,7 | −2,5 |
+| **totale** | | | **+497,9 R** | **+469,7 R** | **−28,2 R** |
+
+**La strategia ufficiale perde solo il 5,7%.** Il motivo si legge nella colonna
+dello stop mediano: lo stop strutturale e' **cresciuto da solo** da 4,2 $ nel
+2020 a 14,8 $ nel 2026, seguendo la volatilita'. Cosi' il costo reale resta il
+**9,8% del rischio** invece del 7,6% ipotizzato — un peggioramento, non un
+disastro.
+
+E' esattamente il contrario di quel che succede a uno scalp a punti fissi: uno
+stop di 3 $ non cresce, quindi il suo costo e' passato dal 10% al **21%** del
+rischio fra il 2023 e il 2026. **Lo stop strutturale si difende dallo spread
+da solo; quello a punti fissi no.** E' la ragione tecnica, misurata, per cui
+tutte le varianti scalp di oggi perdono e l'ufficiale no.
+
+### Raccomandazione, non applicata
+
+Il valore `spread = 0,30` in `taratura.py` andrebbe portato a un valore
+dipendente dall'anno (o almeno a 0,45 come media del periodo). **Non l'ho
+cambiato**: CLAUDE.md avverte che toccare un numero della taratura cambia
+tutti gli studi gia' scritti, e la scelta e' dell'utente. Il costo vero e' qui
+documentato e il ricalcolo sopra dice quanto pesa: 5,7% sulla strategia
+ufficiale, e da due a quattro volte tanto su qualunque variante a stop stretto.
+
+---
+
+## Appendice BR: il criterio giusto — 6% annuo, drawdown piccolo, buon rate
+
+L'utente ha cambiato la domanda, e la nuova e' molto migliore della vecchia:
+*"non mi interessa moltiplicare i conti. Voglio una strategia stabile con un
+buon rate, poche perdite, drawdown basso. La banca da' il 4% annuo: se diamo
+il 5, 6, 7% va benissimo."*
+
+Fino a qui avevo ottimizzato R per operazione e R/DD, che sono le misure per
+massimizzare. Per un prodotto da clienti la misura e' un'altra: **quanto
+drawdown costa un 6% annuo**, e quanto e' sopportabile la strada. Entra in
+gioco la **taglia della posizione**, che finora era fissa all'1% e non era una
+variabile.
+
+L'aritmetica ribalta il problema: con 48 operazioni l'anno e +0,27 R/op, per
+fare il 6% basta rischiare lo **0,47% per operazione**. Un rendimento del 6%
+non richiede un vantaggio grande — richiede un vantaggio POSITIVO e un
+drawdown piccolo.
+
+Ogni gestione e' quindi **riscalata perche' renda esattamente il 6% annuo**, e
+poi confrontata a parita' di rendimento. Costi: spread vero dell'appendice BN,
+anno per anno.
+
+### Campione ufficiale (48 operazioni l'anno), tutte al 6% annuo
+
+| gestione | vinte% | rischio/op | **DD max** | anno peggiore | anni+ | mesi+ | **perdite di fila** |
+|---|---|---|---|---|---|---|---|
+| ufficiale 1:10, pareggio +3R | 13,5% | 0,20% | **4,3%** | −1,8% | 6/7 | 40,6% | **25** |
+| **tutto a 1:2** | **45,7%** | 0,47% | 5,7% | **−1,5%** | 6/7 | **53,6%** | **7** |
+| tutto a 1:3, pareggio +1R | 23,4% | 0,79% | 15,4% | −2,7% | 5/7 | 43,5% | 16 |
+| meta' 1:2 + meta' 1:10 | 45,7% | 1,44% | 12,7% | −3,9% | 5/7 | 49,3% | 7 |
+| meta' 1:1,5 + meta' 1:10 | 49,0% | 8,33% | 89,3% | −36,8% | 4/7 | 43,5% | 7 |
+| tutto a 1:1 | 55,6% | 7,65% | **124,6%** | −34,2% | 4/7 | 44,9% | 7 |
+| meta' 1:1 + meta' 1:10 | 55,6% | — in perdita — | | | | | |
+| tre scaglioni 1/1,5/2 | 54,4% | — in perdita — | | | | | |
+
+### La verifica su due periodi separati — l'unica cosa che rende difendibile una scelta
+
+Otto gestioni provate: sceglierne una guardando la tabella sarebbe pescare, ed
+e' l'errore che l'appendice BP ha appena tarato. Ricerca 2020-2022 contro
+verifica 2023-2026, campione ufficiale:
+
+| gestione | ricerca R/op | ricerca anni+ | verifica R/op | verifica anni+ | R/DD ric. | R/DD ver. |
+|---|---|---|---|---|---|---|
+| ufficiale 1:10 | +0,510 | 3/3 | +0,701 | 3/4 | 3,14 | 6,78 |
+| **tutto a 1:2** | **+0,419** | **3/3** | **+0,174** | **3/4** | **6,43** | **2,83** |
+| tutto a 1:3 | +0,101 | 2/3 | +0,199 | 3/4 | 0,68 | 2,61 |
+| meta' 1:2 + 1:10 | +0,128 | 3/3 | +0,061 | 2/4 | 2,74 | 1,39 |
+| tutto a 1:1 | +0,042 | 2/3 | −0,000 | 2/4 | 0,34 | −0,01 |
+| tre scaglioni | −0,060 | 0/3 | −0,033 | 0/4 | −0,70 | −0,70 |
+
+E sul campione largo (184 operazioni l'anno), dove ogni altra gestione a
+obiettivo vicino e' negativa in entrambi i periodi:
+
+| gestione | ricerca R/op | verifica R/op |
+|---|---|---|
+| **tutto a 1:2** | **+0,046** | **+0,068** |
+| tutto a 1:1 | −0,068 | −0,021 |
+| tre scaglioni | −0,087 | −0,062 |
+| meta' 1:2 + 1:10 | −0,044 | −0,012 |
+
+**L'1:2 e' l'unico obiettivo vicino che sopravvive**, su due campioni e due
+periodi indipendenti. Non e' il migliore delle otto scelto dopo: e' l'unico
+che regge quando si divide.
+
+### Perche' proprio 1:2, e perche' non 1:1
+
+Il rate alto si compra con il rapporto rischio/rendimento. Sotto 1:2 il
+vantaggio evapora prima che il rate ripaghi: l'1:1 ha il 55,6% di vincite ma
++0,02 R/op, quindi per fare il 6% servirebbe rischiare il **7,65% a
+operazione** e il drawdown salirebbe al 124%. Sopra 1:2 il rate crolla (23%
+a 1:3, 13% a 1:10) senza che il rendimento per unita' di drawdown migliori
+abbastanza da compensare la sopportabilita'.
+
+**1:2 e' il punto in cui si smette di pagare il rate troppo caro.**
+
+### Il candidato, e cosa promette davvero
+
+**Campione ufficiale, obiettivo 1:2, rischio 0,47% per operazione:**
+
+| | |
+|---|---|
+| rendimento | **6% annuo** |
+| drawdown massimo | **5,7%** |
+| anno peggiore | **−1,5%** |
+| anni positivi | 6 su 7 |
+| mesi positivi | **53,6%** |
+| operazioni vincenti | **45,7%** |
+| perdite consecutive peggiori | **7** (cioe' −3,3% di conto) |
+| operazioni l'anno | 48, una ogni cinque giorni di mercato |
+
+Sette perdite di fila contro le venticinque dell'ufficiale e' la differenza
+fra un cliente che resta e uno che se ne va, anche a parita' di euro persi.
+
+### I due avvertimenti che vanno detti prima di venderlo
+
+1. **Il vantaggio si e' gia' dimezzato fra i due periodi**: +0,419 R/op in
+   ricerca, +0,174 in verifica. Se continua a scendere, il 6% diventa 3-4%.
+   La taglia dello 0,47% e' calibrata sulla media dei sette anni, non sul
+   periodo recente: sul solo 2023-2026 lo stesso rischio rende circa il 4%.
+2. **L'ingresso resta quello gia' bocciato fuori campione.** La verifica
+   2009-2019 di questo stesso ingresso aveva dato −39,3 R. Cambiare la
+   gestione non ripara l'ingresso: rende la strada piu' sopportabile, non piu'
+   vera. Il test dell'1:2 sul 2009-2019 e' in appendice BS.
+
+---
+
+## Appendice BS: l'1:2 sul 2009-2019 — nessuna gestione salva l'ingresso
+
+L'appendice BR aveva trovato un candidato serio per il prodotto da clienti:
+ingresso ufficiale, obiettivo 1:2, rischio 0,47% -> 6% annuo con 5,7% di
+drawdown, 45,7% di operazioni vincenti e al massimo 7 perdite di fila. Reggeva
+la divisione 2020-2022 / 2023-2026 su due campioni.
+
+Restava il test che conta davvero prima di metterci soldi di altri: gli
+**undici anni 2009-2019**, dove l'ingresso era gia' stato bocciato (-39,3 R con
+la gestione 1:10). La domanda era precisa: la gestione a obiettivo vicino
+regge dove quella a obiettivo lontano era crollata?
+
+### La risposta: no, e non ci va nemmeno vicino
+
+Campione ufficiale, 34 operazioni l'anno, 2009-2019, spread 0,40 $:
+
+| gestione | R/op | vinte% |
+|---|---|---|
+| ufficiale 1:10, pareggio +3R | −0,10 | 8,6% |
+| **tutto a 1:2** | **−0,27** | 29,7% |
+| tutto a 1:3, pareggio +1R | −0,26 | 13,9% |
+| meta' 1:2 + meta' 1:10 | −0,21 | 29,7% |
+| meta' 1:1,5 + meta' 1:10 | −0,19 | 36,1% |
+| tre scaglioni 1/1,5/2 | −0,17 | 46,0% |
+| tutto a 1:1 | −0,17 | 48,7% |
+| meta' 1:1 + meta' 1:10 | −0,16 | 48,7% |
+
+Campione largo, 126 operazioni l'anno: **tutte fra −0,15 e −0,20 R/op**.
+
+**Otto gestioni su due campioni: sedici celle, sedici negative.** Non esiste
+una taglia di posizione che porti una qualunque di esse al 6% annuo, perche'
+nessuna e' positiva.
+
+E c'e' un dettaglio che chiude il discorso: l'1:2, che era il migliore sul
+2020-2026, e' il **peggiore** sul 2009-2019 (−0,27). Non e' una gestione
+robusta che soffre un po' fuori campione: e' una gestione che era adatta a
+quel particolare periodo.
+
+### Cosa vuol dire, senza giri di parole
+
+Il problema non e' mai stata la gestione. **E' l'ingresso.** Undici anni di
+perdite seguiti da sette di guadagni non sono una strategia con un periodo
+storto: sono la firma di una regola che non generalizza. Era gia' stato
+misurato in modo indipendente (l'1% di celle scelte sul 2020-2026 che
+sopravvive sul 2009-2019, contro il 64% nel verso opposto) e questa e' la
+terza conferma dallo stesso dato letto in un modo nuovo.
+
+Per un prodotto da clienti la conclusione e' una sola: **su questo ingresso,
+non c'e' un prodotto**. Un 6% annuo con drawdown del 5,7% costruito su sette
+anni scelti dopo aver visto i dati non e' un 6% annuo: e' una curva bella.
+
+### Restano due possibilita', e vanno tenute separate
+
+1. **L'oro e' davvero cambiato dal 2020** (la volatilita' e' triplicata, lo
+   spread e' raddoppiato) e la regola funziona solo nel regime nuovo. E'
+   possibile, ma **non e' scommettibile con i soldi dei clienti**: sarebbe una
+   scommessa su un regime che continua, senza modo di sapere quando finisce.
+2. **La regola e' sovradattata** ai sette anni su cui e' stata cercata. Le
+   misure disponibili puntano tutte qui.
+
+In entrambi i casi la strada per un prodotto stabile non passa da questa
+regola. Passa da un ingresso che sopravviva a diciotto anni — e in questo
+progetto, sull'oro, non ne e' ancora stato trovato uno.
+
+---
+
+## Appendice BV: la confluenza fra zone — e un placebo che regge dove le ipotesi vere cadono
+
+Idea dell'utente: *"di questi ventisettemila dobbiamo scremare. Prendere per
+buoni solo quelli che hanno piu' di un riferimento: un ritraccio su M12, poi
+vedere se magari anche su M33 o H2."*
+
+Domanda giusta al momento giusto: e' esattamente il "cambiare l'insieme delle
+occasioni" che l'appendice BP indicava, e con 17.403 eventi la potenza c'e'.
+42.208 zone raffinate su sei timeframe (M6 -> H6). Per ogni ritracciamento si
+contano le ALTRE zone dello stesso lato **gia' attive** e sovrapposte in
+prezzo. Le zone nate dopo il tocco non contano: sarebbero futuro.
+
+### Ipotesi A — quanti timeframe distinti in confluenza
+
+| fascia | op ric. | op ver. | lordo ric. | lordo ver. |
+|---|---|---|---|---|
+| 0 (isolata) | 5.185 | 6.120 | +0,023 | +0,043 |
+| 1 tf | 2.370 | 2.631 | +0,034 | +0,058 |
+| 2 tf | 444 | 483 | **−0,121** | +0,188 |
+| 3+ tf | 102 | 68 | −0,023 | +0,290 |
+
+Migliore in ricerca: 1 tf. In verifica: 3+ tf. **Non regge.**
+
+### Ipotesi B — il timeframe piu' grande in confluenza
+
+Migliore in ricerca **M12** (+0,092), in verifica **M66** (+0,248). H2 e H6, i
+timeframe che l'intuizione vorrebbe piu' pesanti, sono **negativi in ricerca**
+(−0,118 e −0,148). **Non regge.**
+
+### Ipotesi C — quante zone sovrapposte
+
+| fascia | op ric. | op ver. | lordo ric. | lordo ver. |
+|---|---|---|---|---|
+| 0 | 5.136 | 6.045 | +0,021 | +0,046 |
+| 1 | 2.341 | 2.627 | +0,041 | +0,071 |
+| 2 | 482 | 534 | **−0,151** | +0,081 |
+| 3 | 129 | 72 | +0,166 | +0,151 |
+| 4+ | 13 | 24 | −0,652 | +0,455 |
+
+**Non regge.**
+
+### Il placebo, invece, REGGE
+
+| fascia | lordo ricerca | lordo verifica |
+|---|---|---|
+| **q1** | **+0,084** | **+0,140** |
+| q2 | −0,072 | −0,003 |
+| q3 | +0,062 | +0,074 |
+| q4 | −0,004 | +0,016 |
+
+Un **numero casuale**, diviso in quarti e trattato identicamente alle tre
+ipotesi vere, ha il quarto migliore nello stesso posto in entrambi i periodi.
+Nessuna delle tre ipotesi vere ci riesce.
+
+Non e' ironia statistica: e' la risposta. Con quattro fasce la probabilita' che
+l'argmax coincida per caso e' 1 su 4, e in questo studio ci sono riuscite le
+fasce casuali e non quelle vere. **La confluenza fra zone non porta
+informazione misurabile su questo campione.**
+
+### L'unica cosa che merita una nota
+
+La fascia "3 zone sovrapposte" e' positiva in **entrambi** i periodi, sia lorda
+(+0,166 / +0,151) sia netta (+0,031 / +0,012). Sono 201 operazioni in tutto.
+Va detto perche' e' l'unico numero interessante — e va detto anche perche' non
+convince:
+
+- **la sequenza non e' monotona**: 0 e 1 sono positive, **2 e' la peggiore di
+  tutte** (−0,151 in ricerca), 3 e' buona, 4+ oscilla da −0,652 a +0,455. Se
+  la confluenza fosse un meccanismo, il rendimento crescerebbe con essa. Un
+  andamento che sale, crolla, risale e impazzisce e' la firma del rumore;
+- **le celle alte sono minuscole**: il +0,290 dei "3+ tf" in verifica sta su
+  **68 operazioni**, il +0,455 dei "4+" su **24**;
+- il placebo ha appena mostrato che in questo campione una fascia casuale
+  produce +0,140 di apparente vantaggio senza sapere niente.
+
+### E comunque il netto e' negativo ovunque
+
+Vantaggio lordo medio **+0,038 R/op**, netto medio **−0,137**. Con lo stop a
+2 $ oltre la zona (mediana ~2,5 $) e lo spread vero di 0,63 $ del 2025-2026, il
+costo e' il **17-25% del rischio**. Anche la fascia migliore delle diciotto
+misurate resta sotto zero al netto, tranne "3 zone" che fa +0,03 su 201
+operazioni — cioe' niente.
+
+### Conclusione
+
+L'idea della confluenza e' ragionevole, e' la prima cosa che un occhio esperto
+guarda, ed e' stata misurata con il campione piu' grande che il progetto
+abbia mai usato per una domanda del genere. **Non c'e'.** E' anche il terzo
+studio indipendente che arriva alla stessa conclusione sulle zone order block
+(AZ con 720 configurazioni, BQ con 27.127 ritracciamenti, BV con la
+confluenza): le zone raffinate non selezionano.
+
+---
+
+## Appendice BL: l'ORB sull'S&P fino al 2026, con lo scarto denaro-lettera VERO
+
+Le appendici BJ e BK lasciavano due buchi: i dati finivano nel **2018**, e il
+costo era un'**ipotesi** (fra 0,25 e 0,50 punti il verdetto cambiava segno).
+Qui si scarica da Dukascopy il CFD `USA500IDXUSD` con **BID e ASK minuto per
+minuto**, 2012-2026, e si compra sulla lettera, si vende sul denaro.
+Script: `trading/scripts/run_orb_indice_vero.py`.
+
+### Prima di tutto: metа' del dato scaricato non e' utilizzabile
+
+Il feed indice di Dukascopy nei primi anni e' povero, e va detto perche' la
+prima versione dello studio ci e' cascata: **nel 2012 la serie ASK e' una copia
+esatta della BID** (scarto identicamente nullo) e il reticolo dei minuti e'
+bucato. Una serie bucata non registra tutti gli estremi: lo Stretch esce piu'
+piccolo del vero, il rischio si rimpicciolisce, gli stop non vengono toccati e
+il risultato in R **si gonfia da solo**. Senza filtro il 2012 dava
+**+0,74 R/op**, dieci volte qualunque cosa mai misurata: era il dato, non la
+strategia. Filtro applicato a ogni giornata: copertura >= 95% dei minuti di
+sessione con scambi, e lettera > denaro in >= 90% dei minuti.
+
+| anno | gg scaricate | **gg sane** | copertura | spread mediano | **costo %R** |
+|---|---|---|---|---|---|
+| 2012 | 314 | **0** | 0,946 | — (nessun ASK) | — |
+| 2013 | 313 | 54 | 0,862 | 0,440 | 5,5% |
+| 2014 | 21 | 8 | 0,939 | 0,434 | — |
+| 2016 | 313 | 240 | 1,000 | 0,544 | 6,7% |
+| 2017 | 265 | 148 | 0,964 | 0,530 | 9,7% |
+| 2018 | 199 | 144 | 0,987 | 0,460 | 5,0% |
+| 2019 | 313 | 234 | 0,995 | 0,460 | 4,5% |
+| 2020 | 218 | 175 | 1,000 | 0,505 | 2,8% |
+| 2021 | 313 | 251 | 1,000 | 0,510 | 3,8% |
+| 2023 | 92 | 71 | 1,000 | 0,514 | 3,2% |
+
+Mancano 2015 e 2022 (un lato solo), e 2024-2026 hanno solo la lettera: per
+quegli anni si puo' misurare il **lordo** ma non il netto.
+
+### Ipotesi A: le due fonti sono d'accordo, ed e' HistData ad avere ragione
+
+Confronto **giornata per giornata** sul periodo comune, sui soli giorni sani:
+
+| anno | gg | rischio HistData | rischio Duka | rapporto | corr. R | lordo Hist | lordo Duka |
+|---|---|---|---|---|---|---|---|
+| 2016 | 228 | 7,25 | 7,34 | 1,010 | **0,910** | −0,030 | −0,050 |
+| 2017 | 114 | 5,70 | 5,93 | 1,015 | **0,934** | −0,098 | −0,011 |
+| 2018 | 109 | 11,65 | 9,30 | 1,003 | **0,969** | +0,070 | +0,034 |
+
+Dove il dato Dukascopy e' sano le due fonti **coincidono** (rischio a meno
+dell'1,5%, correlazione dei risultati 0,91-0,97). Nessuno dei due dati e'
+sbagliato: quello sbagliato era il 2012-2014 di Dukascopy, ora escluso.
+
+**Ma la scomposizione per periodo corregge BK.** Su HistData il vantaggio
+lordo non e' uniforme: **2010-2015 +0,076 R/op** (n=1.185, t=+2,0),
+**2016-2018 +0,009** (n=724, t=+0,2). Il +0,060 / +0,042 di BK e' quindi
+tutto nel **2011-2015**; nel triennio in cui possiamo confrontare le fonti il
+vantaggio era gia' sparito su ENTRAMBE.
+
+### Ipotesi B: il lordo c'e' ancora dal 2019, piccolo e non significativo
+
+| periodo | fonte | op | lordo R/op | t | pareggio (punti) |
+|---|---|---|---|---|---|
+| 2016-2018 | Duka due lati | 456 | −0,004 | — | −0,03 |
+| **2019-2023** | **Duka due lati** | **673** | **+0,058** | +1,21 | **0,73** |
+| 2019-2026 | Duka un lato | 1.486 | +0,048 | +1,46 | 0,78 |
+| 2022-2026 | Duka un lato | 791 | +0,073 | — | **1,53** |
+
+Lordo un lato, anno per anno: 2019 +0,000 · 2020 +0,015 · 2021 +0,043 · 2022
++0,055 · 2023 +0,152 · 2024 +0,009 · 2025 +0,311 (15 op) · 2026 +0,044 —
+**8 anni positivi su 8**, ma nessun singolo periodo arriva a due deviazioni
+standard. Il vantaggio non e' morto; non e' nemmeno dimostrato.
+
+### Ipotesi C: RESPINTA — con lo spread vero il netto e' positivo
+
+La previsione era netto negativo. Non lo e':
+
+| periodo | lordo | costo | **netto R/op** | netto R | anni+ |
+|---|---|---|---|---|---|
+| 2016-2018 | −0,004 | 7,55%R | **−0,054** | −24,6 | 1/3 |
+| **2019-2023** | +0,058 | **3,86%R** | **+0,009** | +5,8 | 3/4 |
+
+Il netto 2019-2023 e' **+0,009 R/op, cioe' zero** (t=+0,19): ~2% annuo lordo
+all'1% di rischio che diventa nulla dopo il costo. La conclusione di BK regge
+in sostanza — il vantaggio e' della taglia dei costi — ma per una ragione
+nuova, ed e' la parte interessante.
+
+### La scoperta vera: sull'indice il costo e' 3-4% del rischio, non 7-10%
+
+| | oro (app. BN) | S&P 500 CFD |
+|---|---|---|
+| spread mediano | 0,33 → **0,63 $** (raddoppiato dal 2025) | 0,44 → **0,51 pt** (piatto) |
+| rischio tipico | stop 3,5-14,8 $ | 2×Stretch, 7 → 32 pt |
+| **costo in % del rischio** | **7,6-9,8%** (21% sugli stop fissi) | **9,7% (2017) → 2,8-3,8% (2020-23)** |
+
+Lo spread dell'indice **non e' cambiato in dieci anni** (0,44-0,54 punti,
+nessuna tendenza), mentre l'indice e' passato da 2.100 a 6.400 e lo Stretch
+con lui: il rischio mediano e' salito da 7 a 32 punti. Il costo relativo si e'
+quindi **dimezzato per conto suo**, e il pareggio e' salito da 0,32 punti (BK,
+2011-2018) a **0,73-1,53 punti** contro uno spread di 0,51.
+
+**E' la risposta alla domanda lasciata aperta da BK** («abbassare il costo in
+rapporto al rischio»): sull'indice il rapporto e' oggi **due-tre volte
+migliore che sull'oro**, e l'oro sta peggiorando mentre l'indice migliora. Non
+basta a rendere pagabile l'ORB di Crabel — il lordo e' troppo piccolo e non
+significativo — ma dice dove ha senso cercare: **una strategia con lo stesso
+vantaggio lordo rende molto di piu' sull'indice che sull'oro**.
+
+### Da fare prima di crederci
+
+Lo scarico e' **incompleto**, per due difetti di `scarica_indice.py` (corretti
+nel codice, non rilanciati):
+
+1. `curl --fail-early` abortiva l'intero blocco al primo errore, e i giorni
+   rimasti a zero byte venivano marcati `.empty` **per sempre**. Cosi' si sono
+   persi in blocco BID 2022, 2024 e 2026 e ASK 2025 (312+ marcatori, zero
+   file). Per recuperarli vanno **cancellati i marcatori** di quegli anni e
+   rifatto lo scarico: la cache e' riavviabile, i giorni buoni non si
+   riscaricano.
+2. `decodifica()` cancella i file troncati «perche' si riscarichino al giro
+   dopo», ma il giro dopo non c'era: quei giorni sparivano dal parquet
+   dell'anno pur essendo disponibili sul feed. Da qui i mesi mancanti nel 2013,
+   2017, 2018, 2020, 2022 e 2023. Ora scarica e decodifica girano due volte, e
+   un giorno si dichiara vuoto solo dopo il secondo tentativo.
+
+Conta, perche' con 500-700 operazioni l'errore standard e' **±0,05 R/op**:
+esattamente la taglia di tutto quello che si sta misurando. Un campione pieno
+— circa 250 giornate l'anno per quindici anni — dimezzerebbe l'incertezza, ed
+e' l'unica cosa che puo' trasformare questi numeri in una decisione.
+
+---
+
+## Appendice BT: la curva del netto in funzione della larghezza dello stop
+
+Domanda dell'utente, alla lettera: *"invece che 3 punti mettere 4 punti di
+stop va benissimo, qual e' la larghezza giusta?"*.
+
+Fin qui il progetto aveva misurato **tre punti isolati** di questa curva e li
+aveva riportati come verdetti separati: 3 $ e 5 $ a punti fissi (BM), lo stop
+in volatilita' da 0,89 $ (BO), lo stop strutturale (tutto il resto). Tre punti
+non sono una curva. Qui ci sono tutte e diciannove le larghezze da **2 a 20 $**
+a passi di 1, con obiettivo **1:2** (l'unico obiettivo vicino sopravvissuto in
+BR) e **1:3** come controllo, su **diciotto anni** e tre periodi separati.
+
+Cambia solo l'uscita: le operazioni sono le stesse della taratura ufficiale
+(2.680 nel campione largo, 712 ufficiali, 2009-2026). Costi: spread vero
+dell'appendice BN anno per anno, 0,40 $ sul 2009-2019 che BN non copre.
+
+### La curva, campione largo, obiettivo 1:2 (netto R/op)
+
+| stop $ | 2 | 3 | 4 | 5 | 6 | 7 | **8** | 10 | **13** | 16 | 20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| costo %R | 20,7 | 13,8 | 10,3 | 8,3 | 6,9 | 5,9 | 5,2 | 4,1 | 3,2 | 2,6 | 2,1 |
+| lordo R/op | −0,009 | +0,015 | +0,014 | +0,006 | +0,010 | +0,049 | +0,083 | +0,064 | **+0,085** | +0,059 | +0,032 |
+| **netto R/op** | −0,215 | −0,123 | −0,089 | −0,077 | −0,059 | −0,010 | **+0,032** | +0,023 | **+0,053** | +0,033 | +0,011 |
+| durata mediana h | 0,5 | 1,1 | 1,8 | 2,8 | 4,0 | 5,5 | 7,5 | 14,7 | 22,9 | 31,1 | 49,0 |
+| oltre 1 giorno % | 0,0 | 0,7 | 2,8 | 5,2 | 9,5 | 15,3 | 22,1 | 34,0 | 47,3 | 59,4 | 69,9 |
+
+### Ipotesi A (curva monotona crescente): RESPINTA
+
+C'e' un **massimo interno**, e non solo nel netto: anche nel **lordo**. Il
+vantaggio lordo sale da −0,009 (2 $) a +0,085 (13 $) e poi ridiscende a +0,032
+(20 $). Se fosse solo una questione di costo, il lordo sarebbe piatto e il
+netto crescerebbe per sempre. Non e' cosi', e il motivo si legge nelle due
+righe in fondo alla tabella: **il vantaggio di questo ingresso e' intraday e
+dura poche ore**. Allargando lo stop l'operazione si allunga (0,5 h a 2 $,
+23 h a 13 $, 49 h a 20 $) e il vantaggio si diluisce nel caso.
+
+### Ipotesi B (soglia di pareggio intorno ai 10 $): CONFERMATA, anzi meglio
+
+Il netto attraversa lo zero fra **7 e 8 $** su entrambi i campioni con
+obiettivo 1:2, e fra 6 e 7 $ con obiettivo 1:3. La stima a priori (0,45 / 0,045
+= 10 $) era pessimistica di due dollari, ma l'ordine di grandezza era giusto.
+**Sotto gli 8 $ non si paga lo spread, sopra si.**
+
+### Ipotesi C (soglia piu' alta nel 2023-2026): RESPINTA — e' l'opposto
+
+| stop $ | 2009-2019 | 2020-2022 | 2023-2026 |
+|---|---|---|---|
+| 3 | −0,168 | −0,029 | −0,110 |
+| 4 | −0,155 | +0,047 | −0,070 |
+| 5 | −0,151 | +0,083 | −0,059 |
+| **8** | −0,032 | +0,132 | **+0,075** |
+| **12** | −0,029 | +0,139 | **+0,118** |
+| 16 | +0,010 | +0,142 | −0,007 |
+| 20 | −0,038 | +0,178 | −0,024 |
+
+Il periodo che rifiuta ogni larghezza non e' il recente ma il **2009-2019**:
+undici anni in cui l'unica cella positiva del 1:2 e' 16 $ per +0,010, cioe'
+zero. E' la stessa firma gia' trovata nell'appendice BS con lo stop
+strutturale — **il problema non e' la larghezza dello stop, e' l'ingresso** —
+letta questa volta su diciannove larghezze invece che su otto gestioni.
+
+### La risposta alla domanda, senza scorciatoie
+
+**3 punti o 4 punti: nessuno dei due.** Entrambi sono nettamente negativi in
+tutti e tre i periodi, su entrambi i campioni e con entrambi gli obiettivi. 4 $
+e' meglio di 3 $ (−0,089 contro −0,123 R/op sul largo a 1:2), ma "meglio"
+qui vuol dire perdere meno: il pareggio sta piu' del doppio piu' in la'.
+
+**Esiste una larghezza positiva su tutti e tre i periodi?** Con obiettivo
+**1:2, no**: il minimo fra i tre periodi resta ≤ 0 per tutte e diciannove le
+larghezze sul campione ufficiale (il massimo e' −0,000 a 16 $) e una sola cella
+lo supera sul largo (15 $, +0,015). Con obiettivo **1:3 si**, formalmente:
+9-12 e 14-19 $ sul campione ufficiale, 11 e 15-18 $ sul largo (16 celle
+positive su 76 provate). Ma va detto come stanno le cose:
+
+1. il margine e' **tutto deciso dal 2009-2019**, che oscilla fra −0,06 e +0,05
+   e **cambia segno fra larghezze adiacenti** (12 $: +0,001; 13 $: −0,010;
+   14 $: +0,006). Non e' un altopiano, e' rumore che passa lo zero. L'appendice
+   BP ha tarato lo strumento su questo stesso campione: mezzo R di separazione
+   apparente nasce dal nulla, e qui si parla di centesimi;
+2. a quelle larghezze **l'operazione non e' piu' uno scalp**: durata mediana
+   fra 14 e 52 ore, dal 34% al 70% delle posizioni tenute oltre un giorno di
+   mercato. Sono posizioni portate a casa la notte, che violano la chiusura
+   EOD delle 21 UTC della taratura e cambiano completamente il profilo di
+   rischio (gap del lunedi', notizie notturne). Confrontarle con "3 o 4 punti"
+   sarebbe cambiare strumento e chiamarlo taratura.
+
+### In una riga
+
+La larghezza giusta, se si guarda solo la curva, sta fra **11 e 14 $** — dove
+il netto e' massimo su entrambi gli obiettivi e su entrambi i campioni. Ma
+quella non e' la risposta alla domanda dell'utente: **nella regione dello
+scalp (2-7 $) non esiste nessuna larghezza pagabile**, e la larghezza che paga
+paga perche' smette di essere uno scalp e diventa una posizione multi-giorno
+che il 2009-2019 comunque non premia.
+
+Dati: `docs/studies/dati/larghezza_stop.parquet`,
+script `trading/scripts/run_larghezza_stop.py`.
+
+---
+
+## Appendice BW: il regime dell'oro non e' cambiato — e' cambiato il prezzo
+
+Premessa dell'utente: *"dal 2020 il mercato e' cambiato, sugli anni passati
+cerchiamo altre strategie da tenere come riserve"*. Prima di accettarla o
+respingerla va misurata, perche' su di essa poggia il destino di tutti i
+risultati fuori campione.
+
+### Le misure, in rapporto al prezzo
+
+L'oro e' passato da **950 $ (2009) a 4.676 $ (2026)**: quasi cinque volte.
+Qualunque grandezza espressa in dollari cresce da sola. Divise per il prezzo:
+
+| | 2009-2019 | 2020-2026 | sovrapposizione |
+|---|---|---|---|
+| **ATR giornaliero / prezzo** | **1,351%** | **1,393%** | 68,6% |
+| escursione M1 / prezzo | 0,214‰ | 0,239‰ | — |
+| quota di escursione notturna | 0,049 | 0,073 | **93,4%** |
+| persistenza mattina->sera | −0,012 | +0,046 | **91,4%** |
+| direzionalita' (20 giorni) | 0,214 | 0,204 | 79,4% |
+| spread / prezzo | (0,195‰ nel 2021) | (0,135‰ nel 2026) | — |
+
+**Nessuna delle cinque separa i due periodi.** L'ATR relativo differisce del
+3%. Lo spread relativo, che in dollari e' raddoppiato, in percentuale e'
+addirittura sceso. La quota notturna e la persistenza si sovrappongono per
+oltre il 90%.
+
+### E non c'e' nessun interruttore da costruire
+
+Una regola causale semplice (escursione relativa sopra la sua mediana a 250
+giorni per 20 sedute di fila) scatta **32 volte in 18 anni**. Quota di
+giornate "accese": 49% nel 2013, 45% nel 2015, **0,4% nel 2021**. Cioe' e'
+spenta quasi tutto l'anno proprio dentro il regime che si voleva riconoscere,
+e accesa a meta' negli anni che si volevano escludere.
+
+Ipotesi A e B respinte. **Il mercato dell'oro, misurato con un righello
+relativo, e' lo stesso di sempre.** Quello che e' cambiato e' il numero sul
+cartellino.
+
+---
+
+## Appendice BX: se non e' il regime, sara' un problema di unita'? — no
+
+Se il mercato non e' cambiato ma il prezzo si', allora le soglie in **dollari
+fissi** della taratura (impulso 4 $, rischio 1-10 $, buffer 0,30 $), scelte
+sul 2020-2026 con l'oro fra 1.800 e 4.700, applicate al 2009-2019 con l'oro
+fra 950 e 1.660 valgono in termini relativi **due-tre volte tanto**. Il crollo
+fuori campione poteva essere una strategia giusta misurata col righello
+sbagliato — non sovradattamento.
+
+Test: le stesse identiche regole, con le soglie riscalate sull'ATR corrente in
+**ogni** mese invece che solo in quelli agitati. Un solo interruttore, nessun
+parametro nuovo. Mediana di riferimento congelata al 2020-2024, mai
+ricalcolata sul periodo in esame.
+
+### Ipotesi C: CONFERMATA — la correzione funziona, come correzione
+
+Operazioni per anno (campione ufficiale):
+
+| | 2014 | 2017 | 2018 | 2019 | 2022 | 2025 |
+|---|---|---|---|---|---|---|
+| soglie in dollari | 23 | **17** | 25 | 32 | 38 | **80** |
+| soglie relative | 42 | 52 | 64 | 63 | 41 | 80 |
+
+Con i dollari fissi la strategia trovava da 17 a 80 occasioni l'anno; con le
+soglie relative sta fra 41 e 64 in diciotto anni. **Le soglie ERANO
+sbagliate**, e riscriverle in ATR e' un miglioramento reale del metodo: lo
+stop mediano segue il prezzo da solo (1,62 $ nel 2017, 14,71 $ nel 2026).
+
+### Ipotesi A: RESPINTA — la correzione non restituisce il vantaggio
+
+| periodo | soglie | lordo R/op | netto R/op | anni+ |
+|---|---|---|---|---|
+| **2009-2019** | dollari | +0,052 | −0,041 | 3/11 |
+| **2009-2019** | **relative** | **+0,046** | **−0,074** | 3/11 |
+| 2020-2022 | dollari | +0,525 | +0,429 | 3/3 |
+| 2020-2022 | relative | +0,442 | +0,343 | 3/3 |
+| 2023-2026 | dollari | +0,759 | +0,656 | 3/4 |
+| 2023-2026 | relative | +0,722 | +0,617 | 3/4 |
+
+Il 2009-2019 non migliora: il lordo resta +0,046 R/op, **dieci-quindici volte
+piu' piccolo** del 2020-2026, e il netto peggiora perche' lo stop piu' stretto
+fa pesare di piu' lo spread.
+
+### Ipotesi B: CONFERMATA — e serviva a validare il test
+
+Il 2020-2026 non migliora, anzi cala un poco (0,759 -> 0,722). Se fosse
+migliorato anche li' avrebbe voluto dire che stavo guadagnando da un grado di
+liberta' in piu' e non da una correzione di unita'. Il test e' pulito.
+
+### Il conto, e cosa resta aperto
+
+Le unita' **erano** sbagliate, correggerle raddoppia le occasioni nel periodo
+vecchio (374 -> 601 operazioni) e stabilizza la regola fra le epoche. Ma il
+vantaggio non torna. Quindi la spiegazione "era solo un problema di righello"
+e' **eliminata**, ed e' un'informazione che valeva il test: era la piu'
+attraente delle spiegazioni alternative.
+
+Nemmeno la tendenza di fondo spiega il divario. Condizionando sulla pendenza
+della media a 200 giorni, nel 2009-2019 la fascia "sale forte" rende +0,102
+lordo e **−0,001 netto** su 158 operazioni; nel 2020-2026 la stessa fascia
+rende **+0,580**. Il vantaggio non e' dove l'oro sale: e' dopo il 2020.
+
+**Resta un fatto senza spiegazione**: il vantaggio lordo della regola e' ~0,05
+R/op per undici anni e ~0,6 per sei, mentre tutte le grandezze misurabili del
+mercato — volatilita' relativa, spread relativo, quota notturna, persistenza,
+direzionalita', tendenza — sono uguali nei due periodi. Non avendo trovato
+nessuna caratteristica del mercato che cambi insieme al risultato, la
+spiegazione piu' parsimoniosa resta che la regola sia stata trovata cercando
+dentro il 2020-2026.
+
+### L'unica cosa positiva emersa, con la sua riserva
+
+Condizionando sulla pendenza a 200 giorni, la fascia **"oro che scende"** e'
+netta positiva in **entrambe** le epoche: +0,080 R/op nel 2009-2019 (204
+operazioni) e +0,397 nel 2020-2026 (51 operazioni), +36,5 R in totale su 255.
+E' l'unica delle quattro fasce a riuscirci, ed e' controintuitiva — la
+strategia ha un filtro di fondo che la rende lunga, e va meglio quando la
+media scende, cioe' comprando i ritorni dentro una discesa.
+
+Va detto anche perche' non ci si puo' ancora contare: quattro fasce provate,
+una positiva in entrambe le epoche e' **esattamente la frequenza del caso**, e
+le appendici BP, BU e BV hanno appena mostrato tre volte che in questo
+progetto il placebo produce separazioni di questa taglia da solo. Va rimisurata
+come ipotesi a se', pre-registrata, non raccolta da una tabella.
+
+---
+
+## Appendice BZ: la scalp dentro il solo 2020-2026, col criterio del cliente
+
+Decisione dell'utente: ripartire dal 2020-2026 e cercare li' la strategia
+scalp. Nessuna idea nuova: si rimette insieme cio' che le appendici di oggi
+hanno gia' misurato, giudicandolo finalmente col criterio dell'appendice BR —
+non "chi rende di piu'" ma "chi arriva al 6% annuo col buco piu' piccolo".
+
+### Il fatto che risponde alla domanda
+
+Campione ufficiale, netto R/op, ricerca 2020-2022 contro verifica 2023-2026:
+
+| stop $ | ore mediane | costo %R | ricerca | verifica |
+|---|---|---|---|---|
+| **3** | 0,6 | 14,8% | +0,157 | **−0,006** |
+| **4** | 1,2 | 11,1% | +0,248 | **−0,025** |
+| **5** | 1,8 | 8,9% | +0,424 | **−0,060** |
+| 6 | 2,4 | 7,4% | +0,303 | +0,017 |
+| 8 | 3,5 | 5,5% | +0,336 | +0,219 |
+| 10 | 5,3 | 4,4% | +0,367 | +0,275 |
+| 12 | 7,4 | 3,7% | +0,437 | +0,270 |
+| 14 | 11,2 | 3,2% | +0,420 | +0,216 |
+| 16 | 17,4 | 2,8% | +0,362 | +0,126 |
+
+**Lo scalp vero — stop da 3 a 5 dollari — funzionava fino al 2022 e ha smesso.**
+Positivo in tutti e tre gli anni di ricerca, negativo in tutti e quattro quelli
+di verifica. Non e' un'opinione sul periodo lungo: e' dentro il periodo che
+l'utente ha scelto.
+
+Il perche' e' nella colonna dei costi. Lo spread e' raddoppiato nel 2025
+(appendice BN: 0,33 -> 0,63 $) e su uno stop di 3 $ vale il 15-21% del rischio.
+Il vantaggio lordo dell'ingresso non e' cambiato abbastanza da compensarlo.
+**Lo scalp non e' morto per il mercato: e' morto per il costo.**
+
+Il confine e' netto e cade fra **5 e 6 dollari** di stop, cioe' fra un'ora e
+mezza e due ore e mezza di durata.
+
+### L'altopiano che invece regge
+
+Dai 6 ai 16 dollari tutte le celle sono positive in entrambi i sottoperiodi,
+con entrambi gli obiettivi: dodici celle su diciotto. Un **altopiano largo** e'
+piu' difendibile di un massimo puntuale — se il risultato fosse caso, le celle
+adiacenti non sarebbero d'accordo fra loro.
+
+Riscalate perche' rendano il 6% annuo sul 2020-2026:
+
+| cella | rischio/op | **DD max** | anno peggiore | anni+ | mesi+ | perdite di fila | ore mediane | oltre 1 giorno | rend/DD |
+|---|---|---|---|---|---|---|---|---|---|
+| **stop 12 $ · 1:2** | 0,37% | **5,25%** | −2,28% | **6/7** | 52,1% | **9** | 7,4 | 19,5% | **1,14** |
+| **stop 8 $ · 1:3** | 0,26% | 5,49% | −2,28% | 5/7 | **53,5%** | 14 | 4,9 | 13,3% | 1,09 |
+| stop 10 $ · 1:2 | 0,40% | 5,79% | −2,56% | 4/7 | 50,7% | 7 | 5,3 | 14,5% | 1,04 |
+| stop 14 $ · 1:2 | 0,41% | 7,09% | −3,74% | 5/7 | 52,1% | 16 | 11,2 | 28,4% | 0,85 |
+| stop 8 $ · 1:2 | 0,47% | 10,87% | −5,16% | 5/7 | 50,7% | 10 | 3,5 | 10,1% | 0,55 |
+| stop 6 $ · 1:2 | 0,92% | 16,61% | −12,40% | 4/7 | 42,3% | 12 | 2,4 | 1,8% | 0,36 |
+
+Il campione **largo** (136 operazioni l'anno) va escluso: ogni sua cella ha
+drawdown fra il 35% e il 48% a parita' di 6% annuo (rend/DD 0,13-0,17). Piu'
+operazioni non vuol dire curva piu' liscia se le operazioni in piu' sono
+peggiori.
+
+### Il prezzo, dichiarato
+
+A queste larghezze **non e' uno scalp**. Durata mediana da 2,4 a 17 ore, e dal
+2% al 37% delle posizioni tenute oltre la giornata di mercato. La cosa che
+funziona sul 2020-2026 e' un'operazione intraday lunga, non uno scalp — e va
+chiamata col suo nome.
+
+### Il limite che questo studio NON puo' superare
+
+Con il 2009-2019 escluso per decisione, e il 2023-2026 usato per filtrare le
+celle "positive in entrambi", **non resta nessun fuori campione**. Ogni numero
+qui sopra e' dentro il campione su cui la scelta e' stata fatta. L'altopiano e'
+la miglior prova disponibile — celle adiacenti che concordano sono una forma
+debole di robustezza — ma non e' una verifica.
+
+L'unica verifica rimasta e' **in avanti**. Il grafico dal vivo ha gia' il
+sistema di avvisi: puo' registrare i segnali man mano che arrivano, e fra sei
+mesi ci sara' un fuori campione vero, piccolo ma onesto.
+
+### Confronto con il candidato dell'appendice BR
+
+BR proponeva lo stop **strutturale** con obiettivo 1:2: 6% annuo, DD 5,7%,
+45,7% di vincite, **7 perdite di fila**, 53,6% di mesi positivi, 6/7 anni.
+Le due migliori celle di qui (stop 12 $ · 1:2 e stop 8 $ · 1:3) hanno drawdown
+simile e mesi positivi simili, ma **piu' perdite consecutive** (9 e 14 contro
+7) e una quota di posizioni notturne che BR non ha.
+
+Fra i due, **lo stop strutturale resta preferibile**: fa lo stesso lavoro senza
+un parametro in dollari da tarare, e lo stop segue la volatilita' da solo —
+che e' esattamente la proprieta' che l'appendice BN ha misurato come decisiva
+(il costo relativo resta al 9,8% invece di salire al 21%).
+
+---
+
+## Appendice CA: lo stop in punti PIU' lo spread — piccolo miglioramento vero
+
+Proposta dell'utente: *"aggiungi allo stop in punti lo spread"*. Se lo stop
+nominale e' 3 e lo spread 0,63, lo stop va a 3,63 dal prezzo d'ingresso.
+
+Modello di esecuzione unico per i due modi, ed e' quello vero: si compra alla
+**lettera**, si esce al **denaro**, lo stop e' un livello di denaro. Cosi' lo
+spread si paga sempre, anche quando lo stop e' lontano.
+
+**Una prima versione di questo script non addebitava lo spread al modo
+"piu' spread"** e faceva sembrare che i nominali da 3 a 5 diventassero
+chiaramente positivi in verifica (+0,179, +0,119, +0,090). Era un falso
+positivo: se lo stop e' piu' lontano non e' che lo spread sparisce, e'
+semplicemente che si perde di piu' in dollari quando scatta. Corretto e
+rifatto.
+
+### Il risultato, netto R/op
+
+Obiettivo 1:2, campione ufficiale:
+
+| nominale $ | vecchio ric. | vecchio ver. | **+spread ric.** | **+spread ver.** |
+|---|---|---|---|---|
+| 3 | +0,273 | −0,000 | +0,295 | **+0,015** |
+| 4 | +0,318 | +0,015 | +0,386 | +0,015 |
+| 5 | +0,341 | +0,015 | +0,318 | +0,030 |
+| 6 | +0,295 | +0,030 | +0,250 | +0,075 |
+| 8 | +0,386 | +0,299 | +0,386 | +0,299 |
+
+Obiettivo 1:3:
+
+| nominale $ | vecchio ver. | **+spread ver.** |
+|---|---|---|
+| 3 | −0,005 | +0,015 |
+| 5 | +0,075 | +0,095 |
+| **6** | +0,151 | **+0,230** |
+| 8 | +0,397 | +0,374 |
+
+**La proposta migliora, ma poco**: da +0,01 a +0,08 R/op, e il guadagno e'
+maggiore sui nominali intermedi (6 $ con 1:3 passa da +0,151 a +0,230). Sui
+nominali piccoli, 3-5 $, la verifica resta praticamente a zero: il regalo
+allo spread era troppo grande perche' spostare lo stop lo compensi.
+
+### Ipotesi A: RESPINTA — lo stop piu' lontano non scatta meno
+
+| nominale | vecchio stop% | +spread stop% | differenza |
+|---|---|---|---|
+| 3 | 64,5 | 63,6 | **−0,9** |
+| 5 | 62,5 | 62,2 | −0,3 |
+| 8 | 57,3 | 57,5 | +0,2 |
+
+Meno di un punto percentuale. Il rumore fra 3,00 e 3,63 non e' dove muoiono le
+operazioni: quando lo stop viene preso, il prezzo ci passa attraverso, non lo
+sfiora. **Il beneficio della proposta non viene dal fatto che lo stop scatta
+meno, viene dal rapporto rischio/rendimento dichiarato onestamente**: il
+bersaglio si misura da un rischio piu' grande, quindi e' piu' lontano e paga
+di piu' quando arriva.
+
+Conferma il confine gia' trovato nell'appendice BZ: **la zona profittevole
+comincia a 6-8 $ di stop**, e la proposta la sposta appena, non la abbatte.
+
+---
+
+## Appendice CB: campagna scalp da zero — quattro famiglie, zero risultati
+
+Richiesta dell'utente: *"dimentica tutto quello che ti ho insegnato e riparti
+da 0 col grafico pulito"*. Quattro ricerche indipendenti, nessuna delle quali
+usa order block, VWAP reclaim o struttura multi-timeframe. Protocollo comune:
+solo 2020-2026, ricerca 2020-2022 contro verifica 2023-2026, spread vero per
+anno, placebo obbligatorio, controllo di assurdita', e una soglia dichiarata
+in partenza — **il vantaggio lordo deve superare 0,10-0,20 R/op**, perche' con
+uno stop da 3 $ il costo e' il 10-21% del rischio.
+
+### 1. Ritorno alla media — il fenomeno esiste, ma e' troppo piccolo
+
+Undici varianti (4/6/8 candele consecutive, escursione anomala su M1 e M3,
+distanza dalla media a 2 e 3 deviazioni, combinazioni) per sei gestioni.
+
+**Il vantaggio e' REALE**: batte il proprio placebo in **110 celle su 132**, e
+il segno e' coerente fra i due periodi (+0,025 R/op in ricerca, +0,017 in
+verifica, contro −0,011 e −0,001 del placebo). E' il primo segnale di tutta la
+campagna che si distingua dal caso.
+
+**Ma vale 0,01-0,13 R/op contro una soglia di 0,10-0,20.** Netto negativo in
+131 celle su 132. La cella con il lordo migliore (escursione anomala M3, stop
+1,5 volte il respiro, 1:1,5) fa **+0,115 R/op lordo e −0,185 netto**, perche'
+quello stop vale 0,7-1,5 $ e lo spread se ne prende il 40-46%.
+
+Non e' un fallimento di misura: e' **un vantaggio vero, cinque-dieci volte
+sotto la soglia dei costi**. E' la cosa piu' vicina a un risultato che sia
+uscita oggi.
+
+### 2. L'orologio — il placebo vince
+
+Quattordici configurazioni: derive dopo l'apertura di Londra, l'apertura di
+New York, il fixing delle 15:00, la chiusura Comex, l'ultima ora; rottura e
+rientro del range di apertura; giorno della settimana e del mese.
+
+Massimo lordo in ricerca **+0,075 R/op**, meta' della soglia. Zero setup su 14
+col netto positivo in entrambi i periodi. Media su 168 celle-periodo: **vero
++0,004 contro placebo +0,050**.
+
+E il meccanismo del fallimento e' misurato, non congetturato: **agli orari veri
+lo stop viene preso nel 36,4% dei casi contro il 31,4% a orari casuali**,
+mentre l'obiettivo arriva quasi uguale (12,1% contro 11,4%). Gli orari fissi
+selezionano i minuti volatili della giornata, e con uno stop da 3-5 $ quella
+volatilita' si paga e basta. **Se un orario "conta", conta perche' il prezzo si
+muove, non perche' sappia dove andare.**
+
+### 3. Candele e volume — indistinguibile da un dado
+
+Pin bar, inglobanti, inside bar, picchi di volume (3x e 5x la mediana),
+divergenze volume/prezzo, su M3, M5 e M15. Novantasei celle.
+
+Massimo lordo su verifica di tutta la griglia: **+0,062 R/op**, dentro
+l'errore standard (0,021). Il placebo batte il segnale vero in **7 famiglie su
+16** — una divisione a meta', cioe' nessuna differenza misurabile fra
+riconoscere una pin bar e tirare un dado.
+
+Nota metodologica che vale la pena registrare: alla prima esecuzione il
+placebo mostrava +0,08/+0,13 R/op e batteva tutte le ipotesi vere. Era un bug,
+non un risultato — lo stop del placebo si appoggiava all'estremo della candela
+**in corso**, che contiene minuti futuri. E' esattamente il meccanismo con cui
+un placebo puo' "vincere" per finta, e va tenuto a mente ogni volta che un
+placebo sembra troppo bravo.
+
+### 4. Livelli oggettivi — le due ipotesi si annullano
+
+Massimi/minimi di ieri e delle sessioni, numeri tondi da 10 e 50 $, aperture,
+estremi delle 24 ore mobili. Per ognuno **rimbalzo e rottura, entrambi**.
+66.624 operazioni vere.
+
+La migliore delle dodici righe e' la **rottura dei numeri tondi da 50 $**:
++0,111 R/op in ricerca e +0,062 in verifica — sotto la soglia, e col netto
+negativo in 6 anni su 7. Le dodici righe stanno tutte in una fascia di 0,16 R
+attorno allo zero.
+
+Ma il fatto strutturale conta piu' dei numeri: **le due ipotesi si annullano a
+vicenda**. Dove la rottura e' positiva il rimbalzo e' negativo, e la somma fa
+zero (numeri tondi da 50: +0,111 contro −0,064; da 10: +0,029 contro −0,005).
+E' la firma di un evento neutro: **il tocco di un livello non e' un segnale,
+e' solo un istante in cui il prezzo si trova li'**. Il placebo pareggia
+(vero +0,004, finto −0,006 su un'escursione di 0,16 R), che dice la stessa
+cosa da un'altra strada.
+
+### Il conto della campagna
+
+Quattro famiglie chiuse su quattro, e una sola cosa portata a casa: **il ritorno
+alla media di brevissimo periodo su XAUUSD e' un fenomeno reale e
+direzionale.** Non e' abbastanza per pagare lo spread di questo strumento, ma
+e' l'unico effetto misurato oggi che si distingua dal caso in modo netto.
+
+Se un giorno si volesse davvero uno scalp sull'oro, la strada non e' trovare
+un segnale migliore: e' **abbassare il costo**. Con uno spread di 0,15 $
+invece di 0,63 la cella migliore del ritorno alla media passerebbe da −0,185 a
+circa +0,07 netto. E' una questione di broker e di strumento, non di analisi —
+la stessa conclusione a cui era arrivata l'appendice BL confrontando l'oro con
+l'indice, dove il costo relativo e' un terzo.
+
+---
+
+## Appendice CC: i livelli oggettivi, rimbalzo contro rottura — 66.624 operazioni, zero vantaggio
+
+Ripartenza dal grafico pulito su richiesta dell'utente: niente order block,
+niente reclaim del VWAP, niente allineamento di struttura. Solo i livelli che
+**non richiedono interpretazione**, quelli che chiunque disegna allo stesso
+modo: massimo/minimo del giorno precedente (PDHL), della sessione precedente
+(SESS), numeri tondi da 10 $ (R10) e da 50 $ (R50), aperture di giornata e
+settimana (OPEN), massimo/minimo delle 24 ore mobili (H24).
+
+Per ognuno le **due ipotesi opposte**, sullo stesso identico evento di tocco:
+RIMBALZO (si entra contro il verso di avvicinamento) e ROTTURA (si entra a
+favore, dopo la prima chiusura oltre il livello, entro 30 minuti).
+Periodo 2020-2026, ricerca 2020-2022 e verifica 2023-2026, spread vero per
+anno (appendice BN), stop 3 e 5 $ con 1:1,5 e 1:2, massimo 5 operazioni al
+giorno, 15 minuti di distanza, ingressi 7-21 UTC.
+Script `trading/scripts/run_scalp_livelli.py`, dettaglio in
+`docs/studies/dati/scalp_livelli.parquet` (131.626 operazioni).
+
+### Il fatto: LORDO R/op, cella stop 3 $ · 1:1,5
+
+| famiglia | ipotesi | n ric | **lordo ric** | n ver | **lordo ver** | netto ver | placebo ric | placebo ver |
+|---|---|---|---|---|---|---|---|---|
+| R50 | rottura | 1135 | **+0,111** | 1869 | **+0,062** | −0,118 | −0,056 | +0,016 |
+| R10 | rottura | 3619 | +0,029 | 4319 | +0,042 | −0,119 | −0,023 | −0,018 |
+| SESS | rimbalzo | 3570 | +0,017 | 4096 | +0,028 | −0,129 | −0,002 | +0,032 |
+| PDHL | rottura | 2010 | +0,029 | 2161 | +0,011 | −0,143 | +0,022 | −0,042 |
+| SESS | rottura | 3421 | −0,026 | 3914 | +0,011 | −0,146 | −0,008 | −0,038 |
+| OPEN | rimbalzo | 2554 | +0,034 | 2777 | +0,007 | −0,148 | +0,022 | −0,018 |
+| H24 | rottura | 2274 | −0,045 | 2651 | +0,003 | −0,154 | +0,003 | −0,048 |
+| OPEN | rottura | 2419 | −0,021 | 2609 | −0,015 | −0,169 | −0,033 | −0,014 |
+| R50 | rimbalzo | 1250 | −0,064 | 2027 | −0,013 | −0,192 | +0,039 | +0,018 |
+| H24 | rimbalzo | 2512 | +0,025 | 2842 | −0,020 | −0,177 | −0,015 | −0,004 |
+| PDHL | rimbalzo | 2166 | −0,036 | 2335 | −0,029 | −0,184 | +0,054 | −0,017 |
+| R10 | rimbalzo | 3710 | −0,005 | 4384 | −0,045 | −0,205 | −0,020 | +0,015 |
+
+**Nessuna riga arriva a +0,15 R/op lordo in entrambi i periodi**, cioe' nessuna
+paga lo spread. La migliore, R50 rottura, si ferma a +0,111 / +0,062 quando
+servirebbe +0,15-0,21. Le dodici righe stanno in una fascia di 0,16 R attorno
+allo zero: la media dei lordi veri e' **+0,004**, quella dei placebo **−0,006**.
+Il placebo non vince come nelle appendici BP/BU/BV/BY, ma **pareggia**, che dice
+la stessa cosa: i livelli oggettivi non portano informazione.
+
+### Le due ipotesi si annullano a vicenda
+
+Dove la rottura e' positiva il rimbalzo e' negativo, e viceversa, con somme
+vicine a zero (R50: +0,111 e −0,064; R10: +0,029 e −0,005). E' la firma di un
+evento **neutro**: il tocco non e' un segnale, e' solo un istante in cui il
+prezzo si trova li'. L'unico verso con un accenno di direzione e' la **rottura
+dei numeri tondi**, coerente in 6 anni su 7 al lordo — e negativo al netto in
+6 anni su 7.
+
+### Le celle di gestione, e il controllo di assurdita'
+
+| cella | costo %R | % stop | % obiettivo | % tempo | lordo | netto |
+|---|---|---|---|---|---|---|
+| stop 3 · 1:1,5 | 14,2% | 56,5% | 37,1% | 6,4% | +0,003 | −0,139 |
+| stop 3 · 1:2 | 14,2% | 61,5% | 29,0% | 9,5% | +0,002 | −0,140 |
+| stop 5 · 1:1,5 | 8,5% | 49,1% | 29,4% | 21,5% | −0,012 | −0,098 |
+| stop 5 · 1:2 | 8,5% | 51,9% | 20,3% | 27,8% | −0,019 | −0,105 |
+
+Controllo di assurdita' superato in tutte e quattro le celle: lo stop, che e'
+piu' vicino, viene colpito piu' spesso dell'obiettivo (56,5% contro 37,1%).
+Allargare lo stop dimezza il costo relativo ma peggiora il lordo: non c'e' una
+larghezza che salvi l'ingresso, esattamente come in appendice BS.
+
+### Primo tocco contro ritocchi
+
+Contando i tocchi **dello stesso livello** dentro il giorno di mercato, il
+primo tocco e' migliore solo per R50 rottura (+0,212 contro +0,053 su 519
+casi) e SESS rimbalzo (+0,059 contro +0,002). Ovunque altrove la differenza e'
+nel rumore e cambia segno fra famiglie vicine. Nessuna soglia utilizzabile.
+
+### Conclusione
+
+**La famiglia dei livelli oggettivi e' chiusa.** Non serve raffinare la
+definizione del tocco o aggiungere filtri: il vantaggio lordo massimo misurato
+su 66.624 operazioni vere (33.500 tocchi, due ipotesi ciascuno) e' un terzo di quello che serve per pagare lo spread del
+2025. E il placebo, a parita' di numero e di distanza dal prezzo, rende quanto
+i livelli veri.
+
+---

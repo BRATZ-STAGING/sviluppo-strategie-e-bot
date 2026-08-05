@@ -19,7 +19,10 @@ l'altro" non si attivano quasi mai (1.897 operazioni su ~1.700 giornate),
 quindi filtrare a schermo per lato dà gli stessi identici numeri che
 rigenerare la strategia con quel solo lato.
 
-Uso: python3 export_lab.py <out.json> full:H6 2025-10 2026-01
+Uso: python3 export_lab.py <out.json> full:H1 2025-10 2026-01
+
+La base «full» va esportata in H1: la pagina aggrega da sola a 2h/3h/6h/12h/1g
+col selettore del timeframe del grafico.
 """
 import json
 import os
@@ -44,10 +47,99 @@ SPREAD, BUF = T.spread, T.buffer
 MIN_RISK, MAX_RISK, MIN_IMPULSE = T.rischio_min, T.rischio_max, T.impulso_min
 CALIB = T.calibrazione
 RR_GRID = [2.0, 3.0, 5.0, 8.0, 10.0]
-BE_GRID = [None, 1.5, 2.0, 3.0, 4.0]   # stop portato a pareggio a +xR
+BE_GRID = [None, 2.0, 3.0]     # pareggio: +1,5R rompe un anno, +4R e' come +3R
+STOP_MODES = [None, 3.0, 5.0, 10.0]    # None = strutturale; poi punti fissi
+SPREADS = [0.30, 0.63]       # storico assunto / reale misurato sui tick
 MAX_GIORNO, COOLDOWN, SMA = T.max_operazioni_giorno, T.attesa_minuti, T.media_macro
 CONFERME = ["M33", "H12", "M66", "M12"]   # M33 e H12 sono le due che
                                      # discriminano davvero (verificato fuori campione)
+
+
+def zone_ob(df, k, freq, indietro=10, validita=30):
+    """Order block su un timeframe: zona piena e zona raffinata.
+
+    Piena (rialzista): dal minimo all'apertura dell'ultima candela contraria
+    prima della rottura di uno swing. Raffinata (definizione dell'utente):
+    intersezione fra la base di quella candela e la base della successiva
+    [max dei minimi, min dei corpi bassi]; se vuota non esiste. Speculare per
+    la ribassista. Causali: attive dalla chiusura della candela che rompe.
+    """
+    freq = pd.Timedelta(freq)
+    hi, lo = df.high.values, df.low.values
+    op, cl = df.open.values, df.close.values
+    idx = df.index
+    n = len(df)
+    ultimo_sh = ultimo_sl = None
+    zone = []
+    for i in range(n):
+        j = i - k
+        if j >= k:
+            if (hi[j-k:j] < hi[j]).all() and (hi[j+1:j+k+1] < hi[j]).all():
+                ultimo_sh = hi[j]
+            if (lo[j-k:j] > lo[j]).all() and (lo[j+1:j+k+1] > lo[j]).all():
+                ultimo_sl = lo[j]
+        for lato, rotto in ((1, ultimo_sh is not None and cl[i] > ultimo_sh),
+                            (-1, ultimo_sl is not None and cl[i] < ultimo_sl)):
+            if not rotto:
+                continue
+            trovata = None
+            for b in range(i, max(-1, i - indietro), -1):
+                contraria = (cl[b] < op[b]) if lato == 1 else (cl[b] > op[b])
+                if contraria:
+                    trovata = b
+                    break
+            if trovata is not None:
+                if lato == 1:
+                    basso, alto = float(lo[trovata]), float(op[trovata])
+                else:
+                    basso, alto = float(op[trovata]), float(hi[trovata])
+                rb = ra = float("nan")
+                d = trovata + 1
+                if d <= i:
+                    if lato == 1:
+                        rb = max(lo[trovata], lo[d])
+                        ra = min(min(op[trovata], cl[trovata]),
+                                 min(op[d], cl[d]))
+                    else:
+                        rb = max(max(op[trovata], cl[trovata]),
+                                 max(op[d], cl[d]))
+                        ra = min(hi[trovata], hi[d])
+                    if not rb < ra:
+                        rb = ra = float("nan")
+                zone.append({"attiva_da": idx[i] + freq, "lato": lato,
+                             "basso": basso, "alto": alto,
+                             "rbasso": float(rb), "ralto": float(ra),
+                             "scade_il": idx[min(i + validita, n - 1)] + freq,
+                             "barra_rottura": i})
+            if lato == 1:
+                ultimo_sh = None
+            else:
+                ultimo_sl = None
+    z = pd.DataFrame(zone)
+    if z.empty:
+        return z
+    inval = []
+    for _, r in z.iterrows():
+        i0 = int(r.barra_rottura) + 1
+        if r.lato == 1:
+            oltre = np.where(cl[i0:] < r.basso)[0]
+        else:
+            oltre = np.where(cl[i0:] > r.alto)[0]
+        inval.append(idx[i0 + oltre[0]] + freq if len(oltre) else pd.NaT)
+    z["invalidata_il"] = inval
+    return z
+
+
+def in_zona(z, quando, prezzo, lato, margine, raffinata=False):
+    """C'e' una zona attiva e concorde che contiene il prezzo?"""
+    if z.empty:
+        return False
+    lo_c = z.rbasso if raffinata else z.basso
+    hi_c = z.ralto if raffinata else z.alto
+    m = ((z.lato == lato) & (z.attiva_da <= quando) & (z.scade_il > quando)
+         & (z.invalidata_il.isna() | (z.invalidata_il > quando))
+         & (lo_c - margine <= prezzo) & (prezzo <= hi_c + margine))
+    return bool(m.fillna(False).any())
 
 
 def prepara(m1):
@@ -72,7 +164,7 @@ def macro_trend(m1, n=SMA):
     return sopra.to_dict()
 
 
-def genera(m1, m6, alto_vol, k, macro):
+def genera(m1, m6, alto_vol, k, macro, zone):
     """Tutte le operazioni (long e short), con gli esiti per ogni obiettivo."""
     idx = m6.index
     hours, days = idx.hour, idx.normalize()
@@ -141,21 +233,31 @@ def genera(m1, m6, alto_vol, k, macro):
         costo = SPREAD / risk
         mfe = float(fav.max())
 
-        # per ogni soglia di pareggio e ogni obiettivo: quando esce, con che
-        # risultato e per quale motivo. Il pareggio e' risolto al minuto.
+        # per ogni tipo di stop, soglia di pareggio e obiettivo: quando esce,
+        # con che risultato LORDO e per quale motivo. Risolto al minuto.
+        # Lo spread si sottrae a schermo (non cambia il percorso, solo l'esito
+        # in R), cosi' la pagina puo' mostrare sia 0,30 che 0,63.
         esiti = []
-        for be in BE_GRID:
-            riga = []
-            for rr in RR_GRID:
-                r, motivo, j = esito_indice(fav, sfav, rr, be=be, costo=costo)
-                if r is None:
-                    r = chiusura_fine_giornata(r_eod, be, False, mfe, costo)
-                riga.append([m1_idx[a + j] if j is not None else m1_idx[b - 1],
-                             round(float(r + costo), 3), motivo])
-            esiti.append(riga)
+        for stop_fisso in STOP_MODES:
+            sc = 1.0 if stop_fisso is None else risk / stop_fisso
+            f_, s_, eod_, mfe_ = fav * sc, sfav * sc, r_eod * sc, mfe * sc
+            per_modo = []
+            for be in BE_GRID:
+                riga = []
+                for rr in RR_GRID:
+                    r, motivo, j = esito_indice(f_, s_, rr, be=be, costo=0.0)
+                    if r is None:
+                        r = chiusura_fine_giornata(eod_, be, False, mfe_, 0.0)
+                    riga.append([m1_idx[a + j] if j is not None else m1_idx[b - 1],
+                                 round(float(r), 3), motivo])
+                per_modo.append(riga)
+            esiti.append(per_modo)
 
         segno = 1 if lato == "long" else -1
         out.append({
+            "ob": int(in_zona(zone, t_sig, entry, segno, 0.5 * risk)),
+            "obr": int(in_zona(zone, t_sig, entry, segno, 0.5 * risk,
+                               raffinata=True)),
             "q": sum(1 for tf in CONFERME if conf[tf][i] == segno),
             "cf": {tf: int(conf[tf][i] == segno) for tf in CONFERME},
             "t_in": t_sig, "anno": int(idx[i].year), "lato": lato,
@@ -171,14 +273,13 @@ def pack(series, trades, vol=None, label=""):
     base = float(np.floor(series.low.min()))
     cent = lambda s: [int(round((float(v) - base) * 100)) for v in s]
     idx = series.index
-    barra = lambda t: (-1 if t is None
-                       else int(np.clip(idx.searchsorted(t, side="right") - 1,
-                                        0, len(idx) - 1)))
+    minuto = lambda t: int((t - idx[0]).total_seconds() // 60)
     per = {
         "id": label, "t0": int(idx[0].timestamp() * 1000), "base": base,
         "t": [int((x - idx[0]).total_seconds() // 60) for x in idx],
         "o": cent(series.open), "h": cent(series.high),
         "l": cent(series.low), "c": cent(series.close),
+        "tv": [int(x) for x in series.volume],
         "v": ([None if np.isnan(x) else int(round((x - base) * 100))
                for x in series.vwap] if "vwap" in series else [None] * len(idx)),
         "s": ([int(a) * 3 + int(b) for a, b in zip(series.h6, series.h2)]
@@ -186,18 +287,21 @@ def pack(series, trades, vol=None, label=""):
         "trades": [],
     }
     for tr in trades:
-        i = barra(tr["t_in"])
-        if i < 0 or not (idx[0] <= tr["t_in"] <= idx[-1] + pd.Timedelta(days=1)):
+        if not (idx[0] <= tr["t_in"] <= idx[-1] + pd.Timedelta(days=1)):
             continue
-        # gli esiti sono già risolti al minuto (stop, obiettivo, pareggio,
-        # fine giornata): qui si mappano solo sulle barre del grafico
-        esiti = [[[barra(t), r, mo] for t, r, mo in riga] for riga in tr["esiti"]]
+        # gli esiti sono risolti al minuto (stop, obiettivo, pareggio, fine
+        # giornata): si esporta il MINUTO, la pagina lo mappa sulla candela
+        # del timeframe scelto a schermo
+        esiti = [[[[minuto(t), r, mo] for t, r, mo in riga] for riga in modo]
+                 for modo in tr["esiti"]]
         per["trades"].append({
-            "i": i, "y": tr["anno"], "L": 1 if tr["lato"] == "long" else 0,
+            "m": minuto(tr["t_in"]), "y": tr["anno"],
+            "L": 1 if tr["lato"] == "long" else 0,
             "M": 1 if tr["macro"] else 0, "q": tr["q"],
             "f": [tr["cf"]["M33"], tr["cf"]["H12"], tr["cf"]["M66"], tr["cf"]["M12"]],
             "e": tr["entry"], "s": tr["sl"], "k": tr["risk"], "c": tr["costo"],
-            "x": esiti,   # [soglia pareggio][RR]: [barra uscita, R lordo, motivo]
+            "b": [tr["ob"], tr["obr"]],
+            "x": esiti,   # [stop][pareggio][RR]: [minuto uscita, R lordo, motivo]
         })
     if vol is not None:
         per["vol"] = [round(float(vol.get(x.normalize(), np.nan)), 3)
@@ -208,7 +312,7 @@ def pack(series, trades, vol=None, label=""):
 
 def main():
     out_path = sys.argv[1]
-    specs = sys.argv[2:] or ["full:H6"]
+    specs = sys.argv[2:] or ["full:H1"]
     m1 = load_m1(os.path.join(ROOT, "data", "XAUUSD_M1"))
     m6, atr = prepara(m1)
     mask = (atr.index.year >= CALIB[0]) & (atr.index.year <= CALIB[1])
@@ -219,7 +323,10 @@ def main():
         atr, sorted({pd.Period(x.strftime("%Y-%m"), "M") for x in m6.index}),
         T.fattore_alta_volatilita)
     macro = macro_trend(m1)
-    trades = genera(m1, m6, alto, k, macro)
+    zone = zone_ob(resample_tf(m1, "M33"), 3, TIMEFRAMES["M33"])
+    print(f"order block M33: {len(zone)} zone, "
+          f"{int(zone.rbasso.notna().sum())} con zona raffinata", flush=True)
+    trades = genera(m1, m6, alto, k, macro, zone)
     nl = sum(1 for t in trades if t["lato"] == "long")
     print(f"operazioni generate: {len(trades)} ({nl} long, {len(trades)-nl} short)",
           flush=True)
@@ -244,8 +351,10 @@ def main():
               flush=True)
 
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump({"periods": periods, "rr": RR_GRID,
-                   "be": BE_GRID}, f, separators=(",", ":"))
+        json.dump({"periods": periods, "rr": RR_GRID, "be": BE_GRID,
+                   "stops": ["strutturale", "3 pt", "5 pt", "10 pt"],
+                   "stop_punti": [None, 3, 5, 10],
+                   "spread": SPREADS}, f, separators=(",", ":"))
     print(f"\n{out_path}: {os.path.getsize(out_path)/1e6:.2f} MB")
 
 

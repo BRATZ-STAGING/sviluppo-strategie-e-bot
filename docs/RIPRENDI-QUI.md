@@ -1,4 +1,15 @@
-# Riprendi qui — stato al 30/07/2026
+# Riprendi qui — stato al 04/08/2026
+
+> **La ricerca e' in pausa. Si passa alla produzione.**
+> Per portare le strategie su MT5 e avviarle sul VPS: **`docs/AVVIO-MT5-VPS.md`**
+> — i tre profili con le taglie, le sette trappole dell'implementazione, il
+> confronto obbligatorio contro il motore Python, e l'ordine di avvio.
+> Per avviare i bot sul VPS leggere **`docs/CONSEGNA-BOT-2026-08.md`**: contiene
+> i numeri veri (spread misurato), quale strategia avviare per prima e perche',
+> le tre decisioni da prendere prima di partire, e le dieci strade gia' chiuse
+> che non vanno ripercorse. Questo file resta come storia di come ci si e'
+> arrivati.
+
 
 Passaggio di consegne da una sessione precedente. Chi apre questo repository
 per la prima volta legge questo file, poi `CLAUDE.md`.
