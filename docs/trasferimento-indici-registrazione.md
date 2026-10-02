@@ -103,6 +103,47 @@ non la strategia"). Si adotta lo stesso filtro di BL, invariato:
 - un anno con meno di 100 giornate sane si riporta a parte e **non conta**
   nel criterio degli anni positivi; il totale in R lo include.
 
+## Emendamento 2 — fonte HistData, argento, VWAP senza volume (02/10/2026, PRIMA dei risultati)
+
+Scritto quando il datafeed Dukascopy rispondeva a un file ogni 1-2 minuti
+(429/503 anche da un altro indirizzo). Unico dato guardato finora: lo ZIP
+SPXUSD 2015 di HistData, solo per verificare formato e fuso (distribuzione dei
+minuti per ora UTC). Nessun segnale e nessun risultato calcolato.
+
+**Fonte.** histdata.com, M1 ASCII, BID, orari EST fisso (UTC-5 tutto l'anno)
+convertiti in UTC; `trading/scripts/scarica_histdata.py`, parquet in
+`data/histdata/<SIMBOLO>/`. Periodo **2010 -> 2026**. Simboli: SPXUSD (S&P
+500), NSXUSD (Nasdaq 100), GRXEUR (DAX) e **XAGUSD (argento)**, aggiunto ora
+come quarto mercato: e' il piu' vicino all'oro e non e' mai stato usato.
+Se i dati Dukascopy arrivano completi, si riporta il confronto fra le due
+fonti, ma il verdetto e' quello di HistData (registrato qui per primo).
+
+**VWAP.** HistData non ha volume (sempre 0): ogni minuto presente pesa **1**
+(media del prezzo tipico nel tempo). Tutto il resto della regola e' invariato.
+**Controllo obbligatorio** prima di guardare gli indici: XAUUSD 2020-2026 con
+peso 1 al posto del volume Dukascopy, gestione B. Il test su HistData e'
+**valido** solo se quel controllo resta positivo in almeno 6 anni su 7 e con
+R/op entro +-35% di +0,52. Se non lo e', i risultati degli indici si
+riportano ma il trasferimento si dichiara **non misurabile con questa fonte**.
+
+**Spread** (niente ASK; valori prudenti fissati ora, in unita' del mercato,
+poi riscalati per `f` come da protocollo):
+
+| mercato | spread round trip | motivo |
+|---|---|---|
+| S&P 500 | 0,55 punti | >= ogni mediana annua Dukascopy misurata in BL (0,43-0,54) |
+| Nasdaq 100 | 1,50 punti | FP oggi 1,00; margine per gli anni passati |
+| DAX | 1,50 punti | FP oggi 0,80; margine per gli anni passati |
+| argento | 0,025 $ | ordine di grandezza dei conti ECN; sensibilita' a 0,015 e 0,035 |
+
+**Qualita' del dato** (sostituisce l'Emendamento 1 per questa fonte, che non
+ha ASK): giornata sana se ha dati in >= 95% dei minuti 7-21 UTC. Resto
+invariato (nessuna apertura nei giorni non sani, anni con < 100 giorni sani
+fuori dal criterio).
+
+**Previsione aggiuntiva per l'argento**: non passa, perche' a parita' di
+volatilita' il suo spread pesa circa il doppio di quello dell'oro.
+
 ## Cosa NON si fa
 
 - Nessun parametro tarato sugli indici, nessuna griglia, nessuna variante
