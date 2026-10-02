@@ -233,6 +233,12 @@ non a un'altra variante di questa.
   frequenza chiesta (1-5/settimana) si ottiene, il vantaggio no. L'OB e' un
   filtro sul segnale validato, non un ingresso. Appendice W.
 
+- **Trend following multi-giorno sull'oro** (TSMOM 12 mesi, Donchian 55/20,
+  medie 50/200, parametri canonici, 2009-2026, swap FP): nessuna passa. F1 e F2
+  positive ma non battono il placebo a direzione casuale (p 0,07 e 0,10), F2
+  vive del solo 2025. E' beta dell'oro, non vantaggio. Appendice CD,
+  verificata da due implementazioni indipendenti.
+
 ## Order block: il risultato positivo NON regge sui 18 anni (appendice BA)
 
 Definiti come l'utente li usa: zona dal minimo dell'ombra all'apertura per le
