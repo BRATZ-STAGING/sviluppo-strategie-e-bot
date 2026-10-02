@@ -98,54 +98,104 @@ def misure(n, date, anni):
             "DD% a quel rischio": dd * 6.0 / pa.mean() if pa.mean() > 0 else np.nan}
 
 
+# (nome, rr, pareggio, trail, oltre_giorno, soglia_weekend)
+BOT = [("in uso  1:10, pareggio +3R, EOD", 10.0, 3.0, None, False, None),
+       ("A       1:8, pareggio +3R, chiude venerdi'", 8.0, 3.0, None, True, -99.0),
+       ("B       1:8, trail MFE-2 da +3R, weekend se >+1R", 8.0, None, (3.0, 2.0), True, 1.0),
+       ("1:2     secco, niente pareggio, EOD", 2.0, None, None, False, None)]
+
+# Finestra breve provata prima dei GIORNI_MAX interi: se l'operazione si chiude
+# dentro, l'esito e' lo stesso (``cammina`` dipende solo dal percorso fino
+# all'uscita); se arriva in fondo ("scadenza") si rifa' sulla finestra intera.
+# Serve solo a non costruire trenta giorni di minuti per ogni operazione.
+FINESTRA_BREVE = 4 * 1440
+
+
+def filtra(ops, t=T):
+    """Il campione ufficiale: conferme allineate e ritracciamento contrario."""
+    return [o for o in ops
+            if all(o[f"c_{tf}"] for tf in t.conferme)
+            and all(not o[f"c_{tf}"] for tf in t.ritracciamento)]
+
+
+class Percorsi:
+    """Le serie M1 pronte per ``cammina``, preparate una volta sola."""
+
+    def __init__(self, m1, ora_chiusura=T.ora_chiusura):
+        self.idx = pd.DatetimeIndex(m1.index).as_unit("ns").asi8
+        self.o, self.h = m1.open.values, m1.high.values
+        self.l, self.c = m1.low.values, m1.close.values
+        t_abs = pd.DatetimeIndex(m1.index)
+        self.eod = (t_abs.hour == ora_chiusura) & (t_abs.minute == 0)
+        # buco[i]: fra la candela i e la i+1 il mercato e' rimasto chiuso
+        self.buco = np.append(np.diff(self.idx) / 60_000_000_000 > CHIUSURA_MIN, False)
+
+    def esito(self, t_in, segno, e, k, gestione):
+        """R lordo di un'operazione (None se non c'e' percorso), e il motivo."""
+        _, rr, pareggio, trail, oltre, soglia = gestione
+        a = int(np.searchsorted(self.idx, t_in.value))
+        b = int(np.searchsorted(self.idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        if b - a < 2:
+            return None, None
+        for fine in (min(b, a + FINESTRA_BREVE), b):
+            o_, h_, l_, c_ = (self.o[a:fine], self.h[a:fine],
+                              self.l[a:fine], self.c[a:fine])
+            if segno == 1:
+                apri, fav, sfav, chiu = ((o_ - e) / k, (h_ - e) / k,
+                                         (e - l_) / k, (c_ - e) / k)
+            else:
+                apri, fav, sfav, chiu = ((e - o_) / k, (e - l_) / k,
+                                         (h_ - e) / k, (e - c_) / k)
+            fine_gio = set(np.flatnonzero(self.eod[a:fine]).tolist())
+            # l'ultima candela della finestra non ha successiva al suo interno
+            buchi = set(np.flatnonzero(self.buco[a:fine - 1]).tolist())
+            x, perche = cammina(apri.tolist(), fav.tolist(), sfav.tolist(),
+                                chiu.tolist(), buchi, fine_gio,
+                                rr, pareggio, trail, oltre, soglia)
+            if perche != "scadenza" or fine == b:
+                return x, perche
+        raise AssertionError("irraggiungibile")
+
+
+def valuta(ops, percorsi, gestione, costo, dettaglio=None):
+    """Applica una gestione alle operazioni: R netti, date, anni.
+
+    ``costo(anno)`` e' lo spread di andata e ritorno nell'unita' dei prezzi.
+    Se ``dettaglio`` e' una lista, ci si aggiunge una voce per operazione
+    valutata (istante, anno, lato, ingresso, rischio, motivo dell'uscita).
+    """
+    R, date, anni = [], [], []
+    for o in ops:
+        t_in = pd.Timestamp(o["time"]).tz_convert("UTC")
+        segno = 1 if o["lato"] == "long" else -1
+        k = float(o["rischio"])
+        x, perche = percorsi.esito(t_in, segno, o["entry"], k, gestione)
+        if x is None:
+            continue
+        if dettaglio is not None:
+            dettaglio.append({"time": t_in, "anno": o["anno"], "lato": o["lato"],
+                              "entry": o["entry"], "rischio": k, "uscita": perche})
+        R.append(x - costo(o["anno"]) / k)
+        date.append(t_in)
+        anni.append(o["anno"])
+    return np.array(R), date, np.array(anni)
+
+
 def main():
     m1 = load_m1(os.path.join(ROOT, "data", "XAUUSD_M1"))
-    ops = [o for o in genera(m1, T, mediana_atr=MEDIANA_ATR)
-           if all(o[f"c_{tf}"] for tf in T.conferme)
-           and all(not o[f"c_{tf}"] for tf in T.ritracciamento)]
+    ops = filtra(genera(m1, T, mediana_atr=MEDIANA_ATR))
     print(f"operazioni: {len(ops)}", flush=True)
-    idx = pd.DatetimeIndex(m1.index).as_unit("ns").asi8
-    ap_, hi, lo, cl = m1.open.values, m1.high.values, m1.low.values, m1.close.values
-
-    # (nome, rr, pareggio, trail, oltre_giorno, soglia_weekend)
-    BOT = [("in uso  1:10, pareggio +3R, EOD", 10.0, 3.0, None, False, None),
-           ("A       1:8, pareggio +3R, chiude venerdi'", 8.0, 3.0, None, True, -99.0),
-           ("B       1:8, trail MFE-2 da +3R, weekend se >+1R", 8.0, None, (3.0, 2.0), True, 1.0),
-           ("1:2     secco, niente pareggio, EOD", 2.0, None, None, False, None)]
+    percorsi = Percorsi(m1)
 
     pd.set_option("display.width", 250)
     for costo_vero in (False, True):
         eti = "spread VERO per anno" if costo_vero else "spread 0,30 delle schede"
+        costo = ((lambda anno: SPREAD.get(anno, 0.40)) if costo_vero
+                 else (lambda anno: T.spread))
         f = []
-        for nome, rr, pareggio, trail, oltre, soglia in BOT:
-            R, date, anni = [], [], []
-            for o in ops:
-                t_in = pd.Timestamp(o["time"]).tz_convert("UTC")
-                segno = 1 if o["lato"] == "long" else -1
-                e, k = o["entry"], float(o["rischio"])
-                a = int(np.searchsorted(idx, t_in.value))
-                b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
-                if b - a < 2:
-                    continue
-                o_, h_, l_, c_ = ap_[a:b], hi[a:b], lo[a:b], cl[a:b]
-                if segno == 1:
-                    apri, fav, sfav, chiu = ((o_ - e) / k, (h_ - e) / k,
-                                             (e - l_) / k, (c_ - e) / k)
-                else:
-                    apri, fav, sfav, chiu = ((e - o_) / k, (e - l_) / k,
-                                             (h_ - e) / k, (e - c_) / k)
-                t_abs = pd.DatetimeIndex(idx[a:b].astype("datetime64[ns]"), tz="UTC")
-                fine_gio = set(np.flatnonzero(
-                    (t_abs.hour == T.ora_chiusura) & (t_abs.minute == 0)).tolist())
-                d = np.diff(idx[a:b]) / 60_000_000_000
-                buchi = set(np.flatnonzero(d > CHIUSURA_MIN).tolist())
-                x, _ = cammina(apri, fav, sfav, chiu, buchi, fine_gio,
-                               rr, pareggio, trail, oltre, soglia)
-                s = SPREAD.get(o["anno"], 0.40) if costo_vero else T.spread
-                R.append(x - s / k)
-                date.append(t_in)
-                anni.append(o["anno"])
-            f.append({"bot": nome, **misure(np.array(R), date, np.array(anni))})
+        for g in BOT:
+            R, date, anni = valuta(ops, percorsi, g, costo)
+            f.append({"bot": g[0], **misure(R, date, anni)})
         print(f"\n=== {eti}")
         print(pd.DataFrame(f).set_index("bot").round(2).to_string())
 
