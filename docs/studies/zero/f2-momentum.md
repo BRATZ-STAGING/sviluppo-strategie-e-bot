@@ -1,5 +1,22 @@
 # Famiglia 2 — Momentum contro ritorno alla media (scoperta, da zero)
 
+> **VERSIONE RIGENERATA (02/10/2026, sera).** La prima versione usava file
+> SPXUSD/NSXUSD/XAGUSD/GRXEUR sfasati di +1 ora quando New York e' in ora
+> legale (HistData e' in ora di New York con ora legale). I file sono stati
+> rigenerati alle 23:16 con orari corretti; XAUUSD era gia' giusto e i suoi
+> numeri non cambiano. Stesso piano, stesse varianti, nessuna aggiunta.
+> Cosa cambia rispetto alla prima versione:
+> - le celle con l'ora estiva corretta passano da 126 a 131 consistenti, quindi
+>   1572 regole invece di 1512; totale varianti 3372 invece di 3312;
+> - celle che cambiano classe di segno/forza: DAX 28, argento 9, Nasdaq 6,
+>   S&P 1, oro 0 (il DAX ora ha anche qualche quotazione prima delle 7 UTC);
+> - **il quasi-candidato S&P (contro il movimento delle 24 ore, decisione
+>   00-06 UTC) si indebolisce**: t da 2,64 a 2,06, anni da 7/7 a 6/7, netto da
+>   +2,74 a +2,00 punti (3,6 costi), placebo p da 0,003 a 0,006. Nella mappa
+>   statistica l'effetto resta (t -3,8 in Asia, -3,6 a Londra), ma la regola
+>   non e' piu' vicina alla promozione;
+> - le conclusioni qualitative restano le stesse; candidati: ancora **zero**.
+
 ## 0. Piano registrato PRIMA del calcolo (02/10/2026)
 
 Dati: solo `D:\ricerca_zero\scoperta\<SIMBOLO>_M5.parquet` (prezzi) e
@@ -44,19 +61,19 @@ Promozione: netto > 0, t >= 3, anni >= 75%, p < 0,01, n >= 200 (100 se L o H
 
 Script `trading/scripts/zero_f2_momentum.py` (`AB` calcola, `R` scrive le
 tabelle). Dettaglio: `D:/ricerca_zero/risultati/f2_fasea.parquet` (360 celle),
-`f2_faseb.parquet` (regole). Tempo totale ~30 s.
+`f2_faseb.parquet` (regole); la prima versione e' conservata come `*_v1.parquet`.
 
 | voce | numero |
 |---|---|
 | test Fase A (360 celle x 5) | 1800 |
-| celle consistenti (t assoluto >= 2 su pendenza o coda) | 126 |
-| varianti di regola Fase B (126 x 12) | 1512 (180 senza operazioni, 679 con n < 30) |
-| **totale varianti provate** | **3312** |
-| regole con netto > 0 | 477 |
-| regole con t >= 3 | 3 (tutte con n = 2-5: rumore) |
+| celle consistenti (t assoluto >= 2 su pendenza o coda) | 131 |
+| varianti di regola Fase B (131 x 12) | 1572 (200 senza operazioni, 698 con n < 30) |
+| **totale varianti provate** | **3372** |
+| regole con netto > 0 | 466 |
+| regole con t >= 3 | 7 (tutte con n = 2-6: rumore) |
 | **candidati promossi** | **0** |
 
-GRXEUR non ha quotazioni nella sessione Asia (celle "x").
+Celle "x": nessuna quotazione in quella sessione (DAX in Asia quasi assente).
 
 ## 2. Mappa segno/forza (Fase A, t della pendenza Newey-West)
 
@@ -65,91 +82,88 @@ Ogni cella: Asia Londra NY. `++`/`--` |t| >= 3, `+`/`-` 2 <= |t| < 3,
 
 | L -> H | XAUUSD | SPXUSD | NSXUSD | XAGUSD | GRXEUR |
 |---|---|---|---|---|---|
-| 5m -> 5m | . . . | . . - | . . . | -- -- -- | x . -- |
-| 5m -> 15m | . -- - | . . - | . . . | - -- . | x . -- |
-| 15m -> 5m | . -- - | . . -- | . . . | -- -- . | x . -- |
-| 15m -> 15m | . -- . | . . . | . . . | - -- . | x . . |
-| 15m -> 1h | . . . | . . . | . . . | - . . | x . . |
-| 1h -> 5m | . -- . | . . . | . . . | -- -- . | x . . |
-| 1h -> 15m | . - . | . . . | . . . | -- - . | x . . |
-| 1h -> 1h | . . . | + . . | + . + | - . . | x . . |
-| 1h -> 4h | . . . | . . . | . - . | - - . | x . . |
-| 4h -> 5m | . . . | . . . | . . . | -- - . | x . . |
-| 4h -> 15m | . . . | . . . | . . . | -- . . | x . . |
-| 4h -> 1h | . . . | . - . | . - . | - . . | x x . |
-| 4h -> 4h | . . . | . . . | . - . | . . . | x x . |
-| 1g -> 5m | + . + | . - . | . - . | . . . | x . . |
-| 1g -> 15m | + . + | . -- . | . - . | . . . | x . . |
-| 1g -> 1h | + . + | . - . | . - . | + . . | x . . |
-| 1g -> 4h | + + . | - -- . | . -- - | + . . | x . . |
+| 5m -> 5m | . . . | . . - | . . . | - -- -- | - . -- |
+| 5m -> 15m | . -- - | . . - | . . . | - -- . | - . -- |
+| 15m -> 5m | . -- - | . . -- | . . . | - -- . | - . -- |
+| 15m -> 15m | . -- . | . . . | . . . | - -- . | . . . |
+| 15m -> 1h | . . . | . . . | . . . | - - . | x . . |
+| 1h -> 5m | . -- . | . . . | . . . | - -- . | x . . |
+| 1h -> 15m | . - . | . . . | . . . | - -- . | x . . |
+| 1h -> 1h | . . . | + . . | + . + | -- . . | x . . |
+| 1h -> 4h | . . . | . . . | . . . | - - . | x . . |
+| 4h -> 5m | . . . | . . . | . . . | -- -- . | x . . |
+| 4h -> 15m | . . . | . - . | . - . | - - . | x . . |
+| 4h -> 1h | . . . | . - . | . - . | . . . | x - + |
+| 4h -> 4h | . . . | . . . | . - . | . . . | x . . |
+| 1g -> 5m | + . + | . - . | . . . | + . + | . . . |
+| 1g -> 15m | + . + | . - . | . . . | + . + | . . . |
+| 1g -> 1h | + . + | . - . | . . . | + . . | x . . |
+| 1g -> 4h | + + . | - -- . | . -- . | . . . | x . . |
 | 1g -> 1g | . . . | -- -- . | -- -- . | . . . | x . . |
-| 5g -> 5m | . + ++ | . - . | . - . | . . . | x . . |
-| 5g -> 15m | . + ++ | . - . | . - . | . . . | x . + |
+| 5g -> 5m | . + ++ | . - . | . - . | . . . | . . + |
+| 5g -> 15m | . + ++ | . - . | . - . | . . . | . . + |
 | 5g -> 1h | . + + | . - . | . - . | . . . | x . + |
-| 5g -> 4h | . ++ + | -- - . | . -- . | . ++ . | x . + |
-| 5g -> 1g | + . + | -- -- - | - - - | . . . | x . . |
+| 5g -> 4h | . ++ + | -- - . | . - . | . ++ . | x . ++ |
+| 5g -> 1g | + . + | -- -- - | - - - | . . + | x . . |
 | 5g -> 5g | + + + | - - - | - - - | ++ ++ ++ | x . . |
 
-Effetto tipico: pendenze normalizzate fra -0,02 e -0,03 sotto l'ora,
+Effetto tipico: pendenze normalizzate fra -0,02 e -0,04 sotto l'ora,
 -0,08/-0,11 sull'1g->1g degli indici, +0,08/+0,13 sul 5g dei metalli.
 
 ## 3. Migliori 10 regole per t (n >= 30; nessuna passa)
 
-Le tre regole con t >= 3 hanno 2-5 operazioni e sono escluse. Netto in unita'
+Le sette regole con t >= 3 hanno 2-6 operazioni e sono escluse. Netto in unita'
 di prezzo, `netto_costi` = netto / costo round trip.
 
 | mercato | L | H | sessione | k | regime | direzione | n | netto | netto_costi | t | t_rob | anni_pos | anni | p_placebo |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| XAGUSD | 5g | 5g | asia | 1.0 | basso | a favore | 49 | 0.287 | 11.469 | 2.961 | nan | 6.0 | 7.0 | 0.001 |
-| XAGUSD | 5g | 5g | londra | 1.0 | basso | a favore | 51 | 0.26 | 10.382 | 2.909 | nan | 5.0 | 7.0 | 0.002 |
-| NSXUSD | 5g | 5g | asia | 1.0 | medio | contro | 51 | 30.827 | 20.551 | 2.726 | nan | 6.0 | 7.0 | 0.007 |
-| SPXUSD | 1g | 1g | asia | 1.0 | tutti | contro | 326 | 2.735 | 4.972 | 2.635 | 2.405 | 7.0 | 7.0 | 0.003 |
-| XAGUSD | 5g | 5g | ny | 1.0 | basso | a favore | 66 | 0.274 | 10.95 | 2.557 | nan | 7.0 | 7.0 | 0.002 |
-| GRXEUR | 1h | 4h | ny | 2.0 | basso | a favore | 138 | 13.453 | 8.969 | 2.549 | 2.145 | 5.0 | 6.0 | 0.003 |
-| SPXUSD | 5g | 4h | asia | 1.0 | medio | contro | 117 | 0.738 | 1.343 | 2.371 | 1.971 | 4.0 | 7.0 | 0.001 |
-| SPXUSD | 1h | 1h | asia | 2.0 | tutti | a favore | 33 | 5.302 | 9.641 | 2.246 | nan | 4.0 | 6.0 | 0.005 |
-| XAGUSD | 4h | 4h | ny | 2.0 | alto | a favore | 63 | 0.111 | 4.431 | 2.237 | nan | 4.0 | 6.0 | 0.005 |
-| XAGUSD | 1h | 4h | ny | 2.0 | alto | a favore | 100 | 0.093 | 3.72 | 2.211 | 1.954 | 4.0 | 6.0 | 0.001 |
+| XAGUSD | 5g | 5g | asia | 1.0 | basso | a favore | 49 | 0.285 | 11.386 | 2.995 | nan | 7.0 | 7.0 | 0.001 |
+| NSXUSD | 5g | 5g | asia | 1.0 | medio | contro | 53 | 31.503 | 21.002 | 2.729 | nan | 6.0 | 7.0 | 0.002 |
+| NSXUSD | 1g | 4h | londra | 2.0 | tutti | contro | 35 | 14.436 | 9.624 | 2.702 | nan | 7.0 | 7.0 | 0.005 |
+| XAGUSD | 5g | 5g | ny | 1.0 | basso | a favore | 65 | 0.285 | 11.394 | 2.631 | nan | 7.0 | 7.0 | 0.004 |
+| XAGUSD | 5g | 5g | londra | 1.0 | basso | a favore | 51 | 0.23 | 9.209 | 2.564 | nan | 5.0 | 7.0 | 0.002 |
+| SPXUSD | 5g | 4h | asia | 1.0 | medio | contro | 121 | 0.73 | 1.327 | 2.306 | 1.89 | 4.0 | 7.0 | 0.002 |
+| NSXUSD | 5g | 5g | londra | 1.0 | tutti | contro | 120 | 15.763 | 10.509 | 2.132 | 1.735 | 5.0 | 7.0 | 0.014 |
+| SPXUSD | 1h | 1h | asia | 2.0 | tutti | a favore | 34 | 4.924 | 8.953 | 2.122 | nan | 3.0 | 6.0 | 0.007 |
+| XAGUSD | 5g | 5g | londra | 1.0 | tutti | a favore | 129 | 0.231 | 9.23 | 2.105 | 1.6 | 6.0 | 8.0 | 0.006 |
+| NSXUSD | 5g | 5g | ny | 1.0 | basso | contro | 52 | 18.85 | 12.567 | 2.084 | nan | 4.0 | 6.0 | 0.013 |
 
-Motivi di bocciatura: le prime tre e la quinta hanno n ~50 (orizzonte 5g non
-sovrapposto: al massimo ~350 operazioni in 7 anni, con soglia e regime ~50);
-la quarta (S&P) fallisce solo su t (2,64 < 3).
+Motivi di bocciatura: tutte sotto t 3; le regole sull'orizzonte 5g hanno
+n ~50-130 (5 giorni non sovrapposti: al massimo ~350 operazioni in 7 anni).
 
 ## 4. Candidati
 
-**Nessuno.** Nessuna delle 1512 regole soddisfa insieme t >= 3, anni >= 75%,
+**Nessuno.** Nessuna delle 1572 regole soddisfa insieme t >= 3, anni >= 75%,
 p < 0,01, n minimo e netto > 0. Niente da congelare in
 `docs/ricerca-da-zero-candidati.md` per la famiglia 2.
 
-Il "quasi candidato" (NON promosso, solo per memoria): S&P, decisione a ogni
-ora piena fra 00:00 e 06:00 UTC, se la variazione delle ultime 24 ore di borsa
+Ex quasi-candidato della prima versione (NON promosso): S&P, decisione a ogni
+ora piena fra 00:00 e 06:00 UTC; se la variazione delle ultime 24 ore di borsa
 (chiusura M5 di adesso contro la stessa ora del giorno feriale prima) supera
 1 ATR14 giornaliero, entra CONTRO all'apertura della M5 successiva, esci alla
-stessa ora del giorno feriale dopo; costo 0,55. n 326, netto +2,74 punti
-(5,0 costi), t 2,64, 7/7 anni, placebo p 0,003. A Londra lo stesso fa t 1,90
-(7/8 anni), a NY sparisce; il Nasdaq ha lo stesso segno ma t 1,44.
+stessa ora del giorno feriale dopo; costo 0,55. Con gli orari corretti:
+n 325, netto +2,00 punti (3,6 costi), t 2,06, 6/7 anni, placebo p 0,006.
+A Londra t 1,77 (7/8 anni); Nasdaq stesso segno ma t 1,26.
 
 ## 5. Osservazioni
 
 1. **Il ritorno alla media di brevissimo e' l'effetto statisticamente piu'
-   forte, ed e' inutilizzabile.** Argento (tutte le sessioni), DAX a NY, oro a
-   Londra, S&P a NY: dopo 5-15 minuti il prezzo restituisce il 2-3% del
-   movimento (|t| fino a 5,3 su ~200 mila osservazioni). Ma il lordo delle
-   regole con H <= 15m vale in mediana 0,08 volte il costo (massimo 1,8 su 241
-   operazioni): il costo e' 10-15 volte il vantaggio. Parte puo' essere rumore
-   di quotazione dei dati, non un movimento negoziabile.
-2. **Indici: ritorno alla media giornaliero, solo misurato fuori dal cash
-   americano.** S&P e Nasdaq 1g->1g e 5g->1g/4h negativi (t -3,3/-3,9) se la
-   decisione cade in Asia o a Londra, nulli a NY; piu' forte nei regimi a
-   volatilita' bassa/media, nullo in quella alta. E' l'unico effetto che
-   copre i costi con margine (3-5 costi) e regge 7 anni su 7, ma non arriva
-   a t 3. Contraddice la previsione 2 del protocollo (momentum sugli indici):
-   nel 2011-2017 gli indici comprano i ribassi.
-3. **Metalli: momentum lento, non ritorno alla media.** Oro 5g->5m/15m/1h/4h
+   forte, ed e' inutilizzabile.** Argento (soprattutto Londra, t fino a -5,9),
+   DAX a NY, oro a Londra, S&P a NY: dopo 5-15 minuti il prezzo restituisce il
+   2-4% del movimento. Ma il lordo delle regole con H <= 15m vale in mediana
+   0,07 volte il costo (massimo 1,8): il costo e' 10-15 volte il vantaggio.
+   Parte puo' essere rumore di quotazione, non un movimento negoziabile.
+2. **Indici: ritorno alla media giornaliero, misurato solo fuori dal cash
+   americano.** S&P e Nasdaq 1g->1g e 5g->1g/4h negativi (t -3,2/-3,8) con
+   decisione in Asia o a Londra, nulli a NY, spenti in volatilita' alta.
+   Statisticamente robusto alla correzione dell'ora, ma come regola vale 2-3,6
+   costi e t ~2: non basta. Contraddice la previsione 2 del protocollo
+   (momentum sugli indici): nel 2011-2017 gli indici comprano i ribassi.
+3. **Metalli (e DAX): momentum lento, non ritorno alla media.** Oro 5g->intraday
    e 1g->intraday positivi (t fino a 4,8 a Londra), argento 5g->5g positivo in
-   tutte e tre le sessioni (t 3,3-3,6), entrambi solo in volatilita'
-   bassa/media e spenti in quella alta. Il lordo copre 9-11 costi per
-   operazione, ma un orizzonte di 5 giorni non sovrapposto da' ~50
-   operazioni in 7-9 anni: la soglia di 100 lo rende non promuovibile per
-   costruzione. Il ritorno alla media dei metalli previsto dal protocollo
-   esiste solo sotto i 15 minuti, dove i costi lo annullano.
+   tutte e tre le sessioni, DAX 5g->4h a NY t >= 3; solo in volatilita'
+   bassa/media. Il lordo dell'argento copre 9-11 costi per operazione, ma 5
+   giorni non sovrapposti danno ~50 operazioni in 7 anni: la soglia di 100 lo
+   rende non promuovibile per costruzione. Il ritorno alla media dei metalli
+   previsto dal protocollo esiste solo sotto i 15 minuti, dove i costi lo
+   annullano.
