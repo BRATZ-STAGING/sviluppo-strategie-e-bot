@@ -5342,3 +5342,41 @@ su 66.624 operazioni vere (33.500 tocchi, due ipotesi ciascuno) e' un terzo di q
 i livelli veri.
 
 ---
+
+## Appendice CD: trend following multi-giorno sull'oro, 2009-2026 — nessuna famiglia passa
+
+Protocollo registrato prima dei dati: `docs/trend-multigiorno-registrazione.md`
+(commit c6ec854). Tre famiglie con parametri canonici della letteratura, nessuna
+selezione, tutto il 2009-2026 fuori campione per queste regole. Costi: spread
+per anno + **swap FP** riscalato sul prezzo. Script
+`trading/scripts/run_trend_multigiorno.py` (commit 72ec359).
+
+**Verifica indipendente**: un secondo agente ha riscritto le tre famiglie da
+zero dal solo protocollo, senza vedere il codice. Coincidenza al centesimo
+(F1 +23,52 / +23,53 R, F2 +25,64 / +25,64, F3 -24,01 / -24,01; stesse prime
+operazioni, stessi drawdown).
+
+| famiglia | n | R netto | R/op | vinte | DD R | anni+ | 2009-17 | 2018-26 | p placebo | senza swap |
+|---|---|---|---|---|---|---|---|---|---|---|
+| F1 TSMOM 12 mesi | 199 | +23,5 | +0,118 | 52,3% | 24,3 | 8/17 | +6,6 | +16,9 | 0,072 | +41,5 |
+| F2 Donchian 55/20 | 68 | +25,6 | +0,377 | 36,8% | 10,4 | 9/18 | +0,5 | +25,1 | 0,096 | +40,7 |
+| F3 medie 50/200 | 25 | -24,0 | -0,960 | 4,0% | 24,0 | 0/6 | -12,3 | -11,7 | 1,000 | -22,3 |
+| sempre long (rif.) | 199 | +19,5 | +0,098 | — | 34,8 | 8/17 | -10,1 | +29,6 | — | +59,5 |
+
+**Verdetto: nessuna passa** (criterio: R>0, p<0,05, anni positivi >= 2/3,
+entrambe le meta' positive).
+
+- F1 e F2 sono positive ma **non battono il proprio placebo** (stesse date,
+  direzione a caso): la direzione scelta dalla regola aggiunge poco oltre
+  all'esposizione all'oro, che nel 2018-2026 e' salito da solo (sempre long
+  +29,6 R in quella meta').
+- F2 vive di un anno: **2025 +23,0 R** su +25,6 totali; gli altri 17 anni
+  sommano +2,6.
+- F3: con stop a 2 ATR20 un sistema lento 50/200 viene fermato 22 volte su 25.
+- Lo swap toglie 15-18 R a F1 e F2 ma non ne cambia il segno (previsione 3
+  del protocollo smentita; previsioni 1 e 2 confermate).
+
+Lettura: sull'oro, da solo, il trend following classico multi-giorno non e'
+un vantaggio misurabile in 18 anni; e' in larga parte beta dell'oro. Il
+risultato non dice nulla sul trend following su un paniere di mercati (dove
+la letteratura lo documenta), che qui non e' stato testato.
