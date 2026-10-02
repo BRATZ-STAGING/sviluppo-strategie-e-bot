@@ -128,3 +128,67 @@ def test_fattore_oro_vale_uno():
     f, anni = RT.fattore("XAUUSD", m1, list(range(2020, 2025)))
     assert anni == [2020, 2021, 2022, 2023, 2024]
     assert f == pytest.approx(1.0, abs=1e-5)
+
+
+# --------------------------------------------------------------------------
+# Emendamento 2: sorgente HistData (solo BID, volume sempre 0)
+# --------------------------------------------------------------------------
+def scrivi_histdata(cartella, simbolo, anno, minuti_per_giorno=840, giorni=3, seme=1):
+    rng = np.random.default_rng(seme)
+    gg = pd.bdate_range(f"{anno}-03-04", periods=giorni, tz="UTC")
+    pezzi = []
+    for i, g in enumerate(gg):
+        n = minuti_per_giorno[i] if isinstance(minuti_per_giorno, list) else minuti_per_giorno
+        pezzi.append(g + pd.Timedelta(hours=7) + pd.to_timedelta(np.arange(n), unit="min"))
+    t = pd.DatetimeIndex(np.concatenate([x.values for x in pezzi]), tz="UTC")
+    c = 100 + np.cumsum(rng.normal(0, 0.1, len(t)))
+    d = pd.DataFrame({"timestamp": t, "open": c, "high": c + rng.uniform(0, .2, len(t)),
+                      "low": c - rng.uniform(0, .2, len(t)), "close": c,
+                      "volume": 0.0})
+    os.makedirs(os.path.join(cartella, simbolo), exist_ok=True)
+    d.to_parquet(os.path.join(cartella, simbolo, f"{simbolo}_M1_{anno}.parquet"),
+                 index=False)
+
+
+def test_histdata_peso_uniforme_vwap_media_prezzo_tipico(tmp_path, monkeypatch):
+    from framework.vwap import anchored_vwap
+    monkeypatch.setattr(RT, "HISTDATA_DIR", str(tmp_path))
+    scrivi_histdata(str(tmp_path), "SPXUSD", 2015)
+    m1 = RT.leggi_histdata("SPXUSD", 2015)
+    assert (m1.volume == 1.0).all()
+    assert str(m1.index.tz) == "UTC" and m1.index.name == "timestamp"
+    tp = (m1.high + m1.low + m1.close) / 3
+    atteso = tp.groupby(m1.index.normalize()).expanding().mean().droplevel(0)
+    np.testing.assert_allclose(anchored_vwap(m1, "day").values,
+                               atteso.reindex(m1.index).values, rtol=1e-12)
+    assert RT.anni_histdata("SPXUSD") == [2015]
+
+
+def test_histdata_qualita_solo_copertura(tmp_path, monkeypatch):
+    monkeypatch.setattr(RT, "HISTDATA_DIR", str(tmp_path))
+    # 800/840 = 0,952 sana; 790/840 = 0,940 non sana; 840 sana
+    scrivi_histdata(str(tmp_path), "GRXEUR", 2016, minuti_per_giorno=[800, 790, 840])
+    sane, spread, n = RT.qualita_copertura(RT.leggi_histdata("GRXEUR", 2016))
+    assert n == 3 and np.isnan(spread)
+    assert [x.day for x in sane] == [4, 8]
+
+
+@pytest.mark.parametrize("simbolo,base", [("SPXUSD", 0.55), ("NSXUSD", 1.50),
+                                          ("GRXEUR", 1.50), ("XAGUSD", 0.025)])
+def test_histdata_spread_per_simbolo(simbolo, base):
+    """Tabella dell'Emendamento 2, riscalata per f, uguale ogni anno."""
+    assert RT.SPREAD_HISTDATA[simbolo] == base
+    sp = RT.spread_histdata(simbolo, [2012, 2020], f=3.0)
+    assert sp == {2012: pytest.approx(base * 3.0), 2020: pytest.approx(base * 3.0)}
+    assert RT.SENSIBILITA.get("XAGUSD") == (0.015, 0.035)
+
+
+def test_controllo_emendamento_2():
+    anni = pd.Series([5.0, 3, 2, 8, 1, 4, -1], index=range(2020, 2027))
+    assert RT.giudica_e2(0.52, anni)[0] == "valido"
+    assert RT.giudica_e2(0.70, anni)[0] == "valido"
+    assert RT.giudica_e2(0.71, anni)[0] == "non valido"           # oltre +35%
+    assert RT.giudica_e2(0.33, anni)[0] == "non valido"           # oltre -35%
+    due_neg = anni.copy()
+    due_neg[2021] = -1
+    assert RT.giudica_e2(0.52, due_neg)[0] == "non valido"        # 5/7

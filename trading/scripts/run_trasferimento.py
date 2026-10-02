@@ -18,6 +18,20 @@ DATI
           ``$IDX_OUT`` (se impostata), ``data/indici``, ``D:\\dati_grezzi\\indici``:
           vale la prima cartella che ha dei BID del simbolo.
 
+  HistData (Emendamento 2)  SPXUSD, NSXUSD, GRXEUR, XAGUSD da
+          ``data/histdata/<SIMBOLO>/<SIMBOLO>_M1_<anno>.parquet``: solo BID,
+          volume sempre 0 -> ogni minuto presente pesa 1 nel VWAP. Spread
+          fissi round trip dell'emendamento (0,55 / 1,50 / 1,50 / 0,025),
+          moltiplicati per ``f``; per l'argento anche la sensibilita' a
+          0,015 e 0,035. Qualita': giornata sana se ha dati in >= 95% dei
+          minuti 7-21 UTC. Il verdetto si marca "non misurabile con questa
+          fonte" se il controllo sull'oro a peso uniforme non e' valido
+          (si legge da ``trasferimento_XAUUSD_2020-2026_peso1.parquet``).
+
+OPZIONI  ``--peso-uniforme``: volume = 1 per ogni minuto anche sull'oro (il
+         controllo obbligatorio dell'Emendamento 2:
+         ``XAUUSD 2020 2026 --peso-uniforme``).
+
 SCALA  ``f = 25,5968 / mediana ATR14 D1 del 2020-2024``, calcolata come quella
        dell'oro: ``daily_atr`` sulle sole candele 2020-2024 (caricando solo
        quegli anni l'oro da' esattamente 25,5968). Per l'oro il protocollo
@@ -48,9 +62,11 @@ PLACEBO (§5)  200 serie, seme fisso. Per ogni anno tante operazioni quante la
 USCITA  ``docs/studies/dati/trasferimento_<SIMBOLO>[_<da>-<a>].parquet``:
        righe ``tipo='vero'`` = un'operazione per gestione (R netto);
        righe ``tipo='placebo'`` = una per serie e anno (``n`` operazioni,
-       ``R`` somma). Il suffisso c'e' solo se gli anni sono dati a mano.
+       ``R`` somma). Il suffisso c'e' solo se gli anni sono dati a mano;
+       ``_peso1`` se il volume e' sostituito da 1.
 
 Uso:  python trading/scripts/run_trasferimento.py SIMBOLO [anno_da anno_a]
+           [--peso-uniforme]
 """
 from __future__ import annotations
 
@@ -85,6 +101,13 @@ MINUTI_SESSIONE = (ORE_SPREAD[1] - ORE_SPREAD[0]) * 60
 MIN_COPERTURA = 0.95          # Emendamento 1 (= appendice BL)
 MIN_DUE_LATI = 0.90
 MIN_GIORNI_SANI = 100
+# Emendamento 2: HistData, spread round trip fissi in unita' del mercato
+HISTDATA_DIR = os.path.join(ROOT, "data", "histdata")
+SPREAD_HISTDATA = {"SPXUSD": 0.55, "NSXUSD": 1.50, "GRXEUR": 1.50, "XAGUSD": 0.025}
+SENSIBILITA = {"XAGUSD": (0.015, 0.035)}
+CONTROLLO_E2 = os.path.join(ROOT, "docs", "studies", "dati",
+                            "trasferimento_XAUUSD_2020-2026_peso1.parquet")
+RIF_E2, TOLL_E2, MIN_ANNI_E2 = 0.52, 0.35, 6     # >= 6/7 anni+, R/op entro +-35%
 NOMI = ["in uso", "A", "B", "1:2"]
 PRIMARIA = "B"
 
@@ -112,6 +135,12 @@ def leggi_lato(simbolo: str, lato: str, anno: int) -> pd.DataFrame | None:
     d = d[["open", "high", "low", "close", "volume"]].astype("float64")
     d = d[d.index.year == anno]
     return d[~d.index.duplicated(keep="first")].sort_index()
+
+
+def anni_mercato(simbolo: str) -> list[int]:
+    if simbolo in SPREAD_HISTDATA:
+        return anni_histdata(simbolo)
+    return anni_indice(simbolo)
 
 
 def anni_indice(simbolo: str) -> list[int]:
@@ -155,12 +184,18 @@ def carica(simbolo: str, anni: list[int]):
         return load_m1(os.path.join(ROOT, "data", "XAUUSD_M1"), anni), None
     pezzi, qual = [], {}
     for a in anni:
-        bid = leggi_lato(simbolo, "BID", a)
-        if bid is None or bid.empty:
-            continue
-        ask = leggi_lato(simbolo, "ASK", a)
-        qual[a] = qualita_anno(bid, ask)
-        del ask
+        if simbolo in SPREAD_HISTDATA:
+            bid = leggi_histdata(simbolo, a)
+            if bid is None or bid.empty:
+                continue
+            qual[a] = qualita_copertura(bid)
+        else:
+            bid = leggi_lato(simbolo, "BID", a)
+            if bid is None or bid.empty:
+                continue
+            ask = leggi_lato(simbolo, "ASK", a)
+            qual[a] = qualita_anno(bid, ask)
+            del ask
         pezzi.append(bid)
     if not pezzi:
         raise FileNotFoundError(f"nessun BID per {simbolo} {anni}")
@@ -180,8 +215,49 @@ def carica_bid(simbolo: str, anni: list[int]) -> pd.DataFrame:
     """Solo il BID, senza qualita' (serve al fattore di scala)."""
     if simbolo == "XAUUSD":
         return load_m1(os.path.join(ROOT, "data", "XAUUSD_M1"), anni)
-    pezzi = [x for x in (leggi_lato(simbolo, "BID", a) for a in anni) if x is not None]
+    leggi = ((lambda a: leggi_histdata(simbolo, a)) if simbolo in SPREAD_HISTDATA
+             else (lambda a: leggi_lato(simbolo, "BID", a)))
+    pezzi = [x for x in (leggi(a) for a in anni) if x is not None]
     return pd.concat(pezzi).sort_index()
+
+
+def leggi_histdata(simbolo: str, anno: int) -> pd.DataFrame | None:
+    """Un anno HistData nello schema di ``load_m1``, volume = 1 a ogni minuto."""
+    f = os.path.join(HISTDATA_DIR, simbolo, f"{simbolo}_M1_{anno}.parquet")
+    if not os.path.exists(f):
+        return None
+    d = pd.read_parquet(f)
+    if "timestamp" in d.columns:
+        d = d.set_index("timestamp")
+    d.index = pd.DatetimeIndex(d.index)
+    if d.index.tz is None:
+        d.index = d.index.tz_localize("UTC")
+    d.index = d.index.tz_convert("UTC").as_unit("ms")
+    d.index.name = "timestamp"
+    d = d[["open", "high", "low", "close"]].astype("float64")
+    d["volume"] = 1.0
+    d = d[d.index.year == anno]
+    return d[~d.index.duplicated(keep="first")].sort_index()
+
+
+def anni_histdata(simbolo: str) -> list[int]:
+    fs = glob.glob(os.path.join(HISTDATA_DIR, simbolo, f"{simbolo}_M1_*.parquet"))
+    return sorted({int(os.path.basename(f)[len(simbolo) + 4:len(simbolo) + 8])
+                   for f in fs})
+
+
+def qualita_copertura(bid: pd.DataFrame):
+    """Emendamento 2: sana se ha dati in >= 95% degli 840 minuti 7-21 UTC."""
+    s = bid[(bid.index.hour >= ORE_SPREAD[0]) & (bid.index.hour < ORE_SPREAD[1])]
+    n = s.groupby(s.index.normalize()).size()
+    sane = n[n / MINUTI_SESSIONE >= MIN_COPERTURA].index
+    return sane, float("nan"), len(n)
+
+
+def spread_histdata(simbolo: str, anni, f: float, base: float | None = None):
+    """Spread round trip fisso dell'Emendamento 2, riscalato per ``f``."""
+    v = SPREAD_HISTDATA[simbolo] if base is None else base
+    return {a: v * f for a in anni}
 
 
 def mediana_atr(m1: pd.DataFrame, t=T) -> float:
@@ -201,7 +277,7 @@ def fattore(simbolo: str, m1: pd.DataFrame, anni: list[int]) -> tuple[float, lis
         sub = m1[(m1.index.year >= cal[0]) & (m1.index.year <= cal[-1])]
         usati = cal
     else:
-        disp = cal if simbolo == "XAUUSD" else [a for a in cal if a in anni_indice(simbolo)]
+        disp = cal if simbolo == "XAUUSD" else [a for a in cal if a in anni_mercato(simbolo)]
         if not disp:
             raise FileNotFoundError(f"{simbolo}: nessun anno di calibrazione {cal}")
         sub = carica_bid(simbolo, disp)
@@ -234,36 +310,61 @@ def candidati_placebo(m1: pd.DataFrame, sane=None, t=T) -> pd.DataFrame:
                          "anno": base.index.year[ok]})
 
 
-def placebo(m1, percorsi, veri: pd.DataFrame, gestione, costo, sane=None, t=T):
-    """R/op delle serie placebo e il loro dettaglio per serie e anno."""
+def placebo(m1, percorsi, veri: pd.DataFrame, gestione, sane=None, t=T) -> pd.DataFrame:
+    """Le operazioni placebo, LORDE: serie, anno, esito ``x`` in R, rischio ``k``.
+
+    Il costo si sottrae dopo (``rop_placebo``), cosi' la stessa estrazione
+    serve anche alla sensibilita' dello spread.
+    """
     cand = candidati_placebo(m1, sane, t)
     rng = np.random.default_rng(SEME)
     per_anno = {a: g for a, g in cand.groupby("anno")}
     rischi = {a: g.rischio.values for a, g in veri.groupby("anno")}
     conta = veri.groupby("anno").size()
-    righe, rop = [], []
+    serie, anni, xs, kk = [], [], [], []
     for s in range(N_PLACEBO):
-        tot_r, tot_n = 0.0, 0
         for anno, n in conta.items():
             c = per_anno[anno]
             pick = rng.choice(len(c), size=min(n, len(c)), replace=False)
             lati = rng.choice((1, -1), size=len(pick))
             ks = rng.choice(rischi[anno], size=len(pick), replace=True)
-            r_anno, n_anno = 0.0, 0
             for j, segno, k in zip(pick, lati, ks):
-                t_in = c.time.iat[j]
-                x, _ = percorsi.esito(t_in, int(segno), float(c.entry.iat[j]),
+                x, _ = percorsi.esito(c.time.iat[j], int(segno), float(c.entry.iat[j]),
                                       float(k), gestione)
                 if x is None:
                     continue
-                r_anno += x - costo(anno) / k
-                n_anno += 1
-            righe.append({"tipo": "placebo", "gestione": PRIMARIA, "serie": s,
-                          "anno": int(anno), "n": n_anno, "R": r_anno})
-            tot_r += r_anno
-            tot_n += n_anno
-        rop.append(tot_r / tot_n if tot_n else np.nan)
-    return np.array(rop), pd.DataFrame(righe)
+                serie.append(s)
+                anni.append(int(anno))
+                xs.append(x)
+                kk.append(float(k))
+    return pd.DataFrame({"serie": serie, "anno": anni, "x": xs, "k": kk})
+
+
+def rop_placebo(pl: pd.DataFrame, costo) -> np.ndarray:
+    """R/op netto di ogni serie placebo con il costo dato."""
+    netto = pl.x - pl.anno.map(costo) / pl.k
+    return netto.groupby(pl.serie).mean().reindex(range(N_PLACEBO)).values
+
+
+def controllo_e2() -> tuple[str, str]:
+    """Validita' della fonte HistData secondo l'Emendamento 2.
+
+    Rilegge il controllo XAUUSD 2020-2026 a peso uniforme (gestione B).
+    Restituisce (stato, descrizione) con stato in valido/non valido/assente.
+    """
+    if not os.path.exists(CONTROLLO_E2):
+        return "assente", f"manca {os.path.basename(CONTROLLO_E2)}"
+    d = pd.read_parquet(CONTROLLO_E2)
+    b = d[(d.tipo == "vero") & (d.gestione == PRIMARIA)]
+    return giudica_e2(b.R.mean(), b.groupby("anno").R.sum())
+
+
+def giudica_e2(rop: float, per_anno: pd.Series) -> tuple[str, str]:
+    pos, n = int((per_anno > 0).sum()), len(per_anno)
+    ok = pos >= MIN_ANNI_E2 and abs(rop - RIF_E2) <= TOLL_E2 * RIF_E2
+    return (("valido" if ok else "non valido"),
+            f"oro peso 1, B: R/op {rop:+.3f} (ammesso {RIF_E2 * (1 - TOLL_E2):.3f}-"
+            f"{RIF_E2 * (1 + TOLL_E2):.3f}), anni+ {pos}/{n} (ammesso >= {MIN_ANNI_E2})")
 
 
 # --------------------------------------------------------------------------
@@ -295,17 +396,21 @@ def picco_ram_mb() -> float:
 
 def main():
     t0 = time.time()
-    if len(sys.argv) not in (2, 4):
+    opzioni = [a for a in sys.argv[1:] if a.startswith("--")]
+    pos_arg = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if len(pos_arg) not in (1, 3) or set(opzioni) - {"--peso-uniforme"}:
         raise SystemExit(__doc__)
-    simbolo = sys.argv[1].upper()
-    a_mano = len(sys.argv) == 4
+    simbolo = pos_arg[0].upper()
+    histdata = simbolo in SPREAD_HISTDATA
+    peso1 = "--peso-uniforme" in opzioni or histdata
+    a_mano = len(pos_arg) == 3
     if a_mano:
-        anni = list(range(int(sys.argv[2]), int(sys.argv[3]) + 1))
+        anni = list(range(int(pos_arg[1]), int(pos_arg[2]) + 1))
     elif simbolo == "XAUUSD":
         fs = glob.glob(os.path.join(ROOT, "data", "XAUUSD_M1", "XAUUSD_M1_*.parquet"))
         anni = sorted(int(os.path.basename(f)[10:14]) for f in fs)
     else:
-        anni = anni_indice(simbolo)
+        anni = anni_mercato(simbolo)
     pd.set_option("display.width", 200)
 
     m1, qual = carica(simbolo, anni)
@@ -313,7 +418,9 @@ def main():
     f_calc, anni_f = fattore(simbolo, m1, anni)
     # protocollo, controllo della pipeline: sull'oro f = 1
     f = 1.0 if simbolo == "XAUUSD" else f_calc
-    print(f"{simbolo} {anni[0]}-{anni[-1]}  f = {f:.6f}  (calcolato {f_calc:.6f}: "
+    fonte = "HistData" if histdata else ("Dukascopy" if qual is not None else "repo")
+    print(f"{simbolo} {anni[0]}-{anni[-1]} [{fonte}{', VWAP peso 1' if peso1 else ''}]"
+          f"  f = {f:.6f}  (calcolato {f_calc:.6f}: "
           f"mediana ATR14 D1 {anni_f[0]}-{anni_f[-1]} = {MEDIANA_ATR / f_calc:.4f})"
           + ("" if len(anni_f) == 5 else f"  ATTENZIONE: solo anni {anni_f}"))
     if qual is None:
@@ -323,13 +430,18 @@ def main():
               "non applicato, niente ASK): "
               + "  ".join(f"{a % 100:02d}:{v:.3f}" for a, v in spread.items()))
     else:
-        spread = {a: qual[a][1] * f for a in anni}
         n_sane = {a: len(qual[a][0]) for a in anni}
         sane = pd.DatetimeIndex(np.concatenate([qual[a][0].values for a in anni])
                                 ).tz_localize("UTC")
-        print("spread x f (mediana ASK-BID 7-21 UTC, giornate sane) e giornate "
-              "sane/con dati per anno:")
-        print("  " + "  ".join(f"{a % 100:02d}:{spread[a]:.3f}" for a in anni))
+        if histdata:
+            spread = spread_histdata(simbolo, anni, f)
+            print(f"spread fisso {SPREAD_HISTDATA[simbolo]} x f = {spread[anni[0]]:.4f}"
+                  f" (Emendamento 2); giornate sane (dati >= 95% minuti 7-21) / con dati:")
+        else:
+            spread = {a: qual[a][1] * f for a in anni}
+            print("spread x f (mediana ASK-BID 7-21 UTC, giornate sane) e giornate "
+                  "sane/con dati per anno:")
+            print("  " + "  ".join(f"{a % 100:02d}:{spread[a]:.3f}" for a in anni))
         print("  " + "  ".join(f"{a % 100:02d}:{n_sane[a]}/{qual[a][2]}"
                                + ("*" if n_sane[a] < MIN_GIORNI_SANI else "")
                                for a in anni)
@@ -337,12 +449,14 @@ def main():
     if f != 1.0:
         for c in ("open", "high", "low", "close"):
             m1[c] = m1[c] * f
+    if peso1:                        # Emendamento 2: VWAP a peso uniforme
+        m1["volume"] = 1.0
 
     ops = filtra(genera(m1, T, mediana_atr=MEDIANA_ATR))
     for o in ops:                    # i percorsi servono solo a genera
         o.pop("fav", None)
         o.pop("sfav", None)
-    if sane is not None:             # Emendamento 1: nessuna apertura nei giorni non sani
+    if sane is not None:             # nessuna apertura nei giorni non sani
         tot = len(ops)
         ops = [o for o in ops if pd.Timestamp(o["time"]).normalize() in sane]
         print(f"segnali in giornate non sane scartati: {tot - len(ops)} su {tot}")
@@ -377,30 +491,63 @@ def main():
     print(f"\nGestione {PRIMARIA} per anno (spread in prezzo riscalato):")
     print((pa.drop(columns="conta") if n_sane is None else pa).round(3).to_string())
 
+    if simbolo == "XAUUSD" and peso1:
+        stato, descr = giudica_e2(float(veri_b.R.mean()), pa.R)
+        print(f"\nCONTROLLO EMENDAMENTO 2: fonte {stato.upper()}  [{descr}]")
+
     gest_b = BOT[NOMI.index(PRIMARIA)]
-    rop_p, det_p = placebo(m1, percorsi, veri_b, gest_b, costo, sane)
+    pl = placebo(m1, percorsi, veri_b, gest_b, sane)
+    rop_p = rop_placebo(pl, costo)
     reale = float(veri_b.R.mean())
     p = float(np.mean(rop_p >= reale))
     print(f"\nPlacebo {N_PLACEBO} serie, gestione {PRIMARIA}: R/op mediana "
           f"{np.nanmedian(rop_p):+.3f} (5%-95%: {np.nanpercentile(rop_p, 5):+.3f}"
           f" / {np.nanpercentile(rop_p, 95):+.3f})  reale {reale:+.3f}  p = {p:.3f}")
 
-    # criterio di successo registrato (+ Emendamento 1: anni con < 100
+    # criterio di successo registrato (+ Emendamenti 1-2: anni con < 100
     # giornate sane fuori dal conteggio degli anni positivi)
-    validi = pa[(pa.op >= 10) & pa.conta]
-    pos = int((validi.R > 0).sum())
-    c1, c2, c3 = reale > 0, p < 0.05, 3 * pos >= 2 * len(validi) and len(validi) > 0
+    def criterio(r_ops: pd.Series, p_: float):
+        pa_ = r_ops.groupby(veri_b.anno).agg(["size", "sum"])
+        ok_anno = pa_.index.map(lambda a: bool(pa.conta.get(a, True)))
+        validi = pa_[(pa_["size"] >= 10) & np.asarray(ok_anno)]
+        pos = int((validi["sum"] > 0).sum())
+        rop = float(r_ops.mean())
+        c = (rop > 0, p_ < 0.05, 3 * pos >= 2 * len(validi) and len(validi) > 0)
+        return rop, pos, len(validi), c
+
+    reale, pos, nval, (c1, c2, c3) = criterio(veri_b.R, p)
     esito = "PASSA" if (c1 and c2 and c3) else "NON PASSA"
-    print(f"\nVERDETTO {simbolo}: {esito}  [R/op>0: {'si' if c1 else 'no'} "
+    if histdata:
+        stato, descr = controllo_e2()
+        if stato != "valido":
+            esito += " -> NON MISURABILE CON QUESTA FONTE"
+        esito += f"  (controllo E2 {stato}: {descr})"
+    print(f"\nVERDETTO {simbolo}: {esito}\n  [R/op>0: {'si' if c1 else 'no'} "
           f"({reale:+.3f}) | p<0,05: {'si' if c2 else 'no'} ({p:.3f}) | "
           f"anni+ >= 2/3 degli anni con >=10 op"
           + ("" if qual is None else f" e >={MIN_GIORNI_SANI} gg sane")
-          + f": {'si' if c3 else 'no'} ({pos}/{len(validi)})]")
+          + f": {'si' if c3 else 'no'} ({pos}/{nval})]")
 
+    # sensibilita' dello spread (argento, Emendamento 2): stesso campione,
+    # stesso placebo, cambia solo il costo
+    for s_alt in SENSIBILITA.get(simbolo, ()):
+        c_alt = spread_histdata(simbolo, anni, f, base=s_alt).__getitem__
+        lordo = veri_b.R + veri_b.anno.map(costo) / veri_b.rischio
+        netto = lordo - veri_b.anno.map(c_alt) / veri_b.rischio
+        p_alt = float(np.mean(rop_placebo(pl, c_alt) >= netto.mean()))
+        rop, pos, nval, cc = criterio(netto, p_alt)
+        print(f"  sensibilita' spread {s_alt}: R tot {netto.sum():+.1f}  R/op {rop:+.3f}"
+              f"  anni+ {pos}/{nval}  p {p_alt:.3f}  -> "
+              f"{'PASSA' if all(cc) else 'NON PASSA'}")
+
+    det_p = pl.assign(R=pl.x - pl.anno.map(costo) / pl.k).groupby(
+        ["serie", "anno"]).R.agg(n="size", R="sum").reset_index()
+    det_p["tipo"], det_p["gestione"] = "placebo", PRIMARIA
     out = pd.concat(righe + [det_p], ignore_index=True)
-    out["simbolo"], out["f"] = simbolo, f
+    out["simbolo"], out["f"], out["fonte"], out["peso1"] = simbolo, f, fonte, peso1
     out["spread"] = out.anno.map(spread)
-    nome_f = f"trasferimento_{simbolo}" + (f"_{anni[0]}-{anni[-1]}" if a_mano else "")
+    nome_f = (f"trasferimento_{simbolo}" + (f"_{anni[0]}-{anni[-1]}" if a_mano else "")
+              + ("_peso1" if peso1 and not histdata else ""))
     dest = os.path.join(ROOT, "docs", "studies", "dati", nome_f + ".parquet")
     out.to_parquet(dest, index=False)
     print(f"[dettaglio] {os.path.relpath(dest, ROOT)}  "
