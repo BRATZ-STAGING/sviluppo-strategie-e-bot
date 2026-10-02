@@ -5,8 +5,9 @@ Fonte gratuita per uso personale: https://www.histdata.com . Un file ZIP per
 anno (``HISTDATA_COM_ASCII_<SIMBOLO>_M1<anno>.zip``) con un CSV
 ``AAAAMMGG HHMMSS;open;high;low;close;volume``.
 
-ATTENZIONE AL FUSO: HistData scrive gli orari in **EST fisso, senza ora
-legale** (UTC-5 tutto l'anno). Qui si convertono in UTC aggiungendo 5 ore, e
+ATTENZIONE AL FUSO: la documentazione di HistData dice "EST fisso", ma i
+file sono in **ora di New York con l'ora legale** (verificato sui dati, vedi
+``da_new_york``). Qui si convertono in UTC con il fuso vero, e
 le candele restano etichettate all'apertura del minuto, come
 ``data/XAUUSD_M1``. I prezzi sono **BID**: lo spread non c'e' e va preso da
 un'altra misura.
@@ -82,17 +83,35 @@ def scarica_zip(simbolo: str, anno: int, mese: int | None = None) -> str | None:
     return None
 
 
+def da_new_york(locale: pd.Series) -> pd.Series:
+    """Orari HistData (ora di New York CON ora legale) -> UTC.
+
+    La documentazione HistData parla di "EST senza ora legale", ma i dati
+    dicono altro (misurato il 02/10/2026): l'apertura cash dell'S&P cade alle
+    09:30 dei file sia d'inverno sia d'estate, e il DAX apre un'ora "tardi"
+    nelle settimane in cui solo gli USA sono in ora legale. Quindi i file sono
+    in ora locale di New York e si convertono con il fuso vero.
+    L'ora ripetuta di novembre (ambigua) si scarta; quella che non esiste a
+    marzo si sposta in avanti.
+    """
+    utc = (locale.dt.tz_localize("America/New_York", ambiguous="NaT",
+                                 nonexistent="shift_forward")
+           .dt.tz_convert("UTC"))
+    return utc
+
+
 def converti(zip_path: str) -> pd.DataFrame:
     with zipfile.ZipFile(zip_path) as z:
         nome = next(n for n in z.namelist() if n.lower().endswith(".csv"))
         raw = z.read(nome)
     d = pd.read_csv(io.BytesIO(raw), sep=";", header=None,
                     names=["t", "open", "high", "low", "close", "volume"])
-    ts = pd.to_datetime(d["t"], format="%Y%m%d %H%M%S") + pd.Timedelta(hours=5)
-    out = pd.DataFrame({"timestamp": ts.dt.tz_localize("UTC"),
+    ts = da_new_york(pd.to_datetime(d["t"], format="%Y%m%d %H%M%S"))
+    out = pd.DataFrame({"timestamp": ts,
                         "open": d["open"].astype(float), "high": d["high"].astype(float),
                         "low": d["low"].astype(float), "close": d["close"].astype(float),
                         "volume": d["volume"].astype(float)})
+    out = out.dropna(subset=["timestamp"])
     return out.drop_duplicates("timestamp").sort_values("timestamp").reset_index(drop=True)
 
 
