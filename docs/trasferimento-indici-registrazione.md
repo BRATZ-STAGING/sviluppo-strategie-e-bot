@@ -84,6 +84,25 @@ riproduce, i risultati sugli indici non si guardano finche' non li riproduce.
 3. Se un indice passa, sara' l'S&P 500, perche' ha il costo relativo piu'
    basso (CONSEGNA §5).
 
+## Emendamento 1 — qualita' del dato (02/10/2026, PRIMA di qualunque dato)
+
+Scritto dopo aver riletto l'appendice BL e prima che un solo file degli indici
+fosse in cache (il primo tentativo di scarico e' stato respinto dal server con
+429, zero file ottenuti). Non dipende da nessun risultato.
+
+L'appendice BL ha mostrato che il feed indice Dukascopy dei primi anni e'
+bucato (2012: ASK identico al BID, minuti mancanti) e che una serie bucata
+**gonfia il risultato in R da sola** (+0,74 R/op sull'ORB 2012, "era il dato,
+non la strategia"). Si adotta lo stesso filtro di BL, invariato:
+
+- una giornata e' **sana** se ha scambi in >= 95% dei minuti 7-21 UTC e
+  ASK > BID in >= 90% di quei minuti;
+- nelle giornate non sane **non si apre** nessuna operazione (le candele
+  restano nella serie per gli indicatori, che sono causali);
+- lo spread annuo si misura sulle sole giornate sane;
+- un anno con meno di 100 giornate sane si riporta a parte e **non conta**
+  nel criterio degli anni positivi; il totale in R lo include.
+
 ## Cosa NON si fa
 
 - Nessun parametro tarato sugli indici, nessuna griglia, nessuna variante

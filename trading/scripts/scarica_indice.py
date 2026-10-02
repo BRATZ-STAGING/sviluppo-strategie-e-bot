@@ -40,6 +40,9 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CACHE = os.environ.get("IDX_CACHE", os.path.join(ROOT, "..", "cache_indici"))
 USCITA = os.environ.get("IDX_OUT", os.path.join(ROOT, "..", "dati_grezzi", "indici"))
 LOTTO = int(os.environ.get("LOTTO", "400"))
+# Connessioni simultanee. Da una linea domestica 12 fanno scattare il blocco
+# del datafeed (connessioni rifiutate per minuti): 3 e' il valore sicuro.
+PARALLELO = int(os.environ.get("PARALLELO", "12"))
 SCALE = 1000.0
 REC = np.dtype([("s", ">i4"), ("o", ">i4"), ("c", ">i4"),
                 ("l", ">i4"), ("h", ">i4"), ("v", ">f4")])
@@ -80,7 +83,7 @@ def tira(simbolo, lato, giorni):
         for g in giorni:
             f.write(f'url = "{url_di(simbolo, lato, g)}"\n'
                     f'output = "{base(simbolo, lato, g)}.bi5"\n')
-    subprocess.run(["curl", "-sS", "-Z", "--parallel-max", "12",
+    subprocess.run(["curl", "-sS", "-Z", "--parallel-max", str(PARALLELO),
                     "--retry", "3", "--retry-delay", "1", "-K", conf],
                    check=False)
 
