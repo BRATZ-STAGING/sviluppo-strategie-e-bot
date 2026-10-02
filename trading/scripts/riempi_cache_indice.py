@@ -25,6 +25,7 @@ from __future__ import annotations
 import datetime as dt
 import os
 import random
+import ssl
 import sys
 import threading
 import time
@@ -36,6 +37,18 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CACHE = os.environ.get("IDX_CACHE", os.path.join(ROOT, "..", "cache_indici"))
 PARALLELO = int(os.environ.get("PARALLELO", "2"))
 PAUSA = float(os.environ.get("PAUSA", "0.4"))
+
+# Ambienti con proxy che intercetta il TLS (container): bundle e proxy si usano
+# solo se presenti, cosi' lo stesso script gira anche su Windows senza niente.
+_BUNDLE = os.environ.get("IDX_CA_BUNDLE", "/root/.ccr/ca-bundle.crt")
+_gestori = []
+if os.path.exists(_BUNDLE):
+    _gestori.append(urllib.request.HTTPSHandler(
+        context=ssl.create_default_context(cafile=_BUNDLE)))
+_proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+if _proxy:
+    _gestori.insert(0, urllib.request.ProxyHandler({"https": _proxy, "http": _proxy}))
+_apri = urllib.request.build_opener(*_gestori).open
 
 _freno = threading.Lock()
 _sosta_fino = [0.0]          # se il server ci rallenta, si fermano tutti
@@ -59,7 +72,7 @@ def scarica_giorno(simbolo, lato, g):
         try:
             req = urllib.request.Request(url_di(simbolo, lato, g),
                                          headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with _apri(req, timeout=60) as r:
                 dati = r.read()
             if not dati:
                 open(base + ".empty", "w").close()
@@ -73,7 +86,8 @@ def scarica_giorno(simbolo, lato, g):
             if e.code == 404:
                 open(base + ".empty", "w").close()
                 return "vuoto"
-            ritardo = 20 * (tentativo + 1) if e.code == 429 else 5 * (tentativo + 1)
+            ritardo = (20 * (tentativo + 1) if e.code in (429, 503)
+                       else 5 * (tentativo + 1))
         except Exception:
             ritardo = 10 * (tentativo + 1)
         with _freno:

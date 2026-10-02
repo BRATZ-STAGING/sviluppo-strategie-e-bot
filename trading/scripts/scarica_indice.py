@@ -145,7 +145,9 @@ def main():
     for anno in range(da, a + 1):
         giorni = [dt.date(anno, 1, 1) + dt.timedelta(days=i)
                   for i in range((dt.date(anno + 1, 1, 1) - dt.date(anno, 1, 1)).days)]
-        giorni = [g for g in giorni if g < oggi and g.weekday() < 5 or g.weekday() == 6]
+        # parentesi necessarie: senza, le domeniche FUTURE entravano nella lista
+        # e si tentava di scaricarle
+        giorni = [g for g in giorni if g < oggi and (g.weekday() < 5 or g.weekday() == 6)]
         for lato in lati:
             # decodifica() cancella i file troncati perche' si riscarichino: se
             # non si ricicla, quei giorni mancano dal parquet dell'anno anche se
