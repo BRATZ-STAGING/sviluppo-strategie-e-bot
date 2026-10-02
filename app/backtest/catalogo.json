@@ -1,0 +1,9 @@
+[
+ {
+  "id": "taratura-ufficiale",
+  "nome": "Taratura ufficiale (VWAP M6, 2020-2026)",
+  "file": "docs/operazioni-taratura-ufficiale.csv",
+  "rr": 10,
+  "nota": "solo ingressi e stop: l'uscita non e' nel file"
+ }
+]

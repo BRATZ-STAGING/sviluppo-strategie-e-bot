@@ -1,0 +1,141 @@
+:root {
+  --sfondo: #ffffff;
+  --superficie: #f4f5f7;
+  --bordo: #d9dce1;
+  --testo: #1c1f24;
+  --tenue: #6b7280;
+  --accento: #2962ff;
+  --su: #089981;
+  --giu: #f23645;
+  --griglia: #eceef1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sfondo: #131722;
+    --superficie: #1c2030;
+    --bordo: #2a2e39;
+    --testo: #d1d4dc;
+    --tenue: #8a8f9c;
+    --accento: #2962ff;
+    --griglia: #1f2433;
+  }
+}
+:root[data-theme="dark"] {
+  --sfondo: #131722;
+  --superficie: #1c2030;
+  --bordo: #2a2e39;
+  --testo: #d1d4dc;
+  --tenue: #8a8f9c;
+  --accento: #2962ff;
+  --griglia: #1f2433;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--sfondo);
+  color: var(--testo);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--bordo);
+  flex-wrap: wrap;
+}
+.simbolo { font-size: 15px; }
+.gruppo { display: flex; gap: 2px; }
+.gruppo button, .pulsante, .strumenti button {
+  background: transparent;
+  color: var(--testo);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.gruppo button:hover, .pulsante:hover, .strumenti button:hover { background: var(--superficie); }
+.gruppo button[aria-pressed="true"], .strumenti button[aria-pressed="true"] {
+  color: var(--accento);
+  border-color: var(--accento);
+}
+.pulsante { border-color: var(--bordo); }
+.pericolo { color: var(--giu); border-color: var(--giu); }
+.campo { display: inline-flex; align-items: center; gap: 6px; color: var(--tenue); }
+.campo.blocco { display: flex; flex-direction: column; align-items: stretch; margin: 6px 0; }
+select, input[type="text"] {
+  background: var(--superficie);
+  color: var(--testo);
+  border: 1px solid var(--bordo);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font: inherit;
+}
+.stato { margin-left: auto; color: var(--tenue); font-size: 12px; }
+
+.menu { position: relative; }
+.menu summary { cursor: pointer; padding: 4px 8px; border-radius: 4px; list-style: none; }
+.menu summary:hover { background: var(--superficie); }
+.tendina {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: var(--sfondo);
+  border: 1px solid var(--bordo);
+  border-radius: 6px;
+  padding: 6px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / .25);
+}
+.tendina label { display: flex; gap: 8px; padding: 4px; cursor: pointer; }
+
+.corpo { flex: 1; display: flex; min-height: 0; }
+.strumenti {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
+  border-right: 1px solid var(--bordo);
+  overflow-y: auto;
+}
+.strumenti button { text-align: left; white-space: nowrap; font-size: 12px; }
+.strumenti hr { border: 0; border-top: 1px solid var(--bordo); margin: 4px 0; }
+.grafico { flex: 1; min-width: 0; }
+.pannello {
+  width: 270px;
+  border-left: 1px solid var(--bordo);
+  overflow-y: auto;
+  padding: 8px;
+}
+.riquadro { border-bottom: 1px solid var(--bordo); padding: 6px 0 10px; }
+.riquadro h2 { font-size: 13px; margin: 0 0 6px; }
+.riquadro select { width: 100%; }
+.tipo { color: var(--tenue); margin: 0; }
+.tf-visibili { border: 1px solid var(--bordo); border-radius: 4px; margin: 6px 0 8px; }
+.tf-visibili div { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.tf-visibili label { display: inline-flex; gap: 4px; }
+.riepilogo { margin: 8px 0; font-variant-numeric: tabular-nums; }
+.riepilogo table { width: 100%; border-collapse: collapse; }
+.riepilogo td { padding: 1px 0; }
+.riepilogo td:last-child { text-align: right; }
+.elenco { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; font-variant-numeric: tabular-nums; }
+.elenco li { padding: 3px 4px; cursor: pointer; border-radius: 3px; display: flex; justify-content: space-between; gap: 6px; }
+.elenco li:hover { background: var(--superficie); }
+.su { color: var(--su); }
+.giu { color: var(--giu); }
+.aiuto p { color: var(--tenue); margin: 0; }
+kbd { border: 1px solid var(--bordo); border-radius: 3px; padding: 0 3px; font-size: 11px; }
+
+@media (max-width: 760px) {
+  .corpo { flex-direction: column; }
+  .strumenti { flex-direction: row; border-right: 0; border-bottom: 1px solid var(--bordo); overflow-x: auto; }
+  .pannello { width: auto; border-left: 0; border-top: 1px solid var(--bordo); max-height: 35vh; }
+  .grafico { min-height: 55vh; }
+}

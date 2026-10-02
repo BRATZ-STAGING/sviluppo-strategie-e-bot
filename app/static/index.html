@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grafico XAUUSD</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/klinecharts@10.0.3/dist/umd/klinecharts.min.js"></script>
+</head>
+<body>
+<header class="barra">
+  <strong class="simbolo">XAUUSD</strong>
+  <nav id="tf" class="gruppo" aria-label="Timeframe"></nav>
+  <details class="menu" id="menu-indicatori">
+    <summary>Indicatori</summary>
+    <div class="tendina" id="indicatori"></div>
+  </details>
+  <label class="campo">Ora
+    <select id="fuso">
+      <option value="UTC">UTC</option>
+      <option value="Europe/Rome">Italia</option>
+    </select>
+  </label>
+  <button id="tema" class="pulsante" title="Tema chiaro/scuro">Tema</button>
+  <span id="stato" class="stato">collegamento...</span>
+</header>
+
+<main class="corpo">
+  <aside class="strumenti" id="strumenti" aria-label="Strumenti di disegno"></aside>
+  <div id="grafico" class="grafico"></div>
+  <aside class="pannello">
+    <section id="sel" class="riquadro" hidden>
+      <h2>Disegno selezionato</h2>
+      <p class="tipo" id="sel-tipo"></p>
+      <label class="campo blocco" id="sel-testo-riga">Testo
+        <input id="sel-testo" type="text" maxlength="200">
+      </label>
+      <fieldset class="tf-visibili">
+        <legend>Visibile su</legend>
+        <div id="sel-tf"></div>
+      </fieldset>
+      <button id="sel-elimina" class="pulsante pericolo">Elimina</button>
+    </section>
+
+    <section class="riquadro">
+      <h2>Backtest</h2>
+      <select id="bt-scelta"><option value="">nessuno</option></select>
+      <div id="bt-riepilogo" class="riepilogo"></div>
+      <ol id="bt-elenco" class="elenco"></ol>
+    </section>
+
+    <section class="riquadro aiuto">
+      <h2>Comandi</h2>
+      <p>Clic su uno strumento, poi sul grafico: un clic per punto. <kbd>Canc</kbd> elimina il disegno
+        selezionato, <kbd>Esc</kbd> annulla quello in corso. I disegni valgono su tutti i timeframe:
+        nel riquadro del disegno si sceglie dove nasconderlo.</p>
+    </section>
+  </aside>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

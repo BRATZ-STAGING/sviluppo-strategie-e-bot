@@ -23,6 +23,12 @@ Il front-end e' uno solo per la pagina pubblicata e per la futura applicazione
 di gestione: la pagina prova il payload incorporato e, se assente, lo chiede al
 server locale. Piano completo e tappe in `docs/piano-app.md`.
 
+## Web app del grafico (`app/`)
+
+Grafico simil TradingView (KLineChart 10) con disegni e backtest sopra il
+grafico: `python app/server.py [--mt5]`, porta 8095. Indipendente dal
+laboratorio; istruzioni e formato dei backtest in `app/README.md`.
+
 ## Bot in esercizio (`bots/`)
 
 Il codice che opera davvero, separato dalla ricerca in `trading/`: Expert

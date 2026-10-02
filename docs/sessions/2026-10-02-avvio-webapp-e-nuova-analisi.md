@@ -106,3 +106,22 @@ e' chiuso: non riproporlo.**
   qui e' in `docs/studies/zero/esplorazione-oro-2009-2014.md`, come
   indicazione per le famiglie, non come candidati.
 - Questa sessione passa alla **web app** (fase 3 del piano).
+
+## Web app: prima versione (02/10/2026)
+
+In `app/` (istruzioni in `app/README.md`). Provata nel browser: candele
+M1-D1 dall'archivio con caricamento della storia trascinando a sinistra,
+tutti gli strumenti di disegno chiesti (zona e rischio/rendimento scritti su
+misura), visibilita' per timeframe, salvataggio su disco, indicatori, tema
+chiaro/scuro, backtest della taratura ufficiale (348 ingressi) con elenco
+cliccabile.
+
+Da fare:
+- provare `--mt5` sul PC con il terminale aperto (non provato: qui MT5 non
+  e' stato avviato apposta)
+- scegliere quali strategie mettere nel catalogo dei backtest (decisione
+  dell'utente ancora aperta); il file della taratura ha solo ingressi e
+  stop, servono uscite e R per il riepilogo
+- installazione sul VPS (porta 8095, solo localhost, poi eventuale tunnel
+  con autenticazione)
+- lancio dei backtest dall'app: tappa successiva

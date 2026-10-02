@@ -5,3 +5,6 @@ __pycache__/
 # dettaglio grezzo degli studi: pesa centinaia di MB, sta fuori dal repo
 docs/studies/dati/ob_tocchi.parquet
 docs/studies/dati/livelli_atr.parquet
+
+# web app: disegni dell utente (dati personali, non codice)
+app/dati/
