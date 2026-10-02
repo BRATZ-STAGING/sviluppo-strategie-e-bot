@@ -95,3 +95,14 @@ e' chiuso: non riproporlo.**
 8. **Segnali**: basta il grafico, nessun avviso.
 9. **Dove lavorare**: misto — cloud col credito (scade 04/11/2026) per i
    lavori lunghi sulle M1 del repo, locale per tick, MT5 e la web app.
+
+## Decisioni successive (02/10/2026, sera)
+
+- Taglio scelto dall'utente per l'analisi: scoperta **2009-2014**, solo oro.
+- Una sessione parallela ha registrato nello stesso momento
+  `docs/ricerca-da-zero-registrazione.md` (cinque mercati, scoperta
+  2009-2017, verifica dal 2018). **L'utente ha deciso di unire le due
+  ricerche sotto quel protocollo.** L'esplorazione dell'oro 2009-2014 fatta
+  qui e' in `docs/studies/zero/esplorazione-oro-2009-2014.md`, come
+  indicazione per le famiglie, non come candidati.
+- Questa sessione passa alla **web app** (fase 3 del piano).
