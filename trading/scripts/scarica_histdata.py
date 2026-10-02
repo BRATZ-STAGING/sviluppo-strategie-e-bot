@@ -44,13 +44,18 @@ _jar = http.cookiejar.CookieJar()
 _op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(_jar))
 
 
-def scarica_zip(simbolo: str, anno: int) -> str | None:
-    dest = os.path.join(CACHE, simbolo, f"HISTDATA_COM_ASCII_{simbolo}_M1{anno}.zip")
+def scarica_zip(simbolo: str, anno: int, mese: int | None = None) -> str | None:
+    """Uno ZIP annuale, oppure mensile per l'anno in corso (HistData pubblica
+    l'anno corrente solo mese per mese)."""
+    suff = f"{anno}" if mese is None else f"{anno}{mese:02d}"
+    dest = os.path.join(CACHE, simbolo, f"HISTDATA_COM_ASCII_{simbolo}_M1{suff}.zip")
     if os.path.exists(dest) and zipfile.is_zipfile(dest):
         return dest
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     pagina = PAGINA.format(s=simbolo.lower(), a=anno)
-    for tentativo in range(5):
+    if mese is not None:
+        pagina += f"/{mese}"
+    for tentativo in range(2 if mese is not None else 5):
         try:
             html = _op.open(urllib.request.Request(pagina, headers=UA), timeout=60).read().decode("utf-8", "ignore")
             campi = dict(re.findall(r'name="(tk|date|datemonth|platform|timeframe|fxpair)"[^>]*value="([^"]*)"', html))
@@ -97,10 +102,17 @@ def main():
     simbolo, da, a = sys.argv[1].upper(), int(sys.argv[2]), int(sys.argv[3])
     uscita = os.environ.get("HD_OUT", os.path.join(ROOT, "data", "histdata", simbolo))
     os.makedirs(uscita, exist_ok=True)
+    oggi = time.localtime()
+    lavori = []
     for anno in range(da, a + 1):
-        z = scarica_zip(simbolo, anno)
+        if anno == oggi.tm_year:
+            lavori += [(anno, m) for m in range(1, oggi.tm_mon + 1)]
+        else:
+            lavori.append((anno, None))
+    for anno, mese in lavori:
+        z = scarica_zip(simbolo, anno, mese)
         if z is None:
-            print(f"{simbolo} {anno}: NON scaricato", flush=True)
+            print(f"{simbolo} {anno}{'' if mese is None else f'-{mese:02d}'}: NON scaricato", flush=True)
             continue
         df = converti(z)
         # Lo zip dell'anno A e' in EST: le ultime ore del 31/12 diventano, in
