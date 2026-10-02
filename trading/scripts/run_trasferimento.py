@@ -25,9 +25,9 @@ SCALA  ``f = 25,5968 / mediana ATR14 D1 del 2020-2024``, calcolata come quella
 
 QUALITA' (Emendamento 1, solo indici; per l'oro non c'e' ASK e non si
        applica)  giornata UTC **sana** se ha scambi (volume BID e ASK > 0) in
-       >= 95% degli 840 minuti 7-21 UTC e ASK > BID in >= 90% di quegli 840
-       minuti. Un minuto assente dal file conta come senza scambi: la regola
-       parla dei minuti 7-21, non dei minuti scaricati. Nelle giornate non
+       >= 95% degli 840 minuti 7-21 UTC (un minuto assente dal file conta
+       come senza scambi) e ASK > BID in >= 90% dei minuti 7-21 presenti su
+       entrambi i lati. Stessa definizione di ``qualita_indici.py``. Nelle giornate non
        sane non si apre nulla (ne' vero ne' placebo); le candele restano per
        gli indicatori. Gli anni con < 100 giornate sane si riportano a parte
        e non entrano nel criterio degli anni positivi.
@@ -134,8 +134,9 @@ def qualita_anno(bid: pd.DataFrame, ask: pd.DataFrame | None):
     g = j.index.normalize()
     scambi = (j.volume.values > 0) & (j.volume_ask.values > 0)
     due = (j.close_ask.values - j.close.values) > 0
-    q = pd.DataFrame({"scambi": scambi, "due": due}, index=g).groupby(level=0).sum()
-    q = q / MINUTI_SESSIONE          # sugli 840 minuti, non su quelli presenti
+    q = pd.DataFrame({"scambi": scambi, "due": due}, index=g).groupby(level=0).agg(
+        scambi=("scambi", "sum"), due=("due", "mean"))
+    q["scambi"] = q.scambi / MINUTI_SESSIONE     # sugli 840 minuti, non sui presenti
     sane = q[(q.scambi >= MIN_COPERTURA) & (q.due >= MIN_DUE_LATI)].index
     dentro = g.isin(sane)
     spread = (float(np.median(j.close_ask.values[dentro] - j.close.values[dentro]))
