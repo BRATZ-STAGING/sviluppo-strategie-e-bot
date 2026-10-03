@@ -275,6 +275,80 @@ function cambiaTf(k) {
   if (selezionato) mostraSelezione(selezionato);
 }
 
+// ------------------------------------------------------------------ zoom
+// La libreria zooma gia' da sola: rotellina = in largo, trascinare la scala
+// dei tempi = in largo, trascinare la scala dei prezzi = in alto, doppio clic
+// su di essa = scala automatica. Qui si aggiungono la rotellina in alto, lo
+// zoom generale e i pulsanti.
+//
+// Per lo zoom in alto la libreria non ha un comando: si simula il
+// trascinamento della scala dei prezzi. Cosi' lo stato resta uno solo, il
+// suo, e il doppio clic sulla scala continua a riportarlo in automatico.
+// La libreria moltiplica l'intervallo dei prezzi per (y finale / y iniziale),
+// in coordinate di pagina: per ingrandire di f basta arrivare a y0 / f. Il
+// trascinamento deve restare dentro la scala, altrimenti la libreria lo
+// ignora: si parte (o si arriva) in fondo, dove la precisione e' massima.
+function zoomAlto(f) {               // f > 1 ingrandisce le candele
+  const asse = chart.getDom("candle_pane", "yAxis");
+  if (!asse) return;
+  const r = asse.getBoundingClientRect();
+  const x = r.left + r.width / 2, fondo = r.bottom - 4 + window.scrollY;
+  const [p0, p1] = f >= 1 ? [fondo, fondo / f] : [fondo * f, fondo];
+  const y0 = p0 - window.scrollY, y1 = p1 - window.scrollY;
+  const ev = (tipo, y) => asse.dispatchEvent(new MouseEvent(tipo, {
+    bubbles: true, cancelable: true, view: window, clientX: x, clientY: y,
+    button: 0, buttons: tipo === "mouseup" ? 0 : 1,
+  }));
+  ev("mousedown", y0); ev("mousemove", y1); ev("mouseup", y1);
+}
+function zoomLargo(f, punto) { chart.zoomAtCoordinate(f, punto); }
+function adatta() {
+  // reimpostare il timeframe (un oggetto nuovo) e' l'unico modo pubblico per
+  // tornare alla scala automatica; ricarica le candele, ma e' questione di un attimo
+  chart.setPeriod({ ...TF[tfAttivo] });
+}
+function disegnaZoom() {
+  const P = 1.25;
+  const pulsanti = [
+    ["−", "Zoom indietro, in largo e in alto", () => { zoomLargo(1 / P); zoomAlto(1 / P); }],
+    ["+", "Zoom avanti, in largo e in alto", () => { zoomLargo(P); zoomAlto(P); }],
+    ["↔−", "Piu' candele (in largo)", () => zoomLargo(1 / P)],
+    ["↔+", "Meno candele, piu' larghe (in largo)", () => zoomLargo(P)],
+    ["↕−", "Scala dei prezzi piu' corta (in alto)", () => zoomAlto(1 / P)],
+    ["↕+", "Scala dei prezzi piu' lunga (in alto)", () => zoomAlto(P)],
+    ["Adatta", "Scala automatica e ultime candele", adatta],
+  ];
+  const nav = $("zoom");
+  pulsanti.forEach(([testo, titolo, fai]) => {
+    const b = document.createElement("button");
+    b.textContent = testo;
+    b.title = titolo;
+    b.onclick = fai;
+    nav.appendChild(b);
+  });
+  // rotellina: MAIUSC o sopra la scala dei prezzi = in alto, CTRL = tutti e
+  // due (e niente zoom della pagina). Senza tasti sul grafico resta quella
+  // della libreria. Il gestore e' in cattura sul contenitore, quindi arriva
+  // prima della libreria e la puo' fermare.
+  $("grafico").addEventListener("wheel", (e) => {
+    const asse = chart.getDom("candle_pane", "yAxis");
+    const r = asse ? asse.getBoundingClientRect() : null;
+    const sullaScala = r && e.clientX >= r.left && e.clientX <= r.right
+      && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (!e.shiftKey && !e.ctrlKey && !sullaScala) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const d = e.deltaY || e.deltaX;               // con MAIUSC alcuni browser girano su deltaX
+    if (!d) return;
+    const f = d < 0 ? 1.12 : 1 / 1.12;
+    if (e.ctrlKey) {
+      const g = $("grafico").getBoundingClientRect();
+      zoomLargo(f, { x: e.clientX - g.left, y: e.clientY - g.top });
+    }
+    zoomAlto(f);
+  }, { capture: true, passive: false });
+}
+
 // ------------------------------------------------------------ indicatori
 function disegnaIndicatori() {
   const attivi = memoria.leggi("indicatori", ["MA"]);
@@ -518,6 +592,7 @@ window.addEventListener("resize", () => chart.resize());
 
 applicaTema(memoria.leggi("tema", null));
 disegnaTf();
+disegnaZoom();
 disegnaStrumenti();
 disegnaIndicatori();
 caricaCatalogo();
