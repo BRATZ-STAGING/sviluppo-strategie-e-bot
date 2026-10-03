@@ -3,7 +3,7 @@
 
 Avvio:  python app/server.py [--mt5]     poi  http://127.0.0.1:8095
 
-- candele dall'archivio M1 del repository (Dukascopy, BID, UTC) per M1..D1,
+- candele dall'archivio M1 del repository (Dukascopy, BID, UTC) per M1..W1,
   caricate a pezzi di un anno solo quando servono (la RAM del PC e' poca)
 - con --mt5: ultime settimane dal terminale MT5 (ora del server del
   broker riportata a UTC, come in trading/scripts/grafico_live.py)
@@ -44,7 +44,7 @@ OGNI_MT5 = 3.0              # secondi fra due letture del terminale
 SESSIONE_M1 = 2_000         # minuti: piu' di una sessione, per trovare l'ultima riapertura
 
 TF = {"M1": "1min", "M5": "5min", "M15": "15min", "M30": "30min",
-      "H1": "1h", "H4": "4h", "D1": "1D"}
+      "H1": "1h", "H4": "4h", "D1": "1D", "W1": "1W"}
 AGG = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
 
 _lock = threading.Lock()
@@ -71,12 +71,24 @@ def m1_anno(anno: int) -> pd.DataFrame:
 def ricampiona(m1: pd.DataFrame, tf: str) -> pd.DataFrame:
     if tf == "M1":
         return m1
-    if tf == "D1":
-        # lo spezzone della domenica sera va nel lunedi': contarlo come giornata
-        # a se' crea una D1 monca ogni settimana (bug noto, CLAUDE.md)
-        giorno = m1.index.normalize()
-        giorno = giorno.where(giorno.dayofweek != 6, giorno + pd.Timedelta(days=1))
-        return m1.groupby(giorno).agg(AGG)
+    if tf in ("D1", "W1"):
+        # come le mostra il broker (e il grafico live): la giornata dell'oro va
+        # dalle 17:00 alle 17:00 di New York, quindi la domenica sera e' gia'
+        # lunedi'; la settimana va da domenica sera a venerdi'. Ogni candela
+        # porta l'istante vero di apertura, cosi' i disegni restano allineati
+        # fra i timeframe; la data della giornata la scrive la pagina.
+        if m1.empty:
+            return m1
+        h1 = m1.resample("1h").agg(AGG).dropna(subset=["open"])
+        # +7 ore: le 17:00 di New York diventano mezzanotte, ora legale compresa
+        g = (h1.index.tz_convert("America/New_York").tz_localize(None)
+             + pd.Timedelta(hours=7)).normalize()
+        if tf == "W1":
+            g = g - pd.to_timedelta(g.dayofweek, unit="D")
+        out = h1.groupby(g).agg(AGG)
+        inizio = pd.DatetimeIndex(out.index) - pd.Timedelta(hours=7)
+        out.index = inizio.tz_localize("America/New_York").tz_convert("UTC")
+        return out
     return m1.resample(TF[tf]).agg(AGG).dropna(subset=["open"])
 
 
@@ -123,8 +135,14 @@ def barre_prima(tf: str, prima: pd.Timestamp | None, n: int):
         quante += len(b)
     if not pezzi:
         return pd.DataFrame(columns=list(AGG)), False
-    tutto = pd.concat(pezzi[::-1]).sort_index()
-    tutto = tutto[~tutto.index.duplicated(keep="last")]
+    tutto = pd.concat(pezzi[::-1]).sort_index(kind="stable")
+    if tf in ("D1", "W1"):
+        # una giornata o una settimana puo' stare a cavallo fra due fonti
+        # (archivio e terminale, o due anni dell'archivio): i pezzi non si
+        # sovrappongono, quindi vanno sommati, non scartati
+        tutto = tutto.groupby(level=0).agg(AGG)
+    else:
+        tutto = tutto[~tutto.index.duplicated(keep="last")]
     if tutto.empty:
         return tutto, False
     altre = len(tutto) > n or any(a < tutto.index[0].year for a in anni_archivio())

@@ -5,7 +5,7 @@ const TF = {
   M1: { type: "minute", span: 1 }, M5: { type: "minute", span: 5 },
   M15: { type: "minute", span: 15 }, M30: { type: "minute", span: 30 },
   H1: { type: "hour", span: 1 }, H4: { type: "hour", span: 4 },
-  D1: { type: "day", span: 1 },
+  D1: { type: "day", span: 1 }, W1: { type: "week", span: 1 },
 };
 const NOME_TF = (p) => Object.keys(TF).find((k) => TF[k].type === p.type && TF[k].span === p.span);
 
@@ -200,6 +200,16 @@ klinecharts.registerOverlay({
 
 // ----------------------------------------------------------------- grafico
 const chart = klinecharts.init("grafico", { timezone: memoria.leggi("fuso", "UTC") });
+// D1 e W1 iniziano alle 17:00 di New York del giorno prima (vedi server.py):
+// +7 ore portano alla data della giornata di contrattazione, come la scrive
+// il broker, sia in UTC sia in ora italiana
+chart.setFormatter({
+  formatDate: ({ dateTimeFormat, timestamp, template }) => {
+    const p = chart.getPeriod();
+    const lungo = p && (p.type === "day" || p.type === "week");
+    return klinecharts.utils.formatDate(dateTimeFormat, lungo ? timestamp + 7 * 3600e3 : timestamp, template);
+  },
+});
 $("fuso").value = memoria.leggi("fuso", "UTC");
 chart.setSymbol({ ticker: "XAUUSD", pricePrecision: 2, volumePrecision: 2 });
 

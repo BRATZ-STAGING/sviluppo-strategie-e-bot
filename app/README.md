@@ -21,8 +21,9 @@ occupata.
 
 ## Cosa c'e'
 
-- timeframe M1, M5, M15, M30, H1, H4, D1; la D1 conta lo spezzone della
-  domenica sera nel lunedi'
+- timeframe M1, M5, M15, M30, H1, H4, D1, W1; D1 e W1 come le mostra il
+  broker: la giornata va dalle 17:00 alle 17:00 di New York (la domenica
+  sera e' gia' lunedi'), la settimana da domenica sera a venerdi'
 - indicatori: MA, EMA, Bollinger, SAR sul prezzo; volume, RSI, MACD sotto
 - disegni: trendline, semiretta, retta, orizzontali, verticale, canale,
   zona (con etichetta), nota, Fibonacci, rischio/rendimento (tre clic:
