@@ -306,11 +306,13 @@ La scheda diceva che avviarle e' "una scommessa sul fatto che il regime del
   4.676 $;
 - **non era un problema di unita' di misura** (appendice BX). Riscrivere tutte
   le soglie in ATR stabilizza le occasioni fra le epoche (da 17-80 l'anno a
-  41-64) ma **non restituisce il vantaggio**: il 2009-2019 resta a +0,046 R/op
-  lordo contro +0,72 del 2023-2026;
+  41-64) ma **non restituisce il vantaggio**: il 2009-2019 resta a +0,013 R/op
+  lordo contro +0,54 del 2023-2026 (corretto 04/10/2026, appendice BX; prima
+  +0,046 contro +0,72, con la finestra di 30 giorni senza chiusura alle 21);
 - **non e' la tendenza di fondo**: condizionando sulla pendenza a 200 giorni,
   la fascia "sale forte" rende −0,001 netto nel 2009-2019 e +0,580 nel
-  2020-2026.
+  2020-2026 (numeri della finestra di 30 giorni, non rifatti dopo la
+  correzione del 04/10/2026: vedi appendice BX).
 
 Cioe': **il vantaggio compare nel 2020 e nessuna grandezza misurabile del
 mercato cambia insieme a lui.** La spiegazione piu' parsimoniosa resta che la

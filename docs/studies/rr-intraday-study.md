@@ -5168,6 +5168,54 @@ cartellino.
 
 ## Appendice BX: se non e' il regime, sara' un problema di unita'? — no
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_soglie_relative.py` valutava le operazioni su
+> un percorso di **30 giorni** (`GIORNI_MAX = 30`), senza la chiusura delle
+> 21:00 UTC e senza quella del venerdi'. L'appendice dichiara "le stesse
+> identiche regole" della taratura, che chiude alle 21: e' il difetto di BM,
+> non una scelta. **Prova** (`XAU_ANNI=2009-2026`): lo script vecchio
+> riproduce la tabella pubblicata alla terza cifra (parquet identico
+> all'originale); con la sua finestra, gestione 1:10 + pareggio, escono dopo
+> le 21:00 del giorno d'ingresso **255 operazioni ufficiali su 712** con le
+> soglie in dollari (92 passano il fine settimana, fino a 23,4 giorni) e 300
+> su 955 con le soglie relative; con la 1:2, 129 su 712 e 143 su 955. Sul
+> campione largo 945 su 2.680 e 1.092 su 3.542. **Corretto** (percorso fino
+> all'ultima candela prima delle 21:00 del giorno d'ingresso, come
+> `run_prodotto_clienti.py` dopo `d939560`). `soglie_relative.parquet`
+> rigenerato (cambia contenuto; righe e operazioni uguali).
+>
+> Campione ufficiale, 1:10 + pareggio a +3R, spread relativo 0,019% del
+> prezzo ("Prima:" il valore pubblicato):
+>
+> | periodo | soglie | lordo R/op | netto R/op | anni+ |
+> |---|---|---|---|---|
+> | **2009-2019** | dollari | **+0,004** (Prima: +0,052) | **−0,088** (Prima: −0,041) | 2/11 (Prima: 3/11) |
+> | **2009-2019** | **relative** | **+0,013** (Prima: +0,046) | **−0,107** (Prima: −0,074) | 3/11 |
+> | 2020-2022 | dollari | +0,430 (Prima: +0,525) | +0,335 (Prima: +0,429) | 2/3 (Prima: 3/3) |
+> | 2020-2022 | relative | +0,431 (Prima: +0,442) | +0,332 (Prima: +0,343) | 3/3 |
+> | 2023-2026 | dollari | +0,599 (Prima: +0,759) | +0,496 (Prima: +0,656) | 4/4 (Prima: 3/4) |
+> | 2023-2026 | relative | +0,544 (Prima: +0,722) | +0,439 (Prima: +0,617) | 4/4 (Prima: 3/4) |
+>
+> Netto 2009-2019: −33,0 R in dollari (Prima: −15,2), −64,4 R relative
+> (Prima: −44,4). Con la 1:2 (ufficiali, 2009-2019): −0,130 R/op in dollari
+> (Prima: −0,214), −0,160 relative (Prima: −0,204). Campione largo 1:10,
+> 2009-2019: −0,125 (Prima: −0,142) e −0,099 (Prima: −0,137); 2020-2022
+> +0,035 (Prima: +0,230) e +0,007 (Prima: +0,171).
+>
+> **Cosa cambia nelle conclusioni.** Niente nel verso, ma piu' netto.
+> (A) **Respinta come prima**: con le soglie relative il 2009-2019 peggiora
+> (−0,088 -> −0,107 R/op) e il suo lordo e' praticamente zero (+0,013, non
+> +0,046): non "dieci-quindici volte piu' piccolo" del 2020-2026 ma
+> **trenta-quaranta volte**. (B) **Confermata**: sul 2020-2022 relative e
+> dollari sono identici (+0,431 contro +0,430 lordo), sul 2023-2026 le
+> relative calano (0,599 -> 0,544, non 0,759 -> 0,722). (C) Invariata: il
+> numero di operazioni non dipende dall'uscita. Le due frasi sulla pendenza
+> della media a 200 giorni ("sale forte" −0,001 netto nel 2009-2019 e +0,580
+> nel 2020-2026; "oro che scende" +0,080 e +0,397) **non vengono dallo
+> script** e la loro definizione delle fasce non e' scritta: sono numeri del
+> percorso a 30 giorni, non rifatti, da considerare non verificati. Il testo
+> qui sotto e' quello originale, con i numeri del 30 giorni.
+
 Se il mercato non e' cambiato ma il prezzo si', allora le soglie in **dollari
 fissi** della taratura (impulso 4 $, rischio 1-10 $, buffer 0,30 $), scelte
 sul 2020-2026 con l'oro fra 1.800 e 4.700, applicate al 2009-2019 con l'oro

@@ -69,7 +69,10 @@ from run_scalp_scaglioni import cammina_uno                      # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 MEDIANA_ATR = 25.5968
-GIORNI_MAX = 30
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura), come genera() e verifica_bot.Percorsi. Fino al
+# 04/10/2026 qui c'era GIORNI_MAX = 30 e il percorso durava 30 giorni: nessuna
+# chiusura serale ne' del venerdi' (docs/studies/rr-intraday-study.md, BX)
 PERIODI = [("2009-2019", 2009, 2019), ("2020-2022", 2020, 2022),
            ("2023-2026", 2023, 2026)]
 # spread misurato (appendice BN). Prima del 2021 non e' misurato: si usa lo
@@ -87,7 +90,8 @@ def esiti(ops, m1, gestione):
         segno = 1 if o["lato"] == "long" else -1
         e, k = o["entry"], float(o["rischio"])
         a = int(np.searchsorted(idx, t_in.value))
-        b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+            hours=T.ora_chiusura)).value))
         if b - a < 2:
             continue
         o_, h_, l_, c_ = ap_[a:b], hi[a:b], lo[a:b], cl[a:b]
