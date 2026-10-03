@@ -1,5 +1,18 @@
 # Consegna: avviare i bot sul VPS — 04/08/2026
 
+> **CORREZIONE 04/10/2026.** La tabella del paragrafo 1 veniva da
+> `verifica_bot.py`, che aveva due difetti: cercava la chiusura di fine
+> giornata nella candela delle 21:00 UTC, che con l'ora legale USA non esiste
+> (d'estate "in uso" e 1:2 restavano aperte per giorni), e la A non chiudeva
+> mai il venerdi'. Corretti (commit f32f32f; dettaglio in
+> `docs/studies/verifica-bot-discrepanze.md`), i numeri coincidono con quelli
+> del motore ufficiale. La B non cambia. Cambiano: in uso da +214,7 a
+> **+163,2 R** (DD 20,8 -> 16,3, 23 -> **11** perdite di fila, 6/7 -> **7/7**),
+> A da +206,2 a **+181,3 R** (DD 26,3 -> 15,9, 24 -> 15 di fila), 1:2 da +86,6
+> a **+71,3 R** (6/7 -> **5/7**). **Conclusioni cambiate**: la B resta la prima
+> da avviare (miglior R/DD), ma non e' piu' "l'unica senza un anno in
+> perdita" (lo sono anche in uso e A) e la 1:2 ha due anni negativi, non uno.
+
 Questo file esiste per una cosa sola: permettere a una sessione nuova di
 **mettere in produzione le strategie senza rifare la ricerca**. La ricerca e'
 finita e i suoi esiti sono qui sotto in forma corta. Chi vuole i dettagli
@@ -19,15 +32,21 @@ gestione dell'uscita. Numeri su **2020-2026, 333 operazioni, spread vero**:
 
 | | R totale | R/op | vinte% | DD R | R/DD | anni+ | anno peggiore | mesi+ | perdite di fila |
 |---|---|---|---|---|---|---|---|---|---|
-| **B** — 1:8, trail MFE−2 da +3R, weekend se >+1R | +174,6 | 0,52 | 38,4% | **12,6** | **13,85** | **7/7** | **+11,9 R** | **55,1%** | **12** |
-| in uso — 1:10, pareggio +3R, EOD 21 UTC | +214,7 | 0,64 | 21,3% | 20,8 | 10,33 | 6/7 | −3,6 R | 44,9% | 23 |
-| A — 1:8, pareggio +3R, chiude venerdi' | +206,2 | 0,62 | 16,8% | 26,3 | 7,84 | 7/7 | +7,5 R | 43,5% | 24 |
-| 1:2 secco, niente pareggio, EOD | +86,6 | 0,26 | **46,9%** | 12,3 | 7,02 | 6/7 | −2,6 R | 52,2% | **7** |
+| **B** — 1:8, trail MFE−2 da +3R, weekend se >+1R | +174,6 | 0,52 | 38,4% | 12,6 | **13,85** | **7/7** | +11,9 R | **55,1%** | 12 |
+| in uso — 1:10, pareggio +3R, EOD 21 UTC | +163,2 | 0,49 | 35,7% | 16,3 | 10,02 | **7/7** | +8,4 R | 49,3% | 11 |
+| A — 1:8, pareggio +3R, chiude venerdi' | **+181,3** | **0,54** | 24,0% | 15,9 | 11,44 | **7/7** | **+12,9 R** | 43,5% | 15 |
+| 1:2 secco, niente pareggio, EOD | +71,3 | 0,21 | **48,1%** | **10,9** | 6,52 | 5/7 | −2,6 R | 52,2% | **7** |
 
-**Da avviare per prima: la B.** Non e' quella che rende di piu' in R, e' quella
-che rende di piu' per unita' di sofferenza — e l'unica senza un solo anno in
-perdita. Per un 6% annuo: rischio **0,24% per operazione**, perdita massima
-attesa **3,0% del conto**.
+**Da avviare per prima: la B.** Non e' quella che rende di piu' in R (e' la A),
+e' quella che rende di piu' per unita' di sofferenza (R/DD 13,85 contro 11,44
+della A e 10,02 della in uso) e con piu' mesi positivi. Non e' piu' l'unica
+senza un anno in perdita: con i numeri corretti anche in uso e A sono 7/7, e
+la A ha l'anno peggiore migliore (+12,9 R). Per un 6% annuo: rischio **0,24%
+per operazione**, perdita massima attesa **3,0% del conto**.
+
+I numeri della in uso coincidono con quelli del motore ufficiale (tabella
+2020-2026 di `bots/SCHEDE-STRATEGIE.md`, +171,97 R con spread 0,30); per A e
+B quella tabella include lo swap, che qui non c'e'.
 
 Riprodurre i numeri: `XAU_ANNI=2020-2026 python3 trading/scripts/verifica_bot.py`
 
@@ -141,8 +160,8 @@ non rilanciati**: vanno cancellati i marcatori `.empty` degli anni mancanti
 
 ## 7. Il cappello onesto
 
-Le strategie rendono in ogni anno dal 2020 al 2026 e perdono in undici anni su
-undici prima. Non ho trovato **nessuna** grandezza misurabile del mercato che
+Le strategie rendono in ogni anno dal 2020 al 2026 (tutte tranne la 1:2, che
+ha due anni negativi) e perdono in undici anni su undici prima. Non ho trovato **nessuna** grandezza misurabile del mercato che
 cambi insieme al risultato: volatilita' relativa al prezzo, spread relativo,
 quota di escursione notturna, persistenza infragiornaliera, direzionalita' e
 tendenza di fondo sono uguali nei due periodi.

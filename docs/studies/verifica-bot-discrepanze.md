@@ -132,6 +132,14 @@ e' una differenza legittima e vale 0,025 R su undici anni.
 
 ## 6. Correzione proposta (NON applicata: cambierebbe i numeri pubblicati)
 
+> **Aggiornamento 04/10/2026: APPLICATA** in `verifica_bot.py` (commit
+> f32f32f) e nelle tre copie del motore in `sfida_prop.py`,
+> `portafoglio_quattro.py`, `run_pareggio_sopra.py` (commit 1adeb9f). I numeri
+> di in uso, A, 1:2, C e D sono stati corretti in
+> `docs/CONSEGNA-BOT-2026-08.md`, `docs/AVVIO-MT5-VPS.md` e
+> `bots/SCHEDE-STRATEGIE.md`, con un riquadro "CORREZIONE 04/10/2026" in testa.
+> Lo swap ad A e B non e' stato aggiunto.
+
 In `Percorsi.__init__`, al posto di `hour == 21 & minute == 0`:
 
 ```python

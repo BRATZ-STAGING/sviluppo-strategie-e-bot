@@ -8,6 +8,24 @@ Da leggere prima: `bots/SCHEDE-STRATEGIE.md` (specifica completa dell'ingresso,
 con l'aggiornamento del 04-05/08 in fondo) e `docs/vps.md` (la macchina).
 Contesto e limiti della ricerca: `docs/CONSEGNA-BOT-2026-08.md`.
 
+> **CORREZIONE 04/10/2026.** I numeri di C e D di questo documento venivano da
+> script con due difetti (`verifica_bot.py` e le sue copie in `sfida_prop.py`
+> e nei calcoli dei profili): la chiusura delle 21:00 UTC cercava una candela
+> che con l'ora legale USA non esiste, quindi d'estate C e D restavano aperte
+> per giorni. Corretti (commit f32f32f e 1adeb9f; dettaglio in
+> `docs/studies/verifica-bot-discrepanze.md`), coincidono col motore
+> ufficiale. **La B non cambia.** C: +86,6 -> **+71,3 R**, DD 12,33 -> 10,92,
+> anni+ 6/7 -> **5/7**, fase 1 88% -> 88%, giorni 258 -> **272**. D (solo
+> long): +220,7 -> **+144,9 R**, DD 18,71 -> **11,64**, perdite di fila 11 -> 9,
+> fase 1 90% -> **92%**, giorni 221 -> **242**. La vecchia colonna D mescolava
+> numeri solo long e dei due lati: ora e' tutta solo long. **Conclusioni
+> cambiate**: (1) gli short della D **non perdono** (+20,6 R, 4/7): togliere
+> lo short non e' piu' "una correzione" ma una scelta (meno R, meno drawdown,
+> miglior R/DD, un anno negativo); (2) sulla C il combinato non batte piu' il
+> solo long; (3) le taglie in vigore (0,75 / 0,75 / 0,53%) **non pareggiano
+> piu' il drawdown**: con la stessa regola sarebbero 0,75 / 0,85 / 0,80%. Le
+> regole e le taglie non sono state cambiate: la scelta resta all'utente.
+
 ---
 
 ## 1. I tre profili da avviare
@@ -33,25 +51,35 @@ Separando i due lati (con il filtro D1 attivo, cioe' la configurazione viva):
 |---|---|---|---|---|---|---|---|---|
 | **B** | long | 232 | +155,9 | 0,67 | 41,8% | **10,94** | **14,26** | **7/7** |
 | | short | 101 | +18,6 | 0,18 | 30,7% | 19,29 | **0,97** | 5/7 |
-| **C** | long | 232 | +74,6 | 0,32 | 49,1% | 11,27 | 6,62 | 5/7 |
-| | short | 101 | +12,1 | 0,12 | 41,6% | 9,74 | **1,24** | 4/7 |
-| **D** | long | 232 | **+220,7** | **0,95** | 43,5% | **18,71** | **11,80** | 6/7 |
-| | short | 101 | **−10,7** | **−0,11** | 28,7% | 26,62 | **−0,40** | **2/7** |
+| **C** | long | 232 | +63,6 | 0,27 | 50,4% | 9,57 | 6,64 | 5/7 |
+| | short | 101 | +7,7 | 0,08 | 42,6% | 10,42 | **0,74** | 4/7 |
+| **D** | long | 232 | **+144,9** | **0,62** | 46,6% | **11,64** | **12,45** | 6/7 |
+| | short | 101 | +20,6 | 0,20 | 34,7% | 17,33 | **1,19** | 4/7 |
 
-Gli short della D perdono su 101 operazioni con **2 anni positivi su 7**, e si
-portano dietro un drawdown (26,62 R) piu' grande di quello dell'intera
-strategia. Solo long: **+220,7 R con DD 18,71** contro +209,9 con DD 19,77 —
-**rende di piu' e rischia meno**. Non e' una scelta, e' una correzione, e la
-taglia sale da 0,50% a **0,53%**.
+*(Corretto il 04/10/2026: prima C long +74,6 / short +12,1, D long +220,7 /
+short −10,7 con 2 anni positivi su 7.)*
+
+Con i numeri corretti gli short della D **guadagnano** (+20,6 R su 101
+operazioni, 4 anni positivi su 7), ma si portano dietro un drawdown (17,33 R)
+piu' grande di quello dell'intera strategia (16,29). Solo long: **+144,9 R con
+DD 11,64** contro +165,5 con DD 16,29 — **rende il 12% in meno e ha il 29% di
+drawdown in meno** (R/DD 12,45 contro 10,16), ma perde il 7/7: il 2026 solo
+long e' −1,1 R. Non e' piu' una correzione ma **una scelta**; la regola resta
+solo long finche' l'utente non decide altrimenti. La taglia era salita da
+0,50% a 0,53% per tenere lo stesso drawdown in percentuale (−9,9%); con il
+drawdown corretto lo 0,53% fa −6,2% (vedi sotto).
 
 Sulla **B** gli short sono marginali: guadagnano quanto il buco che scavano
 (R/DD 0,97). Solo long sarebbe leggermente meglio (R/DD 14,26 contro 13,85,
 drawdown da 12,60 a 10,94 R, taglia fino a 0,86%). **Restano entrambi i lati**
-perche' il margine e' piccolo e la B e' l'unica 7/7 su tutti e due; chi avvia
-puo' scegliere solo-long sapendo che e' difendibile.
+perche' il margine e' piccolo e la B e' 7/7 con tutti e due (con i numeri
+corretti lo e' anche la D a due lati, non la C); chi avvia puo' scegliere
+solo-long sapendo che e' difendibile.
 
-Sulla **C** gli short pagano il loro spazio (R/DD 1,24, e il combinato 7,02
-batte il solo long 6,62): **restano**.
+Sulla **C** gli short non pagano piu' il loro spazio come sembrava: R/DD 0,74,
+e il combinato (6,52) e' appena sotto il solo long (6,64), mentre prima lo
+batteva (7,02 contro 6,62). La differenza e' piccola come sulla B e **restano**
+(regola non cambiata), ma la ragione data allora non regge piu'.
 
 **Il caveat, che va detto:** il 2020-2026 e' un mercato toro dell'oro, da 1.775
 a 4.676 $. Un solo-long in un toro *deve* sembrare buono, e in questo campione
@@ -60,23 +88,34 @@ regime. L'unica cosa che rende la scelta meno sospetta e' che **"lo short da
 solo perde" era gia' documentato nell'appendice 7**, prima di questa analisi:
 e' la conferma di un fatto noto, non un risultato pescato oggi.
 
-Attese misurate su 333 operazioni, 2020-2026, spread reale:
+Attese misurate su 333 operazioni (la D sulle sue 232 long), 2020-2026,
+spread reale:
 
 | | B | C | D |
 |---|---|---|---|
-| R totale | +174,6 | +86,6 | **+220,7 (solo long)** |
-| R per operazione | 0,52 | 0,26 | **0,95 (solo long)** |
-| win rate | 38,4% | **46,9%** | 39,0% |
-| drawdown massimo | 12,60 R -> **−9,45%** | 12,33 R -> **−9,25%** | **18,71 R (solo long) -> −9,92%** |
-| perdite consecutive | 12 | **7** | 11 |
-| anni positivi | **7/7** | 6/7 | 6/7 |
-| anno peggiore | +11,9 R | −2,6 R | −2,6 R |
-| sfida FundingPips, fase 1 | **97%** | 88% | 90% |
-| giorni mediani per passarla | **156** | 258 | 221 |
+| R totale | **+174,6** | +71,3 | +144,9 |
+| R per operazione | 0,52 | 0,21 | **0,62** |
+| win rate | 38,4% | **48,1%** | 46,6% |
+| drawdown massimo | 12,60 R -> **−9,45%** (0,75%) | 10,92 R -> **−8,19%** (0,75%) | 11,64 R -> **−6,17%** (0,53%) |
+| perdite consecutive | 12 | **7** | 9 |
+| anni positivi | **7/7** | 5/7 | 6/7 |
+| anno peggiore | **+11,9 R** | −2,6 R | −1,1 R |
+| sfida FundingPips, fase 1 | **97%** | 88% | 92% |
+| giorni mediani per passarla | **156** | 272 | 242 |
 
-Le tre taglie sono diverse **perche' i drawdown sono diversi**: pareggiando il
-rischio in percentuale di conto, tutte e tre atterrano fra −9,25% e −9,89%,
-cioe' con 2,1-2,8 punti di margine sul limite del 12%.
+*(Corretto il 04/10/2026; la colonna D ora e' tutta solo long, prima mescolava
+numeri solo long e dei due lati. Vecchi valori: C +86,6 / 0,26 / 46,9% / DD
+12,33 / 6/7 / fase 1 88% / 258 giorni; D +220,7 / 0,95 / 39,0% / DD 18,71 /
+11 di fila / 6/7 / −2,6 / 90% / 221 giorni.)*
+
+Le tre taglie erano state scelte diverse **perche' i drawdown sono diversi**,
+pareggiando il rischio in percentuale di conto (allora fra −9,25% e −9,89%).
+Con i drawdown corretti le taglie in vigore **non pareggiano piu'**: B −9,45%,
+C −8,19%, D −6,17%, cioe' 2,6 / 3,8 / 5,8 punti di margine sul limite del 12%.
+Con la stessa regola (drawdown al livello della B) le taglie sarebbero
+**C 0,85%** (−9,28%; fase 1 88%, 233 giorni) e **D 0,80%** (−9,31%; fase 1 93%,
+204 giorni), zero violazioni in entrambi i casi. Non sono state cambiate qui:
+la decisione e' dell'utente.
 
 ### Sotto il lotto minimo, l'operazione si salta
 
@@ -219,8 +258,9 @@ qualcosa da dire molto prima che la sfida finisca.
 
 ## 6. Cosa aspettarsi, detto onestamente
 
-Le tre strategie rendono in ogni anno dal 2020 al 2026 e **perdono in undici
-anni su undici prima**. Non e' stata trovata **nessuna** grandezza misurabile
+Le tre strategie rendono nel 2020-2026 (la B in ogni anno, la C in cinque su
+sette, la D solo long in sei su sette) e **perdono in undici anni su undici
+prima**. Non e' stata trovata **nessuna** grandezza misurabile
 del mercato che cambi insieme al risultato: volatilita' relativa al prezzo,
 spread relativo, quota di escursione notturna, persistenza infragiornaliera,
 direzionalita' e tendenza di fondo sono uguali nei due periodi (appendici BW e

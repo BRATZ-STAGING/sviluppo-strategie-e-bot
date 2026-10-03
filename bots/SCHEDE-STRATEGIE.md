@@ -1,5 +1,28 @@
 # Le tre strategie da portare sul bot
 
+> **CORREZIONE 04/10/2026.** Le tabelle dell'aggiornamento del 04/08 e delle
+> sezioni sulla sfida venivano da `verifica_bot.py` e da tre script con la
+> stessa copia del motore (`sfida_prop.py`, `portafoglio_quattro.py`,
+> `run_pareggio_sopra.py`). Due difetti: la chiusura delle 21:00 UTC cercava
+> una candela che con l'ora legale USA non esiste (d'estate "in uso", 1:2 e
+> "in uso +0,50R" restavano aperte per giorni) e la A non chiudeva mai il
+> venerdi'. Corretti (commit f32f32f e 1adeb9f; dettaglio in
+> `docs/studies/verifica-bot-discrepanze.md`) coincidono col motore ufficiale:
+> la tabella "I numeri" qui sotto (spread 0,30, con swap) era gia' giusta e ora
+> le due tabelle dicono la stessa cosa. **La B non cambia.** In uso: +214,7 ->
+> **+163,2 R**, DD 20,8 -> 16,3, 23 -> **11** perdite di fila, 6/7 -> **7/7**.
+> A: +206,2 -> **+181,3 R**, DD 26,3 -> 15,9, 24 -> 15 di fila. 1:2: +86,6 ->
+> **+71,3 R**, 6/7 -> **5/7**. **Conclusioni cambiate**: (1) la B batte la in
+> uso anche in R assoluti (+7%, non −19%) e non e' piu' l'unica 7/7; (2) la in
+> uso ha la striscia di perdite piu' corta dopo la 1:2 (11), quindi la tabella
+> dei margini e il "non oltre lo 0,50%" vanno riletti (par. 7); (3) il pareggio
+> a +0,50R **non** dimezza piu' le serie della in uso (11 -> 11) e non ne
+> cambia il drawdown; resta utile sulla A; (4) la "Nota sui conteggi" in fondo
+> era sbagliata: 23-24 perdite di fila e 21% di vinte erano il difetto, non
+> una convenzione; (5) le taglie della configurazione finale non pareggiano
+> piu' il drawdown (C 0,85% e in uso +0,50R 0,55% con la stessa regola). Le
+> regole delle strategie e le taglie in vigore non sono state cambiate.
+
 Specifica congelata per l'implementazione. Tutto quello che serve a scrivere
 un Expert Advisor senza tornare a chiedere. I numeri vengono da
 `trading/framework/taratura.py` e dalle misure in
@@ -153,6 +176,12 @@ Sullo storico completo **2009-2026**, con i suoi undici anni mai visti:
 | perdita massima 2009-2019 | **51,69 R** | 62,24 R | **87,37 R** |
 | 2009-2026 | +115,12 R | +121,56 R | +85,19 R |
 
+*(04/10/2026: con `verifica_bot.py` corretto, alla stessa parita' di spread e
+swap, le due tabelle 2020-2026 coincidono: in uso +171,97 identica; la B di
+`verifica_bot` senza swap fa +183,34, cioe' questa +173,89 piu' i 9,45 R di
+swap; la A resta entro 1,4 R per la chiusura del venerdi' d'inverno, vedi
+`docs/studies/verifica-bot-discrepanze.md`.)*
+
 **La perdita massima da usare per il dimensionamento e' quella della riga
 2009-2019**, non quella del periodo buono: al rischio dell'1% per operazione
 sono 52 punti di conto per la strategia in uso e 87 per la B.
@@ -221,12 +250,17 @@ minimo 0,330 alle 15 UTC, massimo 0,456 alle 22, il 38% di escursione.
 
 | strategia | R totale | R/op | vinte% | DD R | **R/DD** | anni+ | anno peggiore | mesi+ | perdite di fila |
 |---|---|---|---|---|---|---|---|---|---|
-| in uso 1:10, pareggio +3R, EOD | +214,7 | 0,64 | 21,3% | 20,8 | 10,33 | 6/7 | **−3,6 R** | 44,9% | **23** |
-| A · 1:8, pareggio +3R, chiude venerdi' | +206,2 | 0,62 | 16,8% | 26,3 | 7,84 | **7/7** | +7,5 R | 43,5% | **24** |
-| **B · 1:8, trail MFE−2 da +3R, weekend se >+1R** | **+174,6** | 0,52 | 38,4% | **12,6** | **13,85** | **7/7** | **+11,9 R** | **55,1%** | **12** |
-| **1:2 secco, niente pareggio, EOD** (nuova) | +86,6 | 0,26 | **46,9%** | 12,3 | 7,02 | 6/7 | −2,6 R | 52,2% | **7** |
+| in uso 1:10, pareggio +3R, EOD | +163,2 | 0,49 | 35,7% | 16,3 | 10,02 | **7/7** | +8,4 R | 49,3% | 11 |
+| A · 1:8, pareggio +3R, chiude venerdi' | **+181,3** | **0,54** | 24,0% | 15,9 | 11,44 | **7/7** | **+12,9 R** | 43,5% | 15 |
+| **B · 1:8, trail MFE−2 da +3R, weekend se >+1R** | +174,6 | 0,52 | 38,4% | 12,6 | **13,85** | **7/7** | +11,9 R | **55,1%** | 12 |
+| **1:2 secco, niente pareggio, EOD** (nuova) | +71,3 | 0,21 | **48,1%** | **10,9** | 6,52 | 5/7 | −2,6 R | 52,2% | **7** |
 
-La correzione del costo vale **il 4%** del totale (in uso: da +223,4 a +214,7).
+*(Corretta il 04/10/2026. Prima: in uso +214,7 / 21,3% / DD 20,8 / 10,33 /
+6/7 / −3,6 R / 44,9% / 23 di fila; A +206,2 / 16,8% / 26,3 / 7,84 / +7,5 R /
+24 di fila; 1:2 +86,6 / 46,9% / 12,3 / 7,02 / 6/7.)*
+
+La correzione del costo vale **il 5%** del totale (in uso: da +171,97 a
++163,19).
 E' poco, e il motivo e' importante: lo **stop strutturale cresce da solo** con
 la volatilita' — mediana 4,2 $ nel 2020, 14,8 $ nel 2026 — quindi il costo
 relativo resta al 9,8% invece di salire. Una strategia a stop fisso non ha
@@ -234,26 +268,31 @@ questa protezione: con 3 $ fissi il costo e' passato dal 10% al 21%.
 
 ## 3. Quale avviare: **la B**, non quella in uso
 
-Su ogni misura che conta per un conto da far vedere a qualcuno, la B vince:
+Su quasi ogni misura che conta per un conto da far vedere a qualcuno, la B
+vince:
 
 | | in uso | **B** |
 |---|---|---|
-| anni positivi | 6/7 | **7/7** |
-| anno peggiore | −3,6 R | **+11,9 R** (nessun anno in perdita) |
-| perdita massima | 20,8 R | **12,6 R** |
-| rendimento per unita' di perdita | 10,33 | **13,85** |
-| mesi positivi | 44,9% | **55,1%** |
-| perdite consecutive | 23 | **12** |
+| anni positivi | **7/7** | **7/7** |
+| anno peggiore | +8,4 R | **+11,9 R** |
+| perdita massima | 16,3 R | **12,6 R** |
+| rendimento per unita' di perdita | 10,02 | **13,85** |
+| mesi positivi | 49,3% | **55,1%** |
+| perdite consecutive | **11** | 12 |
 
-Rende il 19% in meno in R assoluti e li restituisce tutti in sopportabilita'.
+Con i numeri corretti la B rende anche il **7% in piu'** in R assoluti (174,6
+contro 163,2); la in uso ha solo una perdita consecutiva in meno. *(Prima della
+correzione del 04/10/2026 la in uso sembrava rendere il 19% in piu', con 6/7
+anni, DD 20,8 e 23 perdite di fila.)*
 
 **Dimensionamento per un 6% annuo**: rischio **0,24% per operazione**, che
 porta la perdita massima attesa al **3,0% del conto**. Per un 10% annuo:
 rischio 0,40%, perdita massima 5,0%.
 
 La **1:2 secca** e' l'alternativa se serve il tasso di vincite piu' alto
-(46,9% contro 38,4%) e la striscia di perdite piu' corta (7 contro 12): costa
-un anno negativo su sette e un drawdown doppio a parita' di rendimento.
+(48,1% contro 38,4%) e la striscia di perdite piu' corta (7 contro 12): costa
+due anni negativi su sette (2023 −0,3 R, 2026 −2,6 R) e un drawdown piu' che
+doppio a parita' di rendimento (6,4% contro 3,0% del conto per un 6% annuo).
 
 ## 4. L'avvertenza va rafforzata, non ammorbidita
 
@@ -309,22 +348,23 @@ operazioni (`trading/scripts/portafoglio_quattro.py`):
 
 | correlazione | in uso | A | B | 1:2 |
 |---|---|---|---|---|
-| **in uso** | 1,000 | 0,876 | 0,683 | 0,547 |
-| **A** | 0,876 | 1,000 | 0,782 | 0,570 |
-| **B** | 0,683 | 0,782 | 1,000 | 0,707 |
-| **1:2** | 0,547 | 0,570 | 0,707 | 1,000 |
+| **in uso** | 1,000 | 0,816 | 0,751 | 0,662 |
+| **A** | 0,816 | 1,000 | 0,807 | 0,588 |
+| **B** | 0,751 | 0,807 | 1,000 | 0,689 |
+| **1:2** | 0,662 | 0,588 | 0,689 | 1,000 |
 
-Nel **52,6%** delle operazioni perdono **tutte e quattro**. Nel 15% guadagnano
-tutte e quattro. Condividono lo stesso ingresso: aprono nello stesso minuto,
+Nel **51,4%** delle operazioni perdono **tutte e quattro**. Nel 23% guadagnano
+tutte e quattro. *(Corretto il 04/10/2026: prima 52,6% e 15%, correlazione in
+uso/B 0,683.)* Condividono lo stesso ingresso: aprono nello stesso minuto,
 sullo stesso strumento, nella stessa direzione.
 
 ### A parita' di rendimento, quattro insieme e' PEGGIO della sola B
 
 | obiettivo | solo B | tutte e quattro |
 |---|---|---|
-| 6% annuo | rischio 0,24%/op, **DD 3,03%** | 0,062%/op ciascuna, DD 3,20% |
-| 12% annuo | rischio 0,48%/op, **DD 6,06%** | 0,123%/op ciascuna, DD 6,41% |
-| 24% annuo | rischio 0,96%/op, **DD 12,13%** | 0,246%/op ciascuna, DD 12,81% |
+| 6% annuo | rischio 0,24%/op, **DD 3,03%** | 0,071%/op ciascuna, DD 3,54% |
+| 12% annuo | rischio 0,48%/op, **DD 6,06%** | 0,142%/op ciascuna, DD 7,09% |
+| 24% annuo | rischio 0,96%/op, **DD 12,13%** | 0,285%/op ciascuna, DD 14,18% |
 
 La diversificazione vale **zero**, anzi meno di zero: a ogni livello di
 rendimento la sola B ha il drawdown piu' piccolo. E lo fa con **una posizione
@@ -336,14 +376,15 @@ aggiungere le altre tre.**
 
 ### L'errore da non fare in nessun caso
 
-Avviarle con la taglia scritta nelle rispettive schede (in uso 0,20% · A 0,20%
-· B 0,24% · 1:2 0,48%) significa rischiare **1,12% del conto a ogni segnale**,
-non il 6% annuo che ciascuna promette: il risultato e' **24% annuo con 13,7%
-di perdita massima**. Puo' anche andare bene, ma va scelto, non subito.
+Avviarle con la taglia da 6% annuo di ciascuna (in uso 0,26% · A 0,23% · B
+0,24% · 1:2 0,59%) significa rischiare **1,32% del conto a ogni segnale**, non
+il 6% annuo che ciascuna promette: il risultato e' **24% annuo con 16,0% di
+perdita massima**. Puo' anche andare bene, ma va scelto, non subito.
 
 Per restare al 6% annuo con tutte e quattro attive, ogni taglia va **divisa
-per quattro**: in uso 0,049% · A 0,051% · B 0,060% · 1:2 0,121%, per un rischio
-totale di 0,28% a segnale.
+per quattro**: in uso 0,064% · A 0,058% · B 0,060% · 1:2 0,147%, per un rischio
+totale di 0,33% a segnale. *(Corretto il 04/10/2026: prima 0,20/0,20/0,24/0,48%,
+1,12% a segnale, 13,7% di perdita massima.)*
 
 ---
 
@@ -366,21 +407,27 @@ operazione e si segue fino a superamento, violazione o fine dei dati.
 
 | rischio/op | in uso | A | **B** | 1:2 |
 |---|---|---|---|---|
-| 0,50% | 89,8% | 91,6% | 91,3% | 85,3% |
-| **0,75%** | 88,9% | 91,6% | **97,0%** | 88,3% |
-| **1,00%** | 85,6% | 89,8% | **99,1%** | 88,6% |
-| 1,25% | 60,4% | 54,4% | **61,3%** | 51,7% |
-| 1,50% | 61,0% | 60,4% | 63,7% | 56,5% |
+| 0,50% | 90,7% | 91,3% | 91,3% | 85,0% |
+| **0,75%** | 94,0% | 96,7% | **97,0%** | 88,0% |
+| **1,00%** | 95,5% | 96,7% | **99,1%** | 88,6% |
+| 1,25% | 54,1% | **61,6%** | 61,3% | 57,4% |
+| 1,50% | 58,3% | **64,9%** | 63,7% | 62,5% |
 
-Entrambe le fasi di fila, alla taglia migliore di ciascuna: in uso **90%**,
-A **91%**, **B 99%**, 1:2 **89%**.
+Entrambe le fasi di fila, alla taglia migliore di ciascuna: in uso **95%**
+(1,00%), A **96%** (0,75%), **B 99%** (1,00%), 1:2 **89%** (1,00%). All'1,00%
+in uso e A violano gia' nel 2,4% delle partenze, la B mai.
+
+*(Corretta il 04/10/2026; la colonna B non cambia. Prima: in uso 89,8 / 88,9 /
+85,6 / 60,4 / 61,0%, A 91,6 / 91,6 / 89,8 / 54,4 / 60,4%, 1:2 85,3 / 88,3 /
+88,6 / 51,7 / 56,5%; due fasi in uso 90%, A 91%.)*
 
 ### La B vince, e non per il motivo che sembrava
 
 L'intuizione era che contassero le **perdite consecutive** (1:2 ne ha 7, B ne
 ha 12) e che quindi la 1:2 potesse rischiare di piu'. E' vero come principio,
 ma non basta: la B raggiunge il traguardo in **114 giorni mediani** contro i
-**174** della 1:2, perche' rende il doppio in R (24,9 contro 12,4 R l'anno).
+**204** della 1:2, perche' rende piu' del doppio in R (24,9 contro 10,2 R
+l'anno).
 In una corsa la velocita' pesa quanto la sicurezza, e la B ha entrambe.
 
 La 1:2 non e' pericolosa — a 1% non viola mai nemmeno lei — e' **lenta**: nel
@@ -416,43 +463,53 @@ quella mai vista. Il 99% dell'1,00% e' una misura sul filo, non una garanzia.
 
 Se lo Swap Free non e' disponibile o non conviene, la scelta si sposta sulla
 **1:2 secca all'1%**: 89% di successo, nessuna violazione, zero notti aperte,
-zero rischio di gap nel fine settimana.
+zero rischio di gap nel fine settimana. *(04/10/2026: con i numeri corretti
+anche la in uso chiude alle 21 UTC e passa il 94% allo 0,75%, ma il suo
+drawdown di 16,29 R a quella taglia fa 12,2%, sopra il limite: vedi sotto.)*
 
 ### Quanto margine lascia ogni taglia (striscia peggiore contro il limite del 12%)
 
-La striscia peggiore mai vista costa −20,77 R alla "in uso" e −12,60 R alla B.
+La striscia peggiore mai vista costa −11,59 R alla "in uso" e −12,60 R alla B.
 Tradotto in percentuale del conto, e confrontato col limite del 12%:
 
 | rischio/op | in uso: costo | margine | **B: costo** | **margine** |
 |---|---|---|---|---|
-| 0,40% | 8,3% | +3,7% | **5,0%** | **+7,0%** |
-| 0,50% | 10,4% | +1,6% | **6,3%** | **+5,7%** |
-| 0,60% | 12,5% | **−0,5%** | 7,6% | +4,4% |
-| 0,75% | 15,6% | **−3,6%** | **9,5%** | **+2,5%** |
-| 1,00% | 20,8% | **−8,8%** | 12,6% | **−0,6%** |
+| 0,40% | 4,6% | +7,4% | **5,0%** | **+7,0%** |
+| 0,50% | 5,8% | +6,2% | **6,3%** | **+5,7%** |
+| 0,60% | 7,0% | +5,0% | 7,6% | +4,4% |
+| 0,75% | 8,7% | +3,3% | **9,5%** | **+2,5%** |
+| 1,00% | 11,6% | +0,4% | 12,6% | **−0,6%** |
 
-**La "in uso" non puo' andare oltre lo 0,50%**: gia' a 0,60% la striscia
-peggiore mai vista basterebbe a violare. La B regge fino a 0,75% con 2,5 punti
-di margine — circa tre operazioni perdenti in piu' di quante ne siano mai
-capitate di fila.
+*(Corretta il 04/10/2026: la striscia peggiore della in uso era data a −20,77 R,
+che era il suo drawdown col difetto, e la conclusione era "la in uso non puo'
+andare oltre lo 0,50%".)* Sulla sola striscia la in uso regge piu' della B.
+Ma il suo **drawdown** (16,29 R) e' piu' lungo della striscia: allo 0,75% fa
+12,2%, sopra il limite, e la regola della taglia sul drawdown (piu' sotto) la
+tiene sotto lo 0,74%. La B regge fino a 0,75% con 2,5 punti di margine —
+circa tre operazioni perdenti in piu' di quante ne siano mai capitate di
+fila.
 
 ### Due sfide insieme aggiungono meno di quanto sembri
 
 | coppia | entrambe passano | **almeno una** | nessuna | almeno una violata |
 |---|---|---|---|---|
-| in uso 0,50% + B 0,50% | 90% | **91%** | 9% | 0% |
-| **in uso 0,50% + B 0,75%** | **90%** | **97%** | 3% | **0%** |
-| in uso 0,75% + B 0,75% | 89% | 97% | 3% | **2%** |
+| in uso 0,50% + B 0,50% | 91% | **91%** | 9% | 0% |
+| **in uso 0,50% + B 0,75%** | **91%** | **97%** | 3% | **0%** |
+| in uso 0,75% + B 0,75% | 94% | 97% | 3% | 0% |
+
+*(Corretta il 04/10/2026: prima 90 / 90 / 89% entrambe e 2% di violazioni
+nell'ultima riga. La in uso allo 0,75% non viola nella simulazione, ma il suo
+drawdown a quella taglia e' 12,2%: vedi sopra.)*
 
 Il confronto che conta: **la sola B a 0,75% da' gia' il 97%.** Comprare anche
 la seconda sfida non alza la probabilita' di essere finanziati — le due
-strategie condividono l'ingresso (correlazione 0,68) e falliscono insieme.
+strategie condividono l'ingresso (correlazione 0,75) e falliscono insieme.
 
 Quindi:
 - **se l'obiettivo e' passare**, basta la B a 0,75%: 97%, zero violazioni. La
   seconda sfida e' 28 € che non comprano probabilita';
 - **se l'obiettivo sono due conti finanziati**, allora si comprano entrambe e
-  nel 90% dei casi passano tutte e due. La seconda sfida raddoppia il premio,
+  nel 91% dei casi passano tutte e due. La seconda sfida raddoppia il premio,
   non riduce il rischio;
 - **mai** mettere le due allo 0,50% "per prudenza": la coppia scende al 91%,
   peggio della sola B a 0,75%. Abbassare la taglia della B costa piu' di quanto
@@ -462,10 +519,16 @@ Quindi:
 
 # CONFIGURAZIONE FINALE PER LA SFIDA — 05/08/2026 (rivista)
 
-Tre profili su tre conti separati. **Le taglie sono diverse perche' i drawdown
-sono diversi**: si pareggia il rischio in percentuale di conto, non la
-percentuale per operazione. Tre conti tutti allo 0,75% avrebbero avuto rischi
-molto diversi senza che si vedesse.
+Tre profili su tre conti separati. **Le taglie sono state scelte diverse
+perche' i drawdown sono diversi**: si pareggia il rischio in percentuale di
+conto, non la percentuale per operazione. Tre conti tutti allo 0,75% avrebbero
+avuto rischi molto diversi senza che si vedesse.
+
+*(Corretta il 04/10/2026. Con i drawdown corretti le taglie in vigore non
+pareggiano piu': B −9,45%, C −8,19%, in uso +0,50R −8,15%. Con la stessa regola
+sarebbero C 0,85% (−9,28%, fase 1 88%) e in uso +0,50R 0,55% (−8,96%, fase 1
+92%). Le taglie della tabella non sono state cambiate: decide l'utente. In
+`docs/AVVIO-MT5-VPS.md` il terzo profilo diventa D, solo long, allo 0,53%.)*
 
 | | **B** | **C** | **in uso +0,50R** |
 |---|---|---|---|
@@ -473,15 +536,19 @@ molto diversi senza che si vedesse.
 | gestione | trailing MFE−2 da +3R | nessuno spostamento dello stop | stop a **+0,50 R** quando l'MFE tocca +3R |
 | chiusura | oltre la giornata, weekend solo sopra +1R | 21:00 UTC | 21:00 UTC |
 | **rischio per operazione** | **0,75%** | **0,75%** | **0,50%** |
-| drawdown massimo | 12,60 R -> **−9,45%** | 12,33 R -> **−9,25%** | 19,77 R -> **−9,89%** |
-| margine sul limite del 12% | 2,55 punti | 2,75 punti | 2,11 punti |
-| **fase 1 superata** | **97%** | 88% | 90% |
+| drawdown massimo | 12,60 R -> **−9,45%** | 10,92 R -> **−8,19%** | 16,29 R -> **−8,15%** |
+| margine sul limite del 12% | 2,55 punti | 3,81 punti | 3,85 punti |
+| **fase 1 superata** | **97%** | 88% | 91% |
 | violazioni | 0% | 0% | 0% |
-| giorni mediani | **156** | 258 | 221 |
-| **win rate** | 38,4% | **46,9%** | 39,0% |
+| giorni mediani | **156** | 272 | 255 |
+| **win rate** | 38,4% | **48,1%** | 42,9% |
 | **perdite di fila** | 12 | **7** | 11 |
 | costo di quella serie | −12,60 R | −8,00 R | −11,59 R |
-| anni positivi | **7/7** | 6/7 | 6/7 |
+| anni positivi | **7/7** | 5/7 | **7/7** |
+
+*(Prima della correzione: C DD 12,33 R / −9,25% / 2,75 punti / 258 giorni /
+46,9% / 6/7; in uso +0,50R DD 19,77 R / −9,89% / 2,11 punti / 90% / 221
+giorni / 39,0% / 6/7.)*
 | Swap Free | **necessario** | non serve | non serve |
 
 ## Correzione a una versione precedente di questa scheda
@@ -497,6 +564,9 @@ E' lo stesso errore descritto qui sotto, commesso mentre lo si documentava.
 Vale la pena lasciarlo scritto: **la taglia si calcola SEMPRE sul drawdown**.
 
 # CONFIGURAZIONE PRECEDENTE (superata, tenuta per storia)
+
+*(Numeri di allora, prima della correzione del 04/10/2026: la C oggi da' 88%
+di fase 1 in 272 giorni allo 0,75% e 89% in 204 giorni all'1,00%.)*
 
 Scelta dell'utente dopo la simulazione: si avviano **due** profili, su due conti
 separati.
@@ -522,7 +592,8 @@ lotti; nei mesi agitati lo stop sale a 25-30 $ e si arriva al minimo.
 ## Cosa NON fare su queste due
 
 - **Non aggiungere un pareggio alla C.** Misurato: portando lo stop a +1R la C
-  passa da **+86,6 a +47,3 R**, cioe' perde il 45%. Il 1:2 secco vive delle
+  passa da **+71,3 a +41,5 R**, cioe' perde il 42% (prima della correzione del
+  04/10/2026: da +86,6 a +47,3, −45%). Il 1:2 secco vive delle
   operazioni che vanno dritte al bersaglio, e qualunque stop mosso per strada
   le taglia prima.
 - **Non spostare il pareggio della B.** Il suo trailing porta gia' lo stop a
@@ -536,19 +607,28 @@ sopra l'ingresso invece che esattamente a pareggio:
 
 | | R | vinte% | perdite di fila | costo serie | DD R | R/DD |
 |---|---|---|---|---|---|---|
-| in uso, pareggio a 0 | 214,7 | 21,3% | 23 | −20,77 R | 20,77 | 10,33 |
-| **in uso, pareggio +0,50R** | 209,9 | **39,0%** | **11** | **−11,59 R** | 19,77 | **10,62** |
-| A, pareggio a 0 | 206,2 | 16,8% | 24 | −16,18 R | 26,30 | 7,84 |
-| **A, pareggio +0,50R** | **216,7** | **36,6%** | **12** | −12,60 R | **16,80** | **12,90** |
+| in uso, pareggio a 0 | 163,2 | 35,7% | 11 | −11,59 R | 16,29 | 10,02 |
+| **in uso, pareggio +0,50R** | 165,5 | **42,9%** | 11 | −11,59 R | 16,29 | **10,16** |
+| A, pareggio a 0 | 181,3 | 24,0% | 15 | −12,60 R | 15,85 | 11,44 |
+| **A, pareggio +0,50R** | **188,7** | **38,7%** | **12** | −12,60 R | **12,60** | **14,97** |
 
-Su **A rende di piu' e rischia meno**, il che e' raro. Su **in uso** costa il 2%
-del rendimento e dimezza le serie perdenti. **+0,50 R batte sia +1 $ sia +2 $**:
+*(Corretta il 04/10/2026. Prima: in uso 214,7 / 21,3% / 23 / −20,77 / 20,77 /
+10,33 e con +0,50R 209,9 / 39,0% / 11 / −11,59 / 19,77 / 10,62; A 206,2 /
+16,8% / 24 / −16,18 / 26,30 / 7,84 e con +0,50R 216,7 / 36,6% / 12 / −12,60 /
+16,80 / 12,90.)*
+
+Su **A rende di piu' e rischia meno**, il che e' raro. Su **in uso**, con i
+numeri corretti, rende l'1% in piu' e alza le vinte dal 36% al 43%, ma **non
+accorcia la serie peggiore (11 in entrambi) e non cambia il drawdown**: la
+serie di 23 che dimezzava era il difetto della chiusura di fine giornata.
+**+0,50 R batte sia +1 $ sia +2 $**:
 due dollari sopra uno stop da 2 $ sono un intero R, sopra uno da 15 $ sono un
 settimo — in dollari fissi si applica una regola diversa ogni mese.
 
-Per un conto normale e' un miglioramento consigliato. **Per la sfida non
-serve**: la percentuale di successo resta 89%, perche' quello che fa saltare il
-conto non e' la serie, e' il drawdown — e quello passa solo da 20,77 a 19,77 R.
+Per un conto normale e' un miglioramento netto sulla A e marginale sulla in
+uso. **Per la sfida non serve**: allo 0,50% la percentuale di successo resta
+91% con e senza, perche' quello che fa saltare il conto non e' la serie, e' il
+drawdown — e quello non cambia (16,29 R in entrambi).
 
 ## La lezione di metodo che ne esce
 
@@ -558,7 +638,7 @@ drawdown massimo coincidono solo quando la discesa e' ininterrotta:
 | | costo serie peggiore | drawdown massimo |
 |---|---|---|
 | **B** | −12,60 R | **12,60 R** (coincidono) |
-| in uso + pareggio 0,5R | −11,59 R | **19,77 R** (non coincidono) |
+| in uso + pareggio 0,5R | −11,59 R | **16,29 R** (non coincidono) |
 
 Il drawdown della "in uso" e' una discesa lunga **spezzata da piccole vittorie
 che non recuperano**: il contatore delle serie si azzera, il conto no. La
@@ -566,14 +646,21 @@ taglia va sempre calcolata sul drawdown.
 
 ## Nota sui conteggi, per non ricascarci
 
-Le tabelle delle sessioni precedenti riportavano **13-14 perdite di fila per
-tutte le gestioni** e tassi di vincita intorno al 35%. Quelle di oggi dicono
-23-24 e 21%. Nessuna delle due e' sbagliata: la "in uso" chiude **60
-operazioni su 333 a pareggio**, e la differenza e' se un pareggio conta come
-vittoria (serie spezzata, 13) o come non-vittoria (serie continua, 23). Le
-altre differenze: 348 operazioni contro 333 per la correzione del filtro D1
-(appendice BD), e drawdown 17,6 contro 20,77 R per lo spread vero al posto
-dello 0,30 della taratura.
+*(Riscritta il 04/10/2026: la versione precedente era sbagliata.)*
 
-**Su B e C l'ambiguita' non esiste**: non hanno uscite a pareggio, quindi 12 e
-7 valgono con qualunque convenzione.
+Le tabelle delle sessioni precedenti riportavano **13-14 perdite di fila per
+tutte le gestioni** e tassi di vincita intorno al 35%. Quelle del 04/08
+dicevano 23-24 e 21%, e questa nota le spiegava con la convenzione sui
+pareggi (60 uscite a pareggio su 333 per la "in uso"). **Non era una
+convenzione, era un difetto**: `verifica_bot.py` cercava la chiusura di fine
+giornata nella candela delle 21:00 UTC, che con l'ora legale USA non esiste,
+quindi d'estate la "in uso" restava aperta per giorni e finiva a pareggio o
+allo stop invece che alla chiusura serale; e la A non chiudeva mai il
+venerdi'. Corretto: la "in uso" chiude 24 operazioni a pareggio, fa 35,7% di
+vinte e 11 perdite di fila, la A 15 — vicino ai numeri delle sessioni
+precedenti. Le altre differenze restano: 348 operazioni contro 333 per la
+correzione del filtro D1 (appendice BD) e lo spread vero al posto dello 0,30
+della taratura (drawdown 17,6 R allora, 16,29 oggi).
+
+**Su B e C la convenzione sui pareggi non conta**: non hanno uscite a
+pareggio, quindi 12 e 7 valgono con qualunque convenzione.
