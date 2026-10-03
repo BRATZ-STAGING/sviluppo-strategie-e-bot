@@ -39,7 +39,7 @@ CATALOGO = os.path.join(QUI, "backtest", "catalogo.json")
 PORTA = int(os.environ.get("APP_PORTA", "8095"))
 # acceso solo su richiesta: mt5.initialize() AVVIA il terminale se e' chiuso
 USA_MT5 = "--mt5" in sys.argv or os.environ.get("APP_MT5") == "1"
-BARRE_MT5 = 60_000          # ~6 settimane di minuti dal terminale
+BARRE_MT5 = 99_000          # ~15 settimane: il limite del terminale e' 100.000 barre
 OGNI_MT5 = 3.0              # secondi fra due letture del terminale
 
 TF = {"M1": "1min", "M5": "5min", "M15": "15min", "M30": "30min",
@@ -89,9 +89,12 @@ def barre_vive(tf: str):
         m1 = _vivo["m1"]
     if m1 is None or m1.empty:
         return None, None
-    # il terminale prende il posto dell'archivio da mezzanotte del suo primo
-    # giorno intero: una giornata a meta' fra due fonti non ha senso
+    # il terminale prende il posto dell'archivio solo dove l'archivio finisce,
+    # e sempre a mezzanotte: una giornata a meta' fra due fonti non ha senso
     confine = m1.index[0].normalize() + pd.Timedelta(days=1)
+    anni = anni_archivio()
+    if anni:
+        confine = max(confine, m1_anno(anni[-1]).index[-1].normalize() + pd.Timedelta(days=1))
     return ricampiona(m1[m1.index >= confine], tf), confine
 
 
@@ -139,14 +142,49 @@ def in_json(b: pd.DataFrame) -> list[dict]:
 
 
 # ---------------------------------------------------------------------- MT5
-def scarto_server(tick) -> int:
-    """Di quante ore l'orologio del broker e' avanti rispetto a UTC."""
-    quando = pd.Timestamp(int(tick.time), unit="s", tz="UTC")
-    ore = (quando - pd.Timestamp.now("UTC")).total_seconds() / 3600
-    scarto = int(round(ore))
-    if abs(scarto) > 14:
-        raise RuntimeError(f"ora del terminale incoerente con quella di sistema ({ore:+.1f} h)")
-    return scarto
+def oro_aperto(ny: pd.Timestamp) -> bool:
+    """Orario dell'oro (ora di New York): da domenica 18:00 a venerdi' 17:00,
+    con la pausa quotidiana 17:00-18:00. Le festivita' non sono considerate."""
+    g, h = ny.dayofweek, ny.hour + ny.minute / 60
+    if g == 5:
+        return False
+    if g == 6:
+        return h >= 18
+    if g == 4:
+        return h < 17
+    return not 17 <= h < 18
+
+
+def ultima_chiusura(ny: pd.Timestamp) -> pd.Timestamp:
+    """L'ultima chiusura delle 17:00 di New York prima di adesso."""
+    c = ny.normalize() + pd.Timedelta(hours=17)
+    if c > ny:
+        c -= pd.Timedelta(days=1)
+    while c.dayofweek >= 5:   # sabato e domenica non chiudono nulla
+        c -= pd.Timedelta(days=1)
+    return c
+
+
+def scarto_server(tick_s: int, ultima_barra_s: int) -> int:
+    """Di quante ore l'orologio del broker e' avanti rispetto a UTC.
+
+    A mercato aperto lo dice l'ultimo tick, confrontato con l'ora attuale. A
+    mercato chiuso (pausa, fine settimana) il tick e' vecchio di ore: allora la
+    fine dell'ultima candela, in ora del server, coincide con l'ultima
+    chiusura delle 17:00 di New York.
+    """
+    adesso = pd.Timestamp.now("UTC")
+    ny = adesso.tz_convert("America/New_York")
+    if oro_aperto(ny):
+        ore = (pd.Timestamp(tick_s, unit="s", tz="UTC") - adesso).total_seconds() / 3600
+        if abs(ore - round(ore)) < 0.1 and abs(round(ore)) <= 14:
+            return int(round(ore))
+    fine = pd.Timestamp(ultima_barra_s, unit="s", tz="UTC") + pd.Timedelta(minutes=1)
+    ore = (fine - ultima_chiusura(ny).tz_convert("UTC")).total_seconds() / 3600
+    if abs(ore - round(ore)) > 0.25 or abs(round(ore)) > 14:
+        raise RuntimeError(f"fuso del broker non ricavabile (ultima candela a {ore:+.2f} h "
+                           f"dall'ultima chiusura di New York): festivita' o terminale scollegato?")
+    return int(round(ore))
 
 
 def leggi_mt5(quante: int):
@@ -171,8 +209,8 @@ def leggi_mt5(quante: int):
     df = df[["open", "high", "low", "close", "tick_volume"]].astype("float64")
     df.columns = ["open", "high", "low", "close", "volume"]
     # MT5 da' l'ora del SERVER del broker, non UTC (FP: UTC+3)
-    if tick is not None:
-        df.index = df.index - pd.Timedelta(hours=scarto_server(tick))
+    ultima = int(barre[-1]["time"])
+    df.index = df.index - pd.Timedelta(hours=scarto_server(int(tick.time) if tick else ultima, ultima))
     return simbolo, df
 
 

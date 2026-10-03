@@ -116,9 +116,17 @@ misura), visibilita' per timeframe, salvataggio su disco, indicatori, tema
 chiaro/scuro, backtest della taratura ufficiale (348 ingressi) con elenco
 cliccabile.
 
+**`--mt5` provato il 03/10** con il conto demo MetaQuotes: 99.000 candele
+M1 (dal 19/06), attaccate all'archivio dal 07/07 senza buchi. Tre lezioni:
+- la libreria MetaTrader5 blocca l'interprete fino a 60 s ("IPC timeout")
+  se il terminale non e' collegato a un conto: per questo legge in un
+  processo separato
+- il fuso del broker dal solo ultimo tick sbaglia a mercato chiuso (sabato:
+  -19,8 h); a mercato chiuso si ricava dalla chiusura delle 17:00 di NY.
+  Lo stesso difetto e' in `trading/scripts/grafico_live.py`
+- il terminale da' al massimo 100.000 barre (impostazione `maxbars`)
+
 Da fare:
-- provare `--mt5` sul PC con il terminale aperto (non provato: qui MT5 non
-  e' stato avviato apposta)
 - scegliere quali strategie mettere nel catalogo dei backtest (decisione
   dell'utente ancora aperta); il file della taratura ha solo ingressi e
   stop, servono uscite e R per il riepilogo
