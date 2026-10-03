@@ -107,6 +107,21 @@ e' chiuso: non riproporlo.**
   indicazione per le famiglie, non come candidati.
 - Questa sessione passa alla **web app** (fase 3 del piano).
 
+## Strada (a) o (b): confronto consegnato il 03/10 (decisione dell'utente aperta)
+
+Dopo la ricerca da zero (sei famiglie, cinque mercati, nessun candidato;
+verifica 2018-2026: nessuna delle cinque ipotesi passa):
+- (a) idea d'ingresso nuova: con i soli prezzi le idee classiche sono finite
+  (circa 7.300 varianti da zero + le campagne precedenti). Ha senso solo con
+  un'informazione nuova (calendario macro, tassi reali/dollaro, flusso tick).
+- (b) scommessa sul regime con la gestione B: 2020-2026 +174,6 R, DD 12,6 R;
+  2009-2019 -90,8 R, DD 89,8 R. A 0,24% per operazione: ~+6,4%/anno se il
+  2020-2026 continua, ~-2%/anno se torna il 2009-2019; spegnimento a -15 R =
+  -3,6% di conto. Per confermarla in avanti servono ~90 operazioni (t 2,
+  R/op 0,53, deviazione 2,5 R), cioe' quasi due anni.
+- Il registro dei segnali in avanti (`registro_segnali.jsonl`) NON esiste sul
+  PC al 03/10: il fuori campione nuovo non si sta accumulando.
+
 ## Web app: prima versione (02/10/2026)
 
 In `app/` (istruzioni in `app/README.md`). Provata nel browser: candele
