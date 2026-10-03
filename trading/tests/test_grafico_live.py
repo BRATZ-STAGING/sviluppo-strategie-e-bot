@@ -302,3 +302,29 @@ class TestOraDelServer:
             G.scarto_server(self._srv("2026-10-02 19:59", 3), None, sabato)
         with pytest.raises(RuntimeError, match="non ricavabile"):       # pausa a meta' ora
             G.scarto_server(None, self._srv("2026-10-01 22:31", 3), sabato)
+
+class TestCandeleLunghe:
+    """D1 e W1 come le mostra il broker: la giornata va dalle 17:00 alle 17:00
+    di New York, la domenica sera appartiene al lunedi'."""
+
+    @staticmethod
+    def _m1(da, a):
+        idx = pd.date_range(da, a, freq="1min", tz="UTC")
+        p = pd.Series(range(len(idx)), index=idx, dtype="float64")
+        return pd.DataFrame({"open": p, "high": p + 1, "low": p - 1, "close": p,
+                             "volume": 1.0})
+
+    def test_la_domenica_sera_e_del_lunedi(self):
+        # da domenica 04/10 22:00 UTC (18:00 NY) a martedi' 06/10 20:59 UTC
+        m1 = self._m1("2026-10-04 22:00", "2026-10-06 20:59")
+        d = G.candele_lunghe(m1, "D1")
+        ny = d.index.tz_convert("America/New_York")
+        assert list(ny.strftime("%a %H:%M")) == ["Sun 17:00", "Mon 17:00"]
+        assert d.open.iloc[0] == m1.open.iloc[0]
+        assert d.volume.iloc[0] == 23 * 60        # domenica 18:00 -> lunedi' 17:00
+
+    def test_una_settimana_sola(self):
+        m1 = self._m1("2026-10-04 22:00", "2026-10-09 20:59")
+        w = G.candele_lunghe(m1, "W1")
+        assert len(w) == 1
+        assert w.high.iloc[0] == m1.high.max() and w.close.iloc[0] == m1.close.iloc[-1]

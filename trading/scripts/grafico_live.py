@@ -544,6 +544,24 @@ def aggiorna_segnali(mediana=None):
         time.sleep(SEGNALI_OGNI)
 
 
+def candele_lunghe(m1, tf):
+    """D1 e W1 come le mostra il broker: la giornata dell'oro va dalle 17:00
+    alle 17:00 di New York, la settimana da domenica sera a venerdi'. Un
+    resample a mezzanotte UTC farebbe della domenica sera una giornata a
+    parte e taglierebbe ogni giorno a meta' della sessione serale."""
+    h1 = resample_tf(m1, "H1")
+    # +7 ore: le 17:00 di New York diventano mezzanotte, ora legale compresa
+    sp = h1.index.tz_convert("America/New_York").tz_localize(None) + pd.Timedelta(hours=7)
+    g = sp.normalize()
+    if tf == "W1":
+        g = g - pd.to_timedelta(g.dayofweek, unit="D")
+    out = h1.groupby(g).agg({"open": "first", "high": "max", "low": "min",
+                             "close": "last", "volume": "sum"})
+    inizio = pd.DatetimeIndex(out.index) - pd.Timedelta(hours=7)
+    out.index = inizio.tz_localize("America/New_York").tz_convert("UTC")
+    return out
+
+
 def calcola(storia, mediana):
     simbolo, vivo, bid, ask, scarto = leggi_mt5()
     m1, buco = unisci(storia, vivo)
@@ -564,10 +582,15 @@ def calcola(storia, mediana):
     vwap_m1 = vwap_motore(m1)
     # M1 non serve a operare (l'ingresso e' su M6): serve a vedere con
     # precisione dove sta il prezzo adesso rispetto a un livello
-    for tf in ("M1", "M6", "M12", "M33", "M66", "H2", "H3", "H6"):
-        s = resample_tf(m1, tf).tail(600)
-        passo = pd.Timedelta(TIMEFRAMES[tf])
-        v = leggi_vwap(vwap_m1, s.index + passo).values
+    for tf in ("M1", "M6", "M12", "M33", "M66", "H2", "H3", "H6", "D1", "W1"):
+        if tf in ("D1", "W1"):
+            # il VWAP e' giornaliero: letto alla chiusura di un giorno o di
+            # una settimana non direbbe niente, quindi non si disegna
+            s, v = candele_lunghe(m1, tf).tail(600), None
+        else:
+            s = resample_tf(m1, tf).tail(600)
+            passo = pd.Timedelta(TIMEFRAMES[tf])
+            v = leggi_vwap(vwap_m1, s.index + passo).values
         out["serie"][tf] = {
             "t": [int(x.timestamp() * 1000) for x in s.index],
             "o": [round(x, 2) for x in s.open], "h": [round(x, 2) for x in s.high],
@@ -859,15 +882,16 @@ border:1px solid var(--l);background:var(--p);color:var(--i3)}
 <div id="cond"></div>
 <div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div>
 <div class="seg" id="sg"></div>
+<div class="seg" id="zm"></div>
 <div class="seg"><button id="ora">torna a ora</button></div>
-<span class="pill">rotellina o due dita = zoom · trascina = scorri · MAIUSC+rotellina = scala verticale · doppio tocco = ora</span></div>
+<span class="pill">rotellina = zoom in largo · sulla scala dei prezzi (o MAIUSC+rotellina) = zoom in alto · trascina gli assi per allargare o stringere · trascina il grafico = scorri · doppio clic = ora</span></div>
 <canvas id="c"></canvas>
 <div class="avvolgi"><table id="tab"></table></div>
 <p class="note">La colonna <b>raffinata</b> e' la parte che porta il vantaggio misurato.
 Una zona non e' un segnale da sola e non va usata come limite in attesa: serve il
 segnale della strategia con la struttura concorde.</p>
 </div><script>
-const TF=["M1","M6","M12","M33","M66","H2","H3","H6"];let tf="M33",D=null,vp=1,etich=0,curY=null,fissate=new Set();
+const TF=["M1","M6","M12","M33","M66","H2","H3","H6","D1","W1"];let tf="M33",D=null,vp=1,etich=0,curY=null,fissate=new Set();
 // finestra visibile: quante candele si vedono e di quante il bordo destro sta
 // indietro rispetto all'ultima. off negativo = spazio vuoto a destra, cosi' il
 // grafico non resta incollato al bordo.
@@ -879,6 +903,10 @@ let avvisi=1,vistoUltimo=null,suono=null;
 // le zone lontane si disegnano solo dove intersecano, altrimenti su un TF
 // piccolo una zona H6 a cento dollari schiaccerebbe tutto in una striscia.
 let zy=1,oy=0,ppp=1;
+// dove stanno l'area delle candele e i due assi, aggiornato a ogni disegno:
+// serve ai gestori per capire se il puntatore e' sulla scala dei prezzi
+// (zoom in alto) o su quella dei tempi (zoom in largo)
+let geo={pl:8,pw:0,pt:10,ph:0};
 const punt=new Map();      // puntatori attivi: uno = scorri, due = pizzica
 let pinch=null;
 const VUOTE=()=>Math.floor(vis*0.45);          // quanto si puo' andare oltre l'ultima
@@ -949,36 +977,56 @@ el("ora").onclick=aOra; cv0.addEventListener("dblclick",aOra);
 //                    quella in y l'ingrandimento verticale
 const dueDita=()=>{const[a,b]=[...punt.values()];
  return {dx:Math.max(Math.abs(a.x-b.x),1),dy:Math.max(Math.abs(a.y-b.y),1)};};
+// in quale parte del grafico cade il puntatore: "y" la scala dei prezzi a
+// destra, "x" quella dei tempi in basso, "" le candele
+const zona=e=>{const r=cv0.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+ return px>geo.pl+geo.pw?"y":py>geo.pt+geo.ph?"x":"";};
+const CURSORE={y:"ns-resize",x:"ew-resize","":"grab"};
+// pulsanti: lo stesso zoom della rotellina, per chi non la trova
+el("zm").innerHTML=[["↔ −","in largo: piu' candele"],["↔ +","in largo: meno candele"],
+ ["↕ −","in alto: scala piu' corta"],["↕ +","in alto: scala piu' lunga"]]
+ .map(([t,d])=>`<button title="${d}">${t}</button>`).join("");
+[...el("zm").children].forEach((b,k)=>b.onclick=()=>{
+ if(k===0)vis=Math.round(vis*1.25); else if(k===1)vis=Math.round(vis/1.25);
+ else if(k===2)zy/=1.25; else zy*=1.25;
+ draw();});
 cv0.addEventListener("pointerdown",e=>{
  // la cattura del puntatore puo' fallire (eventi sintetici, puntatore gia'
  // rilasciato): se solleva, il resto del gestore non partirebbe e il grafico
  // resterebbe immobile. Non e' essenziale, quindi si prova e si tira dritto.
  try{cv0.setPointerCapture(e.pointerId);}catch(_){}
  punt.set(e.pointerId,{x:e.clientX,y:e.clientY});
- if(punt.size===1){trascina={x:e.clientX,y:e.clientY,off:off,oy:oy};mosso=false;
-  cv0.style.cursor="grabbing";}
+ if(punt.size===1){const z=zona(e);
+  trascina={x:e.clientX,y:e.clientY,off:off,oy:oy,modo:z,vis:vis,zy:zy};mosso=false;
+  cv0.style.cursor=z?CURSORE[z]:"grabbing";}
  else if(punt.size===2){const d=dueDita();pinch={...d,vis:vis,zy:zy};trascina=null;}});
 cv0.addEventListener("pointermove",e=>{
  curY=e.clientY-cv0.getBoundingClientRect().top;
+ if(!punt.size)cv0.style.cursor=CURSORE[zona(e)];
  if(punt.has(e.pointerId))punt.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(pinch&&punt.size>=2){const d=dueDita();
   vis=Math.round(pinch.vis*pinch.dx/d.dx);
   zy=pinch.zy*d.dy/pinch.dy; mosso=true;}
  else if(trascina){const dx=e.clientX-trascina.x, dy=e.clientY-trascina.y;
   if(Math.abs(dx)>2||Math.abs(dy)>2)mosso=true;
-  off=trascina.off+Math.round(dx/passoX);
-  oy=trascina.oy+dy*ppp;}
+  // sugli assi si allarga o si stringe, come su TradingView: scala dei prezzi
+  // tirata in su = candele piu' alte; scala dei tempi tirata a destra = meno
+  // candele, piu' larghe
+  if(trascina.modo==="y")zy=trascina.zy*Math.exp(-dy/150);
+  else if(trascina.modo==="x")vis=Math.round(trascina.vis*Math.exp(-dx/150));
+  else{off=trascina.off+Math.round(dx/passoX);
+   oy=trascina.oy+dy*ppp;}}
  draw();});
 const finito=e=>{punt.delete(e.pointerId);
  if(punt.size<2)pinch=null;
- if(punt.size===0){trascina=null;cv0.style.cursor="grab";}};
+ if(punt.size===0){trascina=null;cv0.style.cursor=CURSORE[zona(e)];}};
 cv0.addEventListener("pointerup",finito);
 cv0.addEventListener("pointercancel",finito);
 cv0.addEventListener("pointerleave",e=>{if(!punt.size)curY=null;draw();});
-// rotellina: orizzontale, tenendo fermo il punto sotto il puntatore; con
-// MAIUSC o CTRL agisce sulla scala verticale
+// rotellina: orizzontale, tenendo fermo il punto sotto il puntatore; sulla
+// scala dei prezzi, o con MAIUSC o CTRL, agisce sulla scala verticale
 cv0.addEventListener("wheel",e=>{e.preventDefault();
- if(e.shiftKey||e.ctrlKey){zy*=e.deltaY>0?1/1.18:1.18;draw();return;}
+ if(e.shiftKey||e.ctrlKey||zona(e)==="y"){zy*=e.deltaY>0?1/1.18:1.18;draw();return;}
  const r=cv0.getBoundingClientRect();
  const fx=Math.min(Math.max((e.clientX-r.left-8)/Math.max(r.width-70,1),0),1);
  const nv=Math.round(vis*(e.deltaY>0?1.18:1/1.18));
@@ -1094,11 +1142,33 @@ function draw(){
  // Le zone fuori campo si segnalano al bordo invece di deformare tutto.
  const centro=(lo+hi)/2, semi=((hi-lo)/2||1)*1.06/zy;
  lo=centro-semi+oy; hi=centro+semi+oy;
- const pl=8,pr=62,pt=10,pb=8,pw=W-pl-pr,ph=H-pt-pb;
+ const pl=8,pr=62,pt=10,pb=24,pw=W-pl-pr,ph=H-pt-pb;
+ geo={pl,pw,pt,ph};
  passoX=pw/vis; ppp=(hi-lo)/ph;          // dollari per pixel, serve al dito
  const X=i=>pl+(i-i0+.5)*passoX, Y=p=>pt+(hi-p)/(hi-lo)*ph;
  const F="11px "+getComputedStyle(document.body).getPropertyValue("--m");
 
+ // --- scala dei tempi: una data ogni ~110 pixel, su candele fisse ---------
+ {const ogni=Math.max(1,Math.ceil(110/passoX)),lungo=tf==="D1"||tf==="W1";
+  const due=v=>String(v).padStart(2,"0");
+  x.strokeStyle="rgba(233,228,219,.12)";x.lineWidth=1;
+  x.beginPath();x.moveTo(pl,pt+ph+.5);x.lineTo(pl+pw,pt+ph+.5);x.stroke();
+  x.font=F;x.textAlign="center";x.textBaseline="top";x.fillStyle="#6E675F";
+  for(let i=Math.ceil(a0/ogni)*ogni;i<=a1;i+=ogni){
+   // D1 e W1 iniziano alle 17:00 di New York del giorno prima: +7 ore danno
+   // la data della giornata di contrattazione, come la scrive il broker
+   const d=new Date(s.t[i]+(lungo?7*3600e3:0));
+   const t=lungo?`${due(d.getUTCDate())}/${due(d.getUTCMonth()+1)}/${String(d.getUTCFullYear()).slice(2)}`
+    :`${due(d.getUTCDate())}/${due(d.getUTCMonth()+1)} ${due(d.getUTCHours())}:${due(d.getUTCMinutes())}`;
+   const xc=Math.round(X(i))+.5;
+   x.strokeStyle="rgba(233,228,219,.05)";
+   x.beginPath();x.moveTo(xc,pt);x.lineTo(xc,pt+ph);x.stroke();
+   x.fillText(t,xc,pt+ph+6);}
+  x.textAlign="right";x.fillText("UTC",pl+pw+pr-6,pt+ph+6);}
+
+ // tutto quello che sta sul grafico resta nell'area delle candele: zoomando
+ // in alto le candele finivano sopra le date e sulla scala dei prezzi
+ x.save();x.beginPath();x.rect(pl,pt,pw,ph);x.clip();
  // --- profilo volume: a SINISTRA, sotto a tutto il resto -------------------
  let poc=null, vuoti=[];
  if(D.profilo){const P=D.profilo,SS=["asia","london","ny","late"],
@@ -1131,6 +1201,8 @@ function draw(){
     x.fillText(pw<560?"profilo "+P.giorno
                :"profilo "+P.giorno+" · asia londra ny sera",pl+4,pt+4);}}}
 
+ x.restore();
+
  // --- scala dei prezzi: passo tondo, cosi' si legge quanto vale un movimento
  {const gr=[.1,.2,.5,1,2,5,10,20,50,100,200,500];
   const ideale=(hi-lo)/7; let p0=gr[gr.length-1];
@@ -1140,6 +1212,8 @@ function draw(){
    x.strokeStyle="rgba(233,228,219,.07)";x.lineWidth=1;
    x.beginPath();x.moveTo(pl,y);x.lineTo(pl+pw,y);x.stroke();
    x.fillStyle="#6E675F";x.fillText(p.toFixed(p0<1?2:(p0<10?1:0)),pl+pw+6,y);}}
+
+ x.save();x.beginPath();x.rect(pl,pt,pw,ph);x.clip();
 
  // --- zone: bande, senza etichetta (le etichette vanno a destra, in fondo) --
  const taglia=(y1,y2)=>{const a=Math.max(Math.min(y1,y2),pt),
@@ -1208,6 +1282,7 @@ function draw(){
  const yb=Math.round(Y(D.bid))+.5;
  x.strokeStyle="#C99A3E";x.lineWidth=1;x.setLineDash([4,3]);
  x.beginPath();x.moveTo(pl,yb);x.lineTo(pl+pw,yb);x.stroke();x.setLineDash([]);
+ x.restore();
  x.fillStyle="#C99A3E";x.font=F;x.textAlign="left";
  x.textBaseline="middle";x.fillText(D.bid.toFixed(2),pl+pw+6,yb);
 
