@@ -259,8 +259,13 @@ qualcosa da dire molto prima che la sfida finisca.
 ## 6. Cosa aspettarsi, detto onestamente
 
 Le tre strategie rendono nel 2020-2026 (la B in ogni anno, la C in cinque su
-sette, la D solo long in sei su sette) e **perdono in undici anni su undici
-prima**. Non e' stata trovata **nessuna** grandezza misurabile
+sette, la D solo long in sei su sette) e **perdono tutte sul 2009-2019**,
+anche se non in ogni anno: la B -88,4 R con un solo anno positivo su undici;
+la in uso a due lati, base della D, -39,6 R con 2 anni positivi su 11 (la D
+solo long non e' stata misurata li'); la C -55,0 R (motore ufficiale, spread
+0,30, swap reale: `bots/SCHEDE-STRATEGIE.md` e
+`docs/studies/verifica-bot-discrepanze.md` §2). Prima del 04/10 qui c'era
+scritto "perdono in undici anni su undici", che era falso. Non e' stata trovata **nessuna** grandezza misurabile
 del mercato che cambi insieme al risultato: volatilita' relativa al prezzo,
 spread relativo, quota di escursione notturna, persistenza infragiornaliera,
 direzionalita' e tendenza di fondo sono uguali nei due periodi (appendici BW e

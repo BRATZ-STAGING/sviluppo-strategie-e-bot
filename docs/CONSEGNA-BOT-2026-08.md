@@ -161,7 +161,7 @@ non rilanciati**: vanno cancellati i marcatori `.empty` degli anni mancanti
 ## 7. Il cappello onesto
 
 Le strategie rendono in ogni anno dal 2020 al 2026 (tutte tranne la 1:2, che
-ha due anni negativi) e perdono in undici anni su undici prima. Non ho trovato **nessuna** grandezza misurabile del mercato che
+ha due anni negativi) e perdono tutte sul 2009-2019, anche se non in ogni anno: in uso -39,6 R (2 anni positivi su 11), A -45,1 R (4 su 11), B -88,4 R (1 su 11), 1:2 -55,0 R (motore ufficiale, spread 0,30, swap reale; prima del 04/10 qui c'era scritto "perdono in undici anni su undici", che era falso). Non ho trovato **nessuna** grandezza misurabile del mercato che
 cambi insieme al risultato: volatilita' relativa al prezzo, spread relativo,
 quota di escursione notturna, persistenza infragiornaliera, direzionalita' e
 tendenza di fondo sono uguali nei due periodi.
