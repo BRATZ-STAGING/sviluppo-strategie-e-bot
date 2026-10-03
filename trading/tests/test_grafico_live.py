@@ -203,31 +203,80 @@ class TestUnisci:
 class TestOraDelServer:
     """MT5 non da' UTC ma l'ora del server del broker, dentro un campo che
     sembra un epoch. Sbagliare qui sposta tutto di ore: ancoraggio del VWAP,
-    finestra operativa, e la giunzione con l'archivio."""
+    finestra operativa, e la giunzione con l'archivio. Gli orari sono
+    simulati: il risultato non deve dipendere da quando gira la prova."""
 
-    class _Tick:
-        def __init__(self, t):
-            self.time = t
+    @staticmethod
+    def _srv(utc, ore):
+        """Un istante UTC scritto come lo scrive MT5 con il server a UTC+ore."""
+        t = pd.Timestamp(utc)
+        t = t.tz_localize("UTC") if t.tzinfo is None else t
+        return int((t + pd.Timedelta(hours=ore)).timestamp())
 
-    def test_rileva_utc_piu_tre(self):
-        adesso = pd.Timestamp.now("UTC")
-        finto = self._Tick(int((adesso + pd.Timedelta(hours=3)).timestamp()))
-        assert G.scarto_server(finto) == 3
+    @staticmethod
+    def _ny(s):
+        return pd.Timestamp(s, tz="America/New_York")
 
-    def test_rileva_utc_esatto(self):
-        adesso = pd.Timestamp.now("UTC")
-        assert G.scarto_server(self._Tick(int(adesso.timestamp()))) == 0
+    def test_orario_dell_oro(self):
+        assert G.oro_aperto(self._ny("2026-09-29 12:00"))        # martedi'
+        assert not G.oro_aperto(self._ny("2026-09-29 17:30"))    # pausa
+        assert not G.oro_aperto(self._ny("2026-10-02 17:00"))    # venerdi' chiuso
+        assert not G.oro_aperto(self._ny("2026-10-03 12:00"))    # sabato
+        assert not G.oro_aperto(self._ny("2026-10-04 17:59"))    # domenica prima
+        assert G.oro_aperto(self._ny("2026-10-04 18:00"))        # riapertura
 
-    def test_arrotonda_i_secondi_di_ritardo(self):
-        adesso = pd.Timestamp.now("UTC")
-        finto = self._Tick(int((adesso + pd.Timedelta(hours=2, seconds=-40)).timestamp()))
-        assert G.scarto_server(finto) == 2
+    def test_ultima_chiusura(self):
+        ch = self._ny("2026-10-02 17:00")                         # venerdi'
+        assert G.ultima_chiusura(self._ny("2026-10-03 12:00")) == ch
+        assert G.ultima_chiusura(self._ny("2026-10-04 18:30")) == ch
+        assert G.ultima_chiusura(self._ny("2026-10-05 09:00")) == ch
+        assert G.ultima_chiusura(self._ny("2026-09-29 17:30")) == self._ny("2026-09-29 17:00")
+
+    def test_aperto_dal_tick(self):
+        adesso = pd.Timestamp("2026-09-29 12:00", tz="UTC")
+        barra = self._srv("2026-09-29 11:59", 3)
+        assert G.scarto_server(self._srv(adesso - pd.Timedelta(seconds=40), 3), barra,
+                               adesso) == 3
+        assert G.scarto_server(self._srv(adesso, 0), self._srv("2026-09-29 11:59", 0),
+                               adesso) == 0
+
+    def test_sabato(self):
+        # Il caso misurato sabato 03/10/2026: il tick di venerdi' sera dava
+        # -19,8 h. L'ultima candela (23:59 del server) chiude alle 17 di NY.
+        adesso = pd.Timestamp("2026-10-03 15:47", tz="UTC")
+        tick = self._srv("2026-10-02 20:59:58", 3)
+        barra = self._srv("2026-10-02 20:59", 3)
+        assert G.scarto_server(tick, barra, adesso) == 3
+
+    def test_pausa_quotidiana(self):
+        adesso = pd.Timestamp("2026-09-29 21:30", tz="UTC")      # 17:30 NY
+        tick = self._srv("2026-09-29 20:59:59", 3)
+        barra = self._srv("2026-09-29 20:59", 3)
+        assert G.scarto_server(tick, barra, adesso) == 3
+
+    def test_domenica_sera_dopo_la_riapertura(self):
+        adesso = pd.Timestamp("2026-10-04 22:30", tz="UTC")      # 18:30 NY
+        tick = self._srv("2026-10-04 22:29:55", 3)
+        barra = self._srv("2026-10-04 22:29", 3)
+        assert G.scarto_server(tick, barra, adesso) == 3
+        # appena riaperto, ancora nessun tick nuovo: vale l'ultima chiusura
+        adesso = pd.Timestamp("2026-10-04 22:00:30", tz="UTC")
+        tick = self._srv("2026-10-02 20:59:58", 3)
+        barra = self._srv("2026-10-02 20:59", 3)
+        assert G.scarto_server(tick, barra, adesso) == 3
+
+    def test_orario_invernale(self):
+        # dicembre: New York UTC-5, server UTC+2; la chiusura resta 23:59 server
+        sabato = pd.Timestamp("2026-12-05 10:00", tz="UTC")
+        tick = self._srv("2026-12-04 21:59:58", 2)
+        barra = self._srv("2026-12-04 21:59", 2)
+        assert G.scarto_server(tick, barra, sabato) == 2
+        mercoledi = pd.Timestamp("2026-12-09 15:00", tz="UTC")
+        assert G.scarto_server(self._srv(mercoledi, 2), self._srv("2026-12-09 14:59", 2),
+                               mercoledi) == 2
 
     def test_si_ferma_se_e_assurdo(self):
-        adesso = pd.Timestamp.now("UTC")
-        finto = self._Tick(int((adesso + pd.Timedelta(days=3)).timestamp()))
-        with pytest.raises(RuntimeError, match="incoerente"):
-            G.scarto_server(finto)
-
-    def test_senza_tick_non_corregge(self):
-        assert G.scarto_server(None) == 0
+        adesso = pd.Timestamp("2026-10-03 12:00", tz="UTC")
+        barra = self._srv("2026-09-29 13:17", 3)                 # terminale fermo da giorni
+        with pytest.raises(RuntimeError, match="non ricavabile"):
+            G.scarto_server(barra, barra, adesso)

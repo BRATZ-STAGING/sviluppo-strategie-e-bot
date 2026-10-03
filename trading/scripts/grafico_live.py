@@ -168,25 +168,58 @@ def leggi_mt5():
     # tre ore: l'archivio Dukascopy (UTC vero) si attacca male, il VWAP si
     # ancora alle 21 invece che a mezzanotte e la finestra 07-19 diventa
     # 04-16. Misurato: il 62% dei segnali disegnati non erano quelli della
-    # strategia. Lo scarto si ricava dal tick, che e' il dato piu' fresco.
-    scarto = scarto_server(tick)
+    # strategia. Lo scarto si ricava dal tick a mercato aperto, dall'ultima
+    # candela a mercato chiuso (vedi scarto_server).
+    ultima = int(barre[-1]["time"])
+    scarto = scarto_server(int(tick.time) if tick else ultima, ultima)
     if scarto:
         df.index = df.index - pd.Timedelta(hours=scarto)
     return simbolo, df, bid, ask, scarto
 
 
-def scarto_server(tick):
-    """Di quante ore l'orologio del broker e' avanti rispetto a UTC."""
-    if tick is None:
-        return 0
-    quando = pd.Timestamp(int(tick.time), unit="s", tz="UTC")
-    ore = (quando - pd.Timestamp.now("UTC")).total_seconds() / 3600
-    scarto = int(round(ore))
-    if abs(scarto) > 14:                 # non e' un fuso: meglio non indovinare
-        raise RuntimeError(
-            f"ora del terminale incoerente con quella di sistema ({ore:+.1f} h): "
-            f"controllare l'orologio della macchina")
-    return scarto
+def oro_aperto(ny):
+    """Orario dell'oro (ora di New York): da domenica 18:00 a venerdi' 17:00,
+    con la pausa quotidiana 17:00-18:00. Le festivita' non sono considerate."""
+    g, h = ny.dayofweek, ny.hour + ny.minute / 60
+    if g == 5:
+        return False
+    if g == 6:
+        return h >= 18
+    if g == 4:
+        return h < 17
+    return not 17 <= h < 18
+
+
+def ultima_chiusura(ny):
+    """L'ultima chiusura delle 17:00 di New York prima di adesso."""
+    c = ny.normalize() + pd.Timedelta(hours=17)
+    if c > ny:
+        c -= pd.Timedelta(days=1)
+    while c.dayofweek >= 5:   # sabato e domenica non chiudono nulla
+        c -= pd.Timedelta(days=1)
+    return c
+
+
+def scarto_server(tick_s, ultima_barra_s, adesso=None):
+    """Di quante ore l'orologio del broker e' avanti rispetto a UTC.
+
+    A mercato aperto lo dice l'ultimo tick, confrontato con l'ora attuale. A
+    mercato chiuso (pausa, fine settimana) il tick e' vecchio di ore: allora la
+    fine dell'ultima candela, in ora del server, coincide con l'ultima
+    chiusura delle 17:00 di New York. ``adesso`` serve solo alle prove.
+    """
+    adesso = pd.Timestamp.now("UTC") if adesso is None else adesso
+    ny = adesso.tz_convert("America/New_York")
+    if oro_aperto(ny):
+        ore = (pd.Timestamp(tick_s, unit="s", tz="UTC") - adesso).total_seconds() / 3600
+        if abs(ore - round(ore)) < 0.1 and abs(round(ore)) <= 14:
+            return int(round(ore))
+    fine = pd.Timestamp(ultima_barra_s, unit="s", tz="UTC") + pd.Timedelta(minutes=1)
+    ore = (fine - ultima_chiusura(ny).tz_convert("UTC")).total_seconds() / 3600
+    if abs(ore - round(ore)) > 0.25 or abs(round(ore)) > 14:
+        raise RuntimeError(f"fuso del broker non ricavabile (ultima candela a {ore:+.2f} h "
+                           f"dall'ultima chiusura di New York): festivita' o terminale scollegato?")
+    return int(round(ore))
 
 
 def vwap_motore(m1):
