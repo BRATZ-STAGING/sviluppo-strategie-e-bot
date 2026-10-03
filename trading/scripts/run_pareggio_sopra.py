@@ -5,6 +5,12 @@ Proposta dell'utente, nata dalla scoperta che la strategia "in uso" chiude 60
 operazioni su 333 esattamente a pareggio: dopo lo spread sono leggermente
 negative, e sono quelle che allungano le serie perdenti da 11 a 23.
 
+CORREZIONE 04/10/2026: quei 60 pareggi e le 23 perdite di fila erano un
+artefatto della chiusura di fine giornata, che d'estate non scattava (la
+candela delle 21:00 non esiste con l'ora legale USA). Corretta, la "in uso"
+chiude 24 operazioni a pareggio e la sua serie peggiore e' gia' 11
+(docs/studies/verifica-bot-discrepanze.md).
+
 L'IDEA. Invece di portare lo stop AL prezzo d'ingresso, portarlo uno o due
 dollari OLTRE. Cosi' quelle uscite smettono di essere pareggi e diventano
 piccole vittorie: la serie perdente si spezza davvero, non per convenzione di
@@ -48,7 +54,9 @@ from verifica_bot import (CHIUSURA_MIN, GIORNI_MAX, MEDIANA_ATR,  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BOT = [("in uso", 10.0, 3.0, None, False, None),
-       ("A", 8.0, 3.0, None, True, -99.0),
+       # soglia +inf: la A chiude SEMPRE prima del fine settimana (con -99 non
+       # chiudeva mai; docs/studies/verifica-bot-discrepanze.md)
+       ("A", 8.0, 3.0, None, True, np.inf),
        ("B", 8.0, None, (3.0, 2.0), True, 1.0),
        ("C 1:2", 2.0, 1.0, None, False, None)]   # C con pareggio a +1R, per vedere l'effetto
 
@@ -85,6 +93,12 @@ def main():
            if all(o[f"c_{tf}"] for tf in T.conferme)
            and all(not o[f"c_{tf}"] for tf in T.ritracciamento)]
     idx = pd.DatetimeIndex(m1.index).as_unit("ns").asi8
+    # fine giornata = ULTIMA candela prima delle 21:00 della sua giornata, come
+    # verifica_bot.Percorsi: la candela delle 21:00 non esiste con l'ora
+    # legale USA (docs/studies/verifica-bot-discrepanze.md)
+    t21 = (pd.DatetimeIndex(m1.index).normalize()
+           + pd.Timedelta(hours=T.ora_chiusura)).as_unit("ns").asi8
+    eod = (idx < t21) & (np.append(idx[1:], np.iinfo(np.int64).max) >= t21)
     ap_, hi, lo, cl = m1.open.values, m1.high.values, m1.low.values, m1.close.values
     VAR = [("0 $ (attuale)", "fisso", 0.0), ("+1 $", "dollari", 1.0),
            ("+2 $", "dollari", 2.0), ("+0,25 R", "erre", 0.25),
@@ -103,8 +117,7 @@ def main():
             A, F, S, C = (o_-e)/k, (h_-e)/k, (e-l_)/k, (c_-e)/k
         else:
             A, F, S, C = (e-o_)/k, (e-l_)/k, (h_-e)/k, (e-c_)/k
-        ta = pd.DatetimeIndex(idx[a:b].astype("datetime64[ns]"), tz="UTC")
-        fg = set(np.flatnonzero((ta.hour == T.ora_chiusura) & (ta.minute == 0)).tolist())
+        fg = set(np.flatnonzero(eod[a:b]).tolist())
         dd = np.diff(idx[a:b]) / 60_000_000_000
         bu = set(np.flatnonzero(dd > CHIUSURA_MIN).tolist())
         s = SPREAD.get(o["anno"], 0.40) / k

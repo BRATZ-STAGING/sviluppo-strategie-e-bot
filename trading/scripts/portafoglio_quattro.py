@@ -48,7 +48,9 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OBIETTIVO_ANNUO = 6.0
 
 BOT = [("in uso", 10.0, 3.0, None, False, None),
-       ("A", 8.0, 3.0, None, True, -99.0),
+       # soglia +inf: la A chiude SEMPRE prima del fine settimana (con -99 non
+       # chiudeva mai; docs/studies/verifica-bot-discrepanze.md)
+       ("A", 8.0, 3.0, None, True, np.inf),
        ("B", 8.0, None, (3.0, 2.0), True, 1.0),
        ("1:2", 2.0, None, None, False, None)]
 
@@ -59,6 +61,12 @@ def main():
            if all(o[f"c_{tf}"] for tf in T.conferme)
            and all(not o[f"c_{tf}"] for tf in T.ritracciamento)]
     idx = pd.DatetimeIndex(m1.index).as_unit("ns").asi8
+    # fine giornata = ULTIMA candela prima delle 21:00 della sua giornata, come
+    # verifica_bot.Percorsi: la candela delle 21:00 non esiste con l'ora
+    # legale USA (docs/studies/verifica-bot-discrepanze.md)
+    t21 = (pd.DatetimeIndex(m1.index).normalize()
+           + pd.Timedelta(hours=T.ora_chiusura)).as_unit("ns").asi8
+    eod = (idx < t21) & (np.append(idx[1:], np.iinfo(np.int64).max) >= t21)
     ap_, hi, lo, cl = m1.open.values, m1.high.values, m1.low.values, m1.close.values
 
     serie, date, anni = {n: [] for n, *_ in BOT}, [], []
@@ -77,9 +85,7 @@ def main():
         else:
             apri, fav, sfav, chiu = ((e - o_) / k, (e - l_) / k,
                                      (h_ - e) / k, (e - c_) / k)
-        t_abs = pd.DatetimeIndex(idx[a:b].astype("datetime64[ns]"), tz="UTC")
-        fine_gio = set(np.flatnonzero(
-            (t_abs.hour == T.ora_chiusura) & (t_abs.minute == 0)).tolist())
+        fine_gio = set(np.flatnonzero(eod[a:b]).tolist())
         d = np.diff(idx[a:b]) / 60_000_000_000
         buchi = set(np.flatnonzero(d > CHIUSURA_MIN).tolist())
         s = SPREAD.get(o["anno"], 0.40) / k
