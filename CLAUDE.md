@@ -13,6 +13,24 @@
   dell'estensione. Ogni `load_m1` stampa su stderr il periodo effettivo.
 - Dipendenze: `pip install pandas pyarrow pytest tabulate` (non in repo).
 
+## Smistamento del lavoro (sotto-agenti in `.claude/agents/`)
+
+La sessione principale (Opus, impegno alto: `.claude/settings.json`) pianifica
+e smista; modello e impegno di ogni lavoro li fissa il sotto-agente.
+
+| lavoro | sotto-agente | modello / impegno |
+|---|---|---|
+| controllare se uno studio e' gia' fatto o respinto | `archivista` | Haiku |
+| nuove idee, analisi, registrazioni preventive, studi | `ricercatore-quant` | Fable / xhigh |
+| revisione avversariale, cercare falle, validare risultati | `verificatore` | Fable / high |
+| web app `app/` e grafico live | `sviluppatore-webapp` | Sonnet / high |
+| script, test, rigenerazioni, modifiche meccaniche | `esecutore` | Sonnet / medium |
+
+Regole: (1) `archivista` PRIMA di ogni nuovo studio; (2) `verificatore` PRIMA
+di dichiarare valido un risultato o chiudere un progetto; (3) il lavoro lungo
+ma meccanico va all'`esecutore`, non alla sessione principale. Se Fable non e'
+disponibile, usare `opus` con lo stesso impegno.
+
 ## Il laboratorio (`trading/scripts/`)
 
 `build_lab.py` costruisce la pagina dal template: `<lab.json> <lab.html>` per la

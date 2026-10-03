@@ -8,3 +8,7 @@ docs/studies/dati/livelli_atr.parquet
 
 # web app: disegni dell utente (dati personali, non codice)
 app/dati/
+
+# copie di lavoro degli agenti di Claude Code (contengono anche i dati)
+.claude/worktrees/
+.claude/settings.local.json
