@@ -122,6 +122,33 @@ verifica 2018-2026: nessuna delle cinque ipotesi passa):
 - Il registro dei segnali in avanti (`registro_segnali.jsonl`) NON esiste sul
   PC al 03/10: il fuori campione nuovo non si sta accumulando.
 
+## 03-04/10: decisioni e correzioni (da leggere prima di riprendere)
+
+- **Niente push su GitHub** per decisione dell'utente: solo commit locali.
+- Strada (b) scelta, **solo demo**: `docs/esperimento-b-registrazione.md`.
+  Ordine: walk-forward -> analisi B nel motore -> EA -> confronto MT5 -> demo.
+- **Walk-forward dal 2009** (`docs/studies/zero/walkforward.md`): NON
+  funziona (P e S), confermato dal verificatore; con lo swap S ~0.
+- **Analisi B** (`docs/studies/b-prima-della-demo.md`): 2009-2019 -91,4 R,
+  DD 91,4 R (quindici anni sotto il massimo); lo spegnimento a -15 R scatta nel
+  95% delle partenze 2009-2019, mai nel 2020-2025. Manca lo swap (-9,5 R
+  2020-2026, -10,8 R 2009-2019).
+- **Difetto della fine giornata** (`docs/studies/verifica-bot-discrepanze.md`):
+  la chiusura delle 21 UTC non scattava (candela delle 21 inesistente con
+  l'ora legale USA, o finestra di N giorni senza chiusura). Corretti
+  verifica_bot, sfida_prop, portafoglio_quattro, run_pareggio_sopra e le
+  appendici BM, BR, BS, BO, BP, BX, BT, BZ, BQ, BU, BV, BY, CA (riquadri
+  "CORREZIONE 04/10/2026"). La **B non cambia**; in uso, A e 1:2 si'
+  (in uso 2020-2026 da +214,7 a +163,2 R). Taglie della sfida NON cambiate
+  (decisione dell'utente aperta: C 0,85%, D 0,80% col criterio originale).
+- **Due strade respinte da riverificare sui 18 anni** dopo la correzione:
+  distanza dal VWAP (BP, batte il placebo sul 2020-2026) e confluenza 3+ TF
+  (BV, regge formalmente ma 170 operazioni e 10,2% del caso). Non usarle
+  prima di una registrazione e verifica 2009-2026.
+- Non verificati: le fasce sulla pendenza della media a 200 giorni in BX
+  (definizione mai scritta); `run_scalp_ritorno_media.py` (CB) puo' superare
+  le 21 di al massimo due ore.
+
 ## Web app: prima versione (02/10/2026)
 
 In `app/` (istruzioni in `app/README.md`). Provata nel browser: candele
