@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import glob
 import json
+import multiprocessing
 import os
 import sys
 import threading
@@ -175,24 +176,34 @@ def leggi_mt5(quante: int):
     return simbolo, df
 
 
-def ciclo_mt5():
+def lettore_mt5(coda):
+    """Gira in un PROCESSO a parte: la libreria MetaTrader5 tiene bloccato
+    l'interprete mentre aspetta il terminale (fino a 60 s con "IPC timeout"),
+    e in un thread fermerebbe anche il server web."""
+    primo = True
     while True:
         try:
-            with _lock:
-                ce_gia = _vivo["m1"] is not None
-            simbolo, nuovo = leggi_mt5(500 if ce_gia else BARRE_MT5)
-            with _lock:
-                vecchio = _vivo["m1"]
-                if vecchio is not None:
-                    nuovo = pd.concat([vecchio, nuovo])
-                    nuovo = nuovo[~nuovo.index.duplicated(keep="last")].sort_index()
-                    nuovo = nuovo.iloc[-BARRE_MT5:]
-                _vivo.update(m1=nuovo, simbolo=simbolo, errore=None, ora=time.time())
-        except Exception as e:  # terminale chiuso, libreria assente...
-            with _lock:
-                _vivo["errore"] = str(e)
+            simbolo, df = leggi_mt5(BARRE_MT5 if primo else 500)
+            coda.put(("ok", simbolo, df))
+            primo = False
+            time.sleep(OGNI_MT5)
+        except Exception as e:  # terminale chiuso, non collegato, libreria assente...
+            coda.put(("errore", None, str(e)))
             time.sleep(30)
-        time.sleep(OGNI_MT5)
+
+
+def ricevi_mt5(coda):
+    while True:
+        esito, simbolo, dato = coda.get()
+        with _lock:
+            if esito != "ok":
+                _vivo["errore"] = dato
+                continue
+            vecchio = _vivo["m1"]
+            if vecchio is not None:
+                dato = pd.concat([vecchio, dato])
+                dato = dato[~dato.index.duplicated(keep="last")].sort_index().iloc[-BARRE_MT5:]
+            _vivo.update(m1=dato, simbolo=simbolo, errore=None, ora=time.time())
 
 
 # ----------------------------------------------------------------- disegni
@@ -341,7 +352,11 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     if USA_MT5:
-        threading.Thread(target=ciclo_mt5, daemon=True).start()
+        coda = multiprocessing.Queue()
+        multiprocessing.Process(target=lettore_mt5, args=(coda,), daemon=True).start()
+        threading.Thread(target=ricevi_mt5, args=(coda,), daemon=True).start()
+        with _lock:
+            _vivo["errore"] = "in attesa del terminale (fino a un minuto)"
     srv = ThreadingHTTPServer(("127.0.0.1", PORTA), Handler)
     print(f"grafico su http://127.0.0.1:{PORTA}  (archivio: {ARCHIVIO}, MT5: {'si' if USA_MT5 else 'no'})",
           flush=True)
