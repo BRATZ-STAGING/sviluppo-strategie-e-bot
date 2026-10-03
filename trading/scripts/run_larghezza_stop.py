@@ -113,6 +113,12 @@ uno scalp. Per questo ogni blocco riporta la **durata mediana in ore** e la
 percentuale di operazioni che sopravvivono **oltre un giorno** di mercato
 (1.440 candele M1): senza quelle due righe la tabella del netto si legge male.
 
+CORREZIONE 04/10/2026: i 30 giorni erano il difetto di BM/BO/BR, non una
+scelta: la regola della strategia chiude alle 21:00 UTC. Ora il percorso
+finisce all'ultima candela prima delle 21:00 del giorno d'ingresso
+(T.ora_chiusura), come genera() e verifica_bot.Percorsi; nessuna operazione
+resta aperta la notte e "oltre 1g%" vale zero per costruzione.
+
 Uso: cd <repo> && XAU_ANNI=2009-2026 python3 trading/scripts/run_larghezza_stop.py
 Scrive docs/studies/dati/larghezza_stop.parquet
 """
@@ -131,7 +137,9 @@ from framework.segnali import genera                             # noqa: E402
 from framework.taratura import UFFICIALE as T                    # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GIORNI_MAX = 30                  # orizzonte, come in BM/BO/BR
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura). Fino al 04/10/2026 qui c'era GIORNI_MAX = 30
+# (docs/studies/rr-intraday-study.md, BT)
 MEDIANA_ATR = 25.5968            # riferimento 2020-2024, congelato nelle schede
 LARGHEZZE = list(range(2, 21))   # stop fisso in dollari, da 2 a 20
 OBIETTIVI = [2.0, 3.0]           # RR 1:2 (il superstite di BR) e 1:3 (controllo)
@@ -255,7 +263,8 @@ def main():
     for o, uff in zip(tutte, ufficiale):
         t_in = pd.Timestamp(o["time"]).tz_convert("UTC")
         a = int(np.searchsorted(idx, t_in.value))
-        b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+            hours=T.ora_chiusura)).value))
         if b - a < 2:
             continue
         e = o["entry"]
@@ -386,7 +395,7 @@ def main():
         print(f"-- obiettivo 1:{rr:.0f}")
         print(p.round(3).join(d.round(1), lsuffix=" R/op", rsuffix=" h")
               .to_string())
-    print(f"\nscadenza a {GIORNI_MAX} giorni: al massimo "
+    print(f"\nchiusura alle {T.ora_chiusura}:00 UTC: al massimo "
           f"{(t.motivo == 'scadenza').groupby([t['stop$'], t.rr]).mean().max()*100:.1f}%"
           " delle celle; il dettaglio per operazione e' nel parquet.")
 

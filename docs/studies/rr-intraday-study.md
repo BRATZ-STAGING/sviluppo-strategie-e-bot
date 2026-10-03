@@ -5027,6 +5027,78 @@ e' l'unica cosa che puo' trasformare questi numeri in una decisione.
 
 ## Appendice BT: la curva del netto in funzione della larghezza dello stop
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_larghezza_stop.py` percorreva ogni operazione
+> per **30 giorni** (`GIORNI_MAX = 30`), "come BM/BO/BR, per restare
+> confrontabili": ma in BM, BO e BR i 30 giorni erano proprio il difetto.
+> L'appendice non studia la tenuta oltre la sera: la domanda e' uno scalp, e
+> il testo stesso dice che le posizioni notturne "violano la chiusura EOD
+> delle 21 UTC della taratura" e non rispondono all'utente. **Prova**
+> (`XAU_ANNI=2009-2026`): lo script vecchio riproduce la tabella pubblicata
+> (parquet identico all'originale); con la sua finestra il **59%** delle
+> 101.840 righe operazione x larghezza x obiettivo esce dopo le 21:00 del
+> giorno d'ingresso e il 28% passa il fine settimana. Gia' a stop 3 $ e
+> obiettivo 1:2 escono dopo le 21 il 13,5% delle operazioni ufficiali, a 8 $
+> il 46,8%, a 12 $ il 65,6%, a 20 $ l'83,6% (fino a 30 giorni). **Corretto**
+> (percorso fino all'ultima candela prima delle 21:00 del giorno
+> d'ingresso, come `run_prodotto_clienti.py` dopo `d939560`; il motore veloce
+> resta verificato 250/250 sul riferimento). `larghezza_stop.parquet`
+> rigenerato (cambia contenuto; stesse righe). "Oltre 1 giorno" vale ora zero
+> per costruzione.
+>
+> La curva, campione largo, obiettivo 1:2 ("Prima:" il valore pubblicato):
+>
+> | stop $ | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 10 | 13 | 16 | 20 |
+> |---|---|---|---|---|---|---|---|---|---|---|---|
+> | lordo R/op | +0,005 | +0,024 | +0,010 | −0,005 | +0,009 | +0,011 | +0,029 | +0,032 | +0,025 | +0,011 | +0,014 |
+> | Prima: | −0,009 | +0,015 | +0,014 | +0,006 | +0,010 | +0,049 | +0,083 | +0,064 | +0,085 | +0,059 | +0,032 |
+> | **netto R/op** | −0,202 | −0,114 | −0,093 | −0,088 | −0,060 | −0,048 | **−0,022** | **−0,009** | **−0,007** | −0,015 | −0,006 |
+> | Prima: | −0,215 | −0,123 | −0,089 | −0,077 | −0,059 | −0,010 | +0,032 | +0,023 | +0,053 | +0,033 | +0,011 |
+> | durata mediana h | 0,5 | 1,1 | 1,8 | 2,6 | 3,3 | 4,0 | 4,5 | 5,6 | 6,4 | 6,9 | 7,3 |
+> | Prima: | 0,5 | 1,1 | 1,8 | 2,8 | 4,0 | 5,5 | 7,5 | 14,7 | 22,9 | 31,1 | 49,0 |
+>
+> Campione ufficiale (712), netto R/op: con 1:2 −0,045 a 3 $ (Prima: −0,074),
+> −0,024 a 4 $ (Prima: −0,046), **+0,014 a 7 $**, +0,053 a 8 $ (Prima:
+> +0,063), massimo **+0,078 a 11 $** (Prima: +0,141), +0,033 a 20 $; con 1:3
+> −0,055 a 3 $, −0,021 a 4 $, +0,007 a 5 $, massimo **+0,101 a 8 $** (Prima:
+> +0,210), +0,040 a 20 $.
+>
+> Ipotesi C, campione largo 1:2, netto R/op per periodo 2009-2019 /
+> 2020-2022 / 2023-2026: 3 $ −0,139 / −0,032 / −0,131 (Prima: −0,168 /
+> −0,029 / −0,110); 5 $ −0,109 / −0,008 / −0,109 (Prima: −0,151 / +0,083 /
+> −0,059); **8 $ −0,043 / −0,051 / +0,041** (Prima: −0,032 / +0,132 /
+> +0,075); **12 $ −0,029 / −0,042 / +0,077** (Prima: −0,029 / +0,139 /
+> +0,118); 20 $ −0,023 / +0,007 / +0,015 (Prima: −0,038 / +0,178 / −0,024).
+>
+> Minimo fra i tre periodi: **7 celle positive su 76** (Prima: 16), tutte sul
+> campione ufficiale e tutte fra 17 e 20 $: 1:3 a 17-20 $ (da +0,002 a
+> +0,014) e 1:2 a 18-20 $ (+0,006, +0,009, +0,010). Sul campione largo
+> **nessuna** (Prima: 1:3 a 11 e 15-18 $, 1:2 a 15 $).
+>
+> **Cosa cambia nelle conclusioni.** (1) **Ipotesi A resta respinta, ma per
+> un motivo diverso.** Il massimo interno c'e' ancora (lordo ufficiale 1:2
+> massimo a 10-11 $, 1:3 a 8 $), ma non perche' l'operazione "si allunga per
+> giorni": nessuna passa piu' la notte. Con lo stop largo la maggior parte
+> delle operazioni non tocca ne' stop ne' obiettivo e chiude alle 21 (fino
+> all'87% a 20 $), e il risultato tende alla deriva di mezza giornata. (2)
+> **Ipotesi B cambia**: sul campione largo con 1:2 il netto non attraversa
+> mai lo zero (massimo −0,003 a 11-12 $; con 1:3 solo +0,002 a 8 $), cioe'
+> **nessuna larghezza paga lo spread** sull'insieme largo; sul campione ufficiale lo attraversa fra 6 e 7 $ (1:2)
+> e fra 4 e 5 $ (1:3), non fra 7 e 8. (3) **Ipotesi C**: il positivo del
+> 2020-2022 dagli 8 $ in su (+0,13/+0,18) era tutto tenuta notturna;
+> corretto, il 2020-2022 e' negativo o nullo a ogni larghezza da 5 $ in su, e
+> l'unico periodo positivo sul largo e' il 2023-2026 dagli 8 $. Il 2009-2019
+> rifiuta ancora ogni larghezza. (4) **La risposta all'utente non cambia**:
+> 3 o 4 punti sono negativi ovunque. (5) **"La larghezza che paga paga
+> perche' diventa multi-giorno" e "fra 11 e 14 $" non reggono piu'**: sul
+> largo non paga nessuna larghezza; sull'ufficiale pagano dentro la giornata
+> le larghezze da 7-8 $ in su, con massimo a 8 $ (1:3) e 11 $ (1:2), durata
+> mediana 4-6 ore. (6) La previsione D, "nessuna larghezza positiva su tutti
+> e tre i periodi con entrambi gli obiettivi", e' formalmente smentita
+> sull'ufficiale a 18-20 $ (entrambi gli obiettivi), ma con margini fra
+> +0,006 e +0,014 R/op decisi dal 2009-2019: zero, non un altopiano. Il testo
+> qui sotto e' quello originale, con i numeri dei 30 giorni.
+
 Domanda dell'utente, alla lettera: *"invece che 3 punti mettere 4 punti di
 stop va benissimo, qual e' la larghezza giusta?"*.
 
@@ -5302,6 +5374,61 @@ come ipotesi a se', pre-registrata, non raccolta da una tabella.
 ---
 
 ## Appendice BZ: la scalp dentro il solo 2020-2026, col criterio del cliente
+
+> **CORREZIONE 04/10/2026 — ereditata da BT.** Lo script
+> `trading/scripts/run_scalp_2020.py` non ha un motore suo: legge
+> `larghezza_stop.parquet` di BT, che percorreva ogni operazione per 30
+> giorni senza la chiusura delle 21:00 UTC (riquadro in testa a BT).
+> L'appendice non sceglie la tenuta notturna come oggetto: la segnala come
+> "il prezzo da pagare" e confronta con BR, che e' gestita con la chiusura
+> delle 21. **Prova**: sul parquet vecchio lo script riproduce ogni numero
+> pubblicato; nel campione ufficiale 2020-2026 (338 operazioni) escono dopo
+> le 21:00 del giorno d'ingresso il 4,4% delle operazioni a 3 $ · 1:2, il
+> 28,4% a 8 $ · 1:2, il 37,3% a 8 $ · 1:3, il 46,7% a 12 $ · 1:2, il 63,6% a
+> 16 $ · 1:2. Script invariato, rilanciato sul parquet corretto di BT.
+>
+> Campione ufficiale, netto R/op ricerca 2020-2022 / verifica 2023-2026
+> ("Prima:" il valore pubblicato), obiettivo 1:2: 3 $ +0,167 / −0,039
+> (Prima: +0,157 / −0,006); 4 $ +0,285 / −0,086 (Prima: +0,248 / −0,025); 5 $ +0,308 / −0,115 (Prima:
+> +0,424 / −0,060); 6 $ +0,098 / +0,045 (Prima: +0,303 / +0,017); **8 $
+> +0,077 / +0,193** (Prima: +0,336 / +0,219); 10 $ +0,095 / +0,242 (Prima:
+> +0,367 / +0,275); **12 $ +0,053 / +0,247** (Prima: +0,437 / +0,270);
+> 16 $ +0,061 / +0,096 (Prima: +0,362 / +0,126). Obiettivo 1:3: **8 $ +0,129 / +0,335** (Prima: +0,566
+> / +0,420); 12 $ +0,051 / +0,209 (Prima: +0,524 / +0,285). Ore mediane da 2,3 (6 $) a 6,6 (16 $),
+> prima da 2,4 a 17,4.
+>
+> Le celle positive in entrambi i sottoperiodi restano **12 su 18**, le
+> stesse; riscalate al 6% annuo:
+>
+> | cella | rischio/op | DD max | anno peggiore | anni+ | mesi+ | perdite di fila | oltre 1 giorno | rend/DD |
+> |---|---|---|---|---|---|---|---|---|
+> | stop 8 $ · 1:3 | 0,50% (Prima: 0,26%) | **8,3%** (Prima: 5,5%) | −4,4% (Prima: −2,3%) | **3/7** (Prima: 5/7) | 53,5% | 12 (Prima: 14) | 0% (Prima: 13,3%) | **0,72** (Prima: 1,09) |
+> | stop 10 $ · 1:2 | 0,68% (Prima: 0,40%) | 9,4% (Prima: 5,8%) | −5,0% (Prima: −2,6%) | 3/7 (Prima: 4/7) | 52,1% (Prima: 50,7%) | 12 (Prima: 7) | 0% (Prima: 14,5%) | 0,64 (Prima: 1,04) |
+> | stop 12 $ · 1:2 | 0,74% (Prima: 0,37%) | **11,3%** (Prima: 5,25%) | −6,0% (Prima: −2,3%) | **3/7** (Prima: 6/7) | 49,3% (Prima: 52,1%) | 12 (Prima: 9) | 0% (Prima: 19,5%) | 0,53 (Prima: 1,14) |
+> | stop 6 $ · 1:3 | 0,71% (Prima: 0,47%) | 13,1% (Prima: 11,7%) | −6,7% (Prima: −4,9%) | 3/7 (Prima: 4/7) | 49,3% (Prima: 45,1%) | 12 (Prima: 18) | 0% (Prima: 5,9%) | 0,46 (Prima: 0,51) |
+> | stop 8 $ · 1:2 | 0,86% (Prima: 0,47%) | 15,7% (Prima: 10,9%) | −8,4% (Prima: −5,2%) | 3/7 (Prima: 5/7) | 49,3% (Prima: 50,7%) | 12 (Prima: 10) | 0% (Prima: 10,1%) | 0,38 (Prima: 0,55) |
+>
+> Tutte le dodici celle fanno **3 anni positivi su 7** (2022, 2024, 2025) e
+> 12 perdite di fila. Campione "largo" (qui le sole operazioni NON
+> ufficiali, 136 l'anno): **nessuna cella** positiva in entrambi i
+> sottoperiodi (Prima: sette).
+>
+> **Cosa cambia nelle conclusioni.** (1) "Lo scalp vero (3-5 $) funzionava
+> fino al 2022 e ha smesso" **regge**, anzi peggiora in verifica (−0,04 /
+> −0,09 / −0,12). Il confine fra 5 e 6 $ resta. (2) **L'altopiano si
+> assottiglia**: le stesse 12 celle restano positive in entrambi i periodi, ma
+> nel 2020-2022 valgono +0,05/+0,18 R/op invece di +0,30/+0,57; quasi tutto
+> il vantaggio sta nel 2023-2026. A parita' di 6% annuo il drawdown migliore
+> e' **8,3%** (non 5,25%) e nessuna cella supera 3 anni positivi su 7. (3)
+> "Il prezzo, dichiarato": con la chiusura delle 21 non c'e' piu' nessuna
+> posizione notturna e la durata mediana sta fra 2,3 e 6,6 ore: e' davvero
+> un'operazione intraday, ma vale meno. (4) Il confronto con BR va fatto con
+> i numeri corretti di BR: l'1:2 strutturale fa il 6% con DD 6,4%, 5/7 anni,
+> 7 perdite di fila, 52,2% di mesi positivi; l'ufficiale 1:10 DD 4,2%, 7/7.
+> **Lo stop strutturale resta preferibile, con piu' margine di prima**: le
+> celle a stop fisso hanno drawdown maggiore (8,3-11,3%), meno anni positivi
+> (3/7) e piu' perdite di fila (12). Il testo qui sotto e' quello originale,
+> con i numeri dei 30 giorni.
 
 Decisione dell'utente: ripartire dal 2020-2026 e cercare li' la strategia
 scalp. Nessuna idea nuova: si rimette insieme cio' che le appendici di oggi
