@@ -4105,6 +4105,58 @@ va nella direzione sbagliata.
 
 ## Appendice BO: obiettivi fino a 10 $ e stop scritti in volatilita'
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_scalp_atr.py` percorreva ogni operazione per
+> **30 giorni** (`GIORNI_MAX = 30`), senza la chiusura delle 21:00 UTC e senza
+> quella del venerdi', lo stesso difetto di BM. L'appendice non dichiara una
+> tenuta oltre la sera: il tetto di 10 $ e' scelto proprio perche' "tiene
+> l'operazione dentro la giornata", e la riga di riferimento e' la gestione
+> ufficiale, che chiude alle 21. **Prova** (`XAU_ANNI=2020-2026`): lo script
+> vecchio riproduce la tabella pubblicata alla terza cifra (parquet identico
+> all'originale); con la sua finestra la riga ufficiale esce dopo le 21:00 del
+> giorno d'ingresso in **428 operazioni su 1.290** (120 su 333 nel campione
+> ufficiale), 165 passano il fine settimana, la piu' lunga resta aperta 27,9
+> giorni; lo stop 5 $ / obiettivo 8 $ ne porta oltre le 21 169 (13%), il 3/5
+> 61 (4,7%), le celle in volatilita' da 0 a 9 (sotto l'1%). **Corretto** (il
+> percorso finisce all'ultima candela prima delle 21:00 del giorno
+> d'ingresso, come in `run_scalp_scaglioni.py` dopo `d939560`): la riga
+> ufficiale sul campione ufficiale fa +171,97 R (+0,516 R/op, 7/7), il numero
+> della taratura e di BM corretta. `scalp_atr.parquet` rigenerato (cambia
+> contenuto).
+>
+> Campione largo, 1.290 operazioni, spread 0,30 (lordo R/op · netto R/op ·
+> anni+; "Prima:" il valore pubblicato):
+>
+> | gestione | lordo R/op | netto R/op | anni+ |
+> |---|---|---|---|
+> | ufficiale 1:10 strutturale | **+0,259** (Prima: +0,462) | **+0,183** (Prima: +0,386) | 6/7 |
+> | stop 1x respiro, obiettivo 2x | −0,039 | −0,373 | 0/7 |
+> | stop 1x respiro, obiettivo 3x | −0,011 (Prima: −0,009) | −0,345 (Prima: −0,343) | 0/7 |
+> | stop 1x respiro, obiettivo 5x | −0,025 (Prima: −0,027) | −0,359 (Prima: −0,361) | 0/7 |
+> | stop 1,5x respiro, obiettivo 3x | −0,004 (Prima: −0,003) | −0,267 (Prima: −0,266) | 0/7 |
+> | stop 2x respiro, obiettivo 3x | +0,011 (Prima: +0,012) | −0,196 (Prima: −0,195) | 0/7 |
+> | stop 2x respiro, obiettivo 5x | +0,014 (Prima: +0,016) | −0,192 (Prima: −0,190) | 0/7 |
+> | rif. stop 3 $ obiettivo 5 $ | +0,044 (Prima: +0,049) | −0,056 (Prima: −0,051) | 2/7 |
+> | rif. stop 5 $ obiettivo 8 $ | **+0,017** (Prima: +0,049) | **−0,043** (Prima: −0,011) | 2/7 |
+>
+> Ipotesi C: l'ufficiale fa **+0,046 R/op in ricerca** (Prima: +0,202) e
+> **+0,290 in verifica** (Prima: +0,529), R/DD **5,08** (Prima: 7,07, DD 46,6
+> R invece di 70,5). Ipotesi A: la colonna del respiro non cambia; i 3 $ fissi
+> danno il 63,1% di stop nel 2020 (Prima: 64,8), 52,6% nel 2022 (Prima: 55,1),
+> 59,8% nel 2024 (Prima: 61,9), 70,2% nel 2026 (uguale).
+>
+> **Cosa cambia nelle conclusioni.** Niente nel verso: (A) la regola in
+> volatilita' resta stabile, con lo stop% fermo fra 71 e 79; (B) tutte le
+> celle in volatilita' restano nette negative, con numeri quasi identici
+> (escono quasi tutte prima delle 21); (C) l'ufficiale resta davanti a ogni
+> cella in entrambi i periodi. Cambia la misura del riferimento: sul campione
+> largo l'ufficiale vale meta' di quanto scritto (+0,183 invece di +0,386
+> R/op) e nel periodo di ricerca 2020-2022 e' appena sopra lo zero (+0,046).
+> Il 5 $ / 8 $ era quello che guadagnava di piu' dalla tenuta notturna: senza,
+> il suo lordo scende da +0,049 a +0,017 e la frase "il lordo resta fra −0,04
+> e +0,05 ovunque" diventa "fra −0,04 e +0,044". Il testo qui sotto e' quello
+> originale, con i numeri del 30 giorni.
+
 Richiesta dell'utente dopo BM: obiettivi piu' larghi, **massimo 10 punti**, e
 la taglia decisa "in base alla situazione del momento, volatilita' ecc".
 Risolve anche il difetto che BM aveva trovato da sola — 3 $ fissi non sono lo

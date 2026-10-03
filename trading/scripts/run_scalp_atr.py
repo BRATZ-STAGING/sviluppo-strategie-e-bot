@@ -31,7 +31,7 @@ IPOTESI PRE-REGISTRATE:
      l'ufficiale 1:10 resti davanti a tutte le celle.
 Se A e' vera e B e' falsa, e' una scoperta e va guardata due volte.
 
-Uso: python3 run_scalp_atr.py
+Uso: XAU_ANNI=2020-2026 python3 run_scalp_atr.py
 Scrive docs/studies/dati/scalp_atr.parquet
 """
 from __future__ import annotations
@@ -51,7 +51,10 @@ from framework.taratura import UFFICIALE as T                    # noqa: E402
 from run_scalp_scaglioni import cammina_uno                      # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GIORNI_MAX = 30
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura), come genera() e verifica_bot.Percorsi. Fino al
+# 04/10/2026 qui c'era GIORNI_MAX = 30 e il percorso durava 30 giorni: nessuna
+# chiusura serale ne' del venerdi' (docs/studies/rr-intraday-study.md, BO)
 RESPIRO = 30               # candele M1 su cui si misura l'escursione corrente
 TETTO = 10.0               # il massimo dell'obiettivo, in dollari: e' dell'utente
 RICERCA, VERIFICA = (2020, 2022), (2023, 2026)
@@ -100,7 +103,8 @@ def main():
                 segno = 1 if o["lato"] == "long" else -1
                 e = o["entry"]
                 a = int(np.searchsorted(idx, t_in.value))
-                b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+                b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+                    hours=T.ora_chiusura)).value))
                 r_now = rv[a] if a < len(rv) else np.nan
                 if stopdef is None:
                     k = float(o["rischio"])
