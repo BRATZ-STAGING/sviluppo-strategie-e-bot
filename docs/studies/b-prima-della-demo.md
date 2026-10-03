@@ -36,10 +36,12 @@ e `..._spegnimento.parquet` (204 partenze simulate).
   `misure()` di `verifica_bot.py` (non corretto qui: tocca numeri pubblicati).
 - **89,8 R** (appendice AU) e' giusto per il suo momento: spread 0,30 e 382
   operazioni, prima della correzione delle domeniche (appendice BD).
-- **87,4 R** (`bots/SCHEDE-STRATEGIE.md`, 04/08/2026, e la consegna) **non e'
-  riproducibile**: nessuna combinazione di spread e campione lo da', e la sua
-  origine non e' stata rintracciata in alcuno script o appendice. Va
-  considerato superato da 91,4.
+- **87,4 R** (`bots/SCHEDE-STRATEGIE.md`, 04/08/2026, e la consegna) e' la B
+  del motore ufficiale **con lo swap** e lo spread a 0,30, misurata con lo
+  stesso difetto del drawdown (da capitale 0 sarebbe 88,4 R). Origine
+  rintracciata in `docs/studies/verifica-bot-discrepanze.md` §7.
+- Lo swap FP, che questo studio non modella, vale per la B -10,8 R sul
+  2009-2019 e -9,5 R sul 2020-2026 (stesso documento, §2).
 
 ## 3. La discesa: una sola, lunga quindici anni
 
