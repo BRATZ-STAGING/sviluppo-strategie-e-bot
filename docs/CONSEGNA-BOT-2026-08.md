@@ -104,7 +104,7 @@ Otto strade chiuse. Riaprirne una senza un'idea nuova e' tempo perso.
 | gestione a scaglioni (3 uscite 1/1,5/2) | BM | −85% di rendimento per −32% di drawdown |
 | stop e obiettivi a punti fissi | BM, BO | il costo e' il doppio del vantaggio lordo |
 | soglie in unita' di volatilita' | BO, BX | stabilizza la regola, non crea vantaggio |
-| conferme fini su M1/M3 (5 famiglie) | BP | nessuna regge; il placebo separa piu' di tutte |
+| conferme fini su M1/M3 (5 famiglie) | BP | nessuna regge; il placebo separa piu' di tutte. **Corretto 04/10/2026, appendice BP**: con la chiusura delle 21 ne reggono quattro su cinque e il placebo no; la distanza dal VWAP (terzo medio +0,377 / +0,382 R/op) si stacca dal placebo. Solo 2020-2026: da verificare sui 18 anni |
 | ritracciamenti in zona (27.127 eventi) | BQ | vantaggio lordo zero |
 | confluenza fra zone di TF diversi | BV | il placebo regge, le ipotesi vere no |
 | qualita' delle zone (5 misure) | BU | il placebo separa piu' di tutte e cinque |

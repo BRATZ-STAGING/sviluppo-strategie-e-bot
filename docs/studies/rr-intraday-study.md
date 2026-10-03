@@ -4232,6 +4232,49 @@ Resta l'ingresso — ed e' esattamente cio' che misurano le appendici BP
 
 ## Appendice BP: cinque conferme fini su M1/M3, e il placebo che le batte tutte
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata, e la
+> conclusione cambia.** Lo script `trading/scripts/run_selezione_fine.py`
+> valutava le 1.290 operazioni con la gestione ufficiale su un percorso di
+> **30 giorni** (`GIORNI_MAX = 30`), senza la chiusura delle 21:00 UTC e senza
+> quella del venerdi'. L'appendice dichiara "la gestione ufficiale
+> invariata", che chiude alle 21: e' il difetto di BM e BO, non una scelta.
+> **Prova** (`XAU_ANNI=2020-2026`): lo script vecchio riproduce la tabella
+> pubblicata (parquet identico all'originale, +497,9 R, +0,386 R/op); con la
+> sua finestra **428 operazioni su 1.290** escono dopo le 21:00 del giorno
+> d'ingresso, 165 passano il fine settimana, fino a 27,9 giorni. **Corretto**
+> (percorso fino all'ultima candela prima delle 21:00 del giorno d'ingresso):
+> +236,7 R, **+0,183 R/op**, come la riga ufficiale di BM e BO corrette.
+> `selezione_fine.parquet` rigenerato (cambia contenuto: la colonna netto).
+>
+> | famiglia | migliore in ricerca | migliore in verifica | regge? |
+> |---|---|---|---|
+> | 1 volume relativo | **alto (+0,124)** (Prima: basso +0,387) | alto (+0,438) (Prima: alto +0,599) | **si** (Prima: no) |
+> | 2 contrazione precedente | **alto (+0,133)** (Prima: medio +0,232) | alto (+0,449) (Prima: alto +1,032) | **si** (Prima: no) |
+> | 3 distanza dal VWAP | medio (+0,377) (Prima: +0,386) | medio (+0,382) (Prima: +0,643) | si |
+> | 4 livello ovvio vicino | alto (+0,220) (Prima: +0,391) | **basso (+0,293)** (Prima: +0,709) | no |
+> | 5 l'M3 ha girato | si (+0,063) (Prima: +0,223) | **si (+0,293)** (Prima: no +0,917) | **si** (Prima: no) |
+> | **0 placebo** | **medio (+0,179)** (Prima: +0,495) | basso (+0,516) (Prima: +0,975) | no |
+>
+> **Cosa cambia nelle conclusioni.** (1) Il titolo non regge piu': il placebo
+> **non** batte tutte le famiglie. Il suo terzo migliore in ricerca vale
+> +0,179, sotto la distanza dal VWAP (+0,377) e il livello vicino (+0,220).
+> (2) Con il criterio dell'appendice reggono **quattro famiglie su cinque**,
+> non una; il caso ne darebbe in media 1,8 (1/3 per ognuna delle quattro a
+> terzi, 1/2 per quella binaria). Va letto con due riserve: la famiglia 5 ha
+> 11-12 operazioni nel "no" e non distingue niente; volume e contrazione
+> reggono con separazioni piccole, che un placebo raggiunge spesso (2.000
+> placebo a seme diverso sullo stesso parquet: reggono con separazione almeno
+> uguale nel 15% e nel 7% dei casi). (3) **La distanza dal VWAP si stacca dal
+> rumore**: terzo medio +0,377 in ricerca e +0,382 in verifica, terzo basso
+> −0,277 e +0,114; separazione in ricerca 0,654 contro un 95° percentile del
+> placebo di 0,508, e solo l'**0,1%** dei placebo regge con separazioni almeno
+> uguali in entrambi i periodi. Il massimo e' nel terzo di mezzo, cioe' non
+> monotono, ed e' una sola famiglia su cinque provate. **Era una strada
+> respinta e sul 2020-2026 corretto diventa un candidato: resta da verificare
+> sui 18 anni** (il 2009-2019 non e' mai stato toccato da questa misura) prima
+> di usarla. (4) Resta vero che il campione e' piccolo per filtri da 0,15
+> R/op. Il testo qui sotto e' quello originale, con i numeri del 30 giorni.
+
 Richiesta dell'utente: *"miglioriamo la selezione, ma dentro M3 ed M1 trova
 nuovi livelli, altri tipi di conferme o indicatori"*.
 

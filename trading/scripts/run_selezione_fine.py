@@ -51,7 +51,7 @@ LE CINQUE FAMIGLIE, ciascuna con il suo perche':
    *"ma quello e' gia' il ritracciamento, lateralizza, parte, ritraccia"* — lo
    stato strutturale M12 e' una misura grossa e in ritardo di quel gesto.
 
-Uso: python3 run_selezione_fine.py
+Uso: XAU_ANNI=2020-2026 python3 run_selezione_fine.py
 Scrive docs/studies/dati/selezione_fine.parquet
 """
 from __future__ import annotations
@@ -73,7 +73,10 @@ from framework.vwap import anchored_vwap                         # noqa: E402
 from run_scalp_scaglioni import cammina_uno                      # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GIORNI_MAX = 30
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura), come genera() e verifica_bot.Percorsi. Fino al
+# 04/10/2026 qui c'era GIORNI_MAX = 30 e il percorso durava 30 giorni: nessuna
+# chiusura serale ne' del venerdi' (docs/studies/rr-intraday-study.md, BP)
 RESPIRO = 30
 RICERCA, VERIFICA = (2020, 2022), (2023, 2026)
 SEME = 12345
@@ -133,7 +136,8 @@ def main():
         segno = 1 if o["lato"] == "long" else -1
         e, k = o["entry"], float(o["rischio"])
         a = int(np.searchsorted(idx, t_in.value))
-        b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+            hours=T.ora_chiusura)).value))
         if b - a < 2 or a >= len(resp):
             continue
         r_now = resp[a]
