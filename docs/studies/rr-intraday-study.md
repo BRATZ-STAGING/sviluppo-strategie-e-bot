@@ -4339,6 +4339,54 @@ per ora si misurerebbe solo che le 14 UTC sono piu' attive delle 3.
 
 ## Appendice BQ: i ritracciamenti in zona, 27.127 occasioni — e cosa dicono davvero
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_ritracciamenti.py` percorreva ogni
+> ritracciamento per **3 giorni** (`GIORNI_MAX = 3`, commentato "e'
+> intraday"), senza la chiusura delle 21:00 UTC e senza quella del venerdi'.
+> L'appendice non studia la tenuta notturna: chiede i ritracciamenti "durante
+> la giornata" ed entra solo fra le 7 e le 21. **Prova**
+> (`XAU_ANNI=2020-2026`): lo script vecchio riproduce ogni numero pubblicato
+> (parquet identico all'originale); con la sua finestra il **15,1%** delle
+> 87.995 righe cella x operazione esce dopo le 21:00 del giorno d'ingresso e
+> il 2,5% passa il fine settimana (fino a 72 ore): 13,9% nella cella
+> principale, 17,8% in "chiusura · 2 $ · 10 $", **29,5%** con l'obiettivo
+> 1:10. **Corretto** (percorso fino all'ultima candela prima delle 21:00 del
+> giorno d'ingresso, `T.ora_chiusura`); escono dal campione le 5-74
+> operazioni per cella entrate dopo le 20:55, che hanno meno di 5 candele
+> prima della chiusura. `ritracciamenti.parquet` rigenerato.
+>
+> | cella | op | lordo R/op | netto R/op | stop% | obiett.% |
+> |---|---|---|---|---|---|
+> | tocco · stop 2 $ · obiettivo 10 $ | 17.088 (Prima: 17.162) | **+0,027** (Prima: +0,040) | −0,099 (Prima: −0,086) | 70,7 (Prima: 78,9) | 14,8 (Prima: 19,6) |
+> | tocco · stop 1 respiro · obiettivo 10 $ | 15.271 (Prima: 15.302) | +0,031 (Prima: +0,034) | −0,241 (Prima: −0,238) | 83,0 (Prima: 85,7) | 10,9 (Prima: 12,9) |
+> | chiusura · stop 2 $ · obiettivo 10 $ | 13.955 (Prima: 13.960) | −0,014 (Prima: −0,011) | −0,107 (Prima: −0,104) | 62,7 (Prima: 73,3) | 19,3 (Prima: 25,6) |
+> | chiusura · stop 1 respiro · obiettivo 10 $ | 13.648 (Prima: 13.651) | −0,013 (Prima: −0,030) | −0,190 (Prima: −0,207) | 73,5 (Prima: 79,5) | 16,1 (Prima: 19,6) |
+> | chiusura · stop 2 $ · obiettivo 1:2 | 13.955 (Prima: 13.960) | −0,018 (Prima: −0,017) | −0,111 (Prima: −0,111) | 58,5 (Prima: 66,5) | 26,3 (Prima: 32,4) |
+> | chiusura · stop 2 $ · obiettivo 1:10 | 13.955 (Prima: 13.960) | +0,011 (Prima: +0,018) | −0,082 (Prima: −0,075) | 68,1 (Prima: 86,7) | **2,1** (Prima: 7,0) |
+>
+> Ricerca 2020-2022 / verifica 2023-2026, lordo R/op: cella principale
+> −0,003 / +0,054 (Prima: +0,020 / +0,057); chiusura · 2 $ · 1:10 −0,050 /
+> **+0,064** (Prima: −0,065 / +0,091), netto in verifica **−0,023, 1 anno
+> positivo su 4** (Prima: +0,003, 3 su 4). Per timeframe (chiusura · 2 $ ·
+> 10 $), lordo: M6 −0,012 (Prima: −0,022), M12 −0,003 (Prima: +0,019), M33
+> −0,034 (Prima: −0,013), M66 −0,045 (Prima: −0,021), H2 −0,014 (Prima:
+> −0,063). Controllo di assurdita' superato in tutte le celle.
+>
+> **Cosa cambia nelle conclusioni.** (1) Ipotesi A **resta respinta, piu'
+> nettamente**: il lordo sta fra −0,014 e +0,031 (Prima: −0,030 / +0,040),
+> sotto il campione largo di BM anche corretto (stop 3 $ / obiettivo 5 $:
+> netto −0,056 + costo 0,10 = lordo +0,044). (2) Ipotesi B resta respinta
+> (tocco +0,027 contro chiusura −0,014). (3) Ipotesi C invariata, 8-10
+> occasioni al giorno. (4) **"L'unica cosa che si ripete" non regge piu'**:
+> in verifica l'1:10 resta il migliore dei tre obiettivi sullo stesso
+> ingresso, ma non chiude piu' in pari (−0,023 R/op, 1 anno su 4) e il lordo
+> piu' alto del 2023-2026 e' ora "tocco · 1 respiro" (+0,080); circa un terzo del suo
+> vecchio +0,091 erano obiettivi presi la notte o dopo il fine settimana (gli
+> obiettivi 1:10 scendono dal 7,0% al 2,1%). (5) Nessun timeframe si stacca,
+> ora nemmeno M12 e' positivo. La conclusione generale **non cambia**: il
+> ritracciamento in zona non e' una strategia. Nel riepilogo qui sotto la
+> riga su BP va letta con la correzione di BP (vedi la nota accanto).
+
 Richiesta dell'utente: *"cercare una strategia per prendere i vari
 ritracciamenti buy e sell durante la giornata"*, con lo stop 2-3 punti oltre
 la zona e l'obiettivo fino a 10 $.
@@ -4429,7 +4477,9 @@ tentate oggi si chiudono tutte con la stessa aritmetica:
 - **BM** (gestione): il costo e' il doppio del vantaggio;
 - **BO** (stop e obiettivi in volatilita'): stabilizza la regola ma non crea
   vantaggio;
-- **BP** (conferme fini): il campione non distingue un filtro dal caso;
+- **BP** (conferme fini): il campione non distingue un filtro dal caso
+  *(corretto 04/10/2026, appendice BP: con la chiusura delle 21 la distanza
+  dal VWAP batte il placebo sul 2020-2026; da verificare sui 18 anni)*;
 - **BQ** (piu' occasioni): le occasioni ci sono, il vantaggio no.
 
 Il vantaggio misurabile di questo progetto resta dov'era: nella regola

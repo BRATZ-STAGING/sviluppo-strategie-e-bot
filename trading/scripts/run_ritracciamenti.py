@@ -46,7 +46,13 @@ CONTROLLO DI ASSURDITA' obbligatorio (in questo progetto ha gia' smascherato
 quattro risultati): con obiettivo lontano e stop vicino, lo stop DEVE essere
 colpito piu' spesso dell'obiettivo. Se non lo e', c'e' futuro nel calcolo.
 
-Uso: python3 run_ritracciamenti.py
+CORREZIONE 04/10/2026: il percorso arrivava a t_in + 3 giorni, senza la
+chiusura delle 21:00 UTC e senza quella del venerdi', mentre lo studio e'
+dichiaratamente intraday (ORE 7-21, "durante la giornata"). Ora finisce
+all'ultima candela prima delle 21:00 del giorno d'ingresso (T.ora_chiusura),
+come genera() e verifica_bot.Percorsi.
+
+Uso: XAU_ANNI=2020-2026 python3 run_ritracciamenti.py
 Scrive docs/studies/dati/ritracciamenti.parquet
 """
 from __future__ import annotations
@@ -72,7 +78,11 @@ VALIDITA = 30
 RESPIRO = 30
 TETTO = 10.0
 ORE = (7, 21)                 # londra + new york: fuori di li' non si scalpa
-GIORNI_MAX = 3                # e' intraday: oltre tre giorni non e' piu' quello
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura). Fino al 04/10/2026 il percorso era t_in + 3
+# giorni (docs/studies/rr-intraday-study.md, BQ). GIORNI_MAX resta solo perche'
+# run_qualita_zone (BU) lo importa: qui non e' piu' usato.
+GIORNI_MAX = 3
 RICERCA, VERIFICA = (2020, 2022), (2023, 2026)
 
 
@@ -161,7 +171,8 @@ def main():
             if not (ORE[0] <= t_in.hour < ORE[1]):
                 continue
             a = int(np.searchsorted(idx, t_in.value))
-            b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+            b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+                hours=T.ora_chiusura)).value))
             if b - a < 5 or a >= len(rv):
                 continue
             r_now = rv[a]
