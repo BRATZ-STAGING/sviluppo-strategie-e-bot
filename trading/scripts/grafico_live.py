@@ -883,8 +883,7 @@ border:1px solid var(--l);background:var(--p);color:var(--i3)}
 <div class="bar"><div class="seg" id="tf"></div><div class="seg" id="vp"></div><div class="seg" id="et"></div>
 <div class="seg" id="sg"></div>
 <div class="seg" id="zm"></div>
-<div class="seg"><button id="ora">torna a ora</button></div>
-<span class="pill">rotellina = zoom in largo · sulla scala dei prezzi (o MAIUSC+rotellina) = zoom in alto · trascina gli assi per allargare o stringere · trascina il grafico = scorri · doppio clic = ora</span></div>
+<span class="pill">rotellina = zoom in largo · MAIUSC+rotellina o rotellina sulla scala dei prezzi = in alto · CTRL+rotellina = tutti e due · trascina gli assi per allargare o stringere · trascina il grafico = scorri · doppio clic o Adatta = scala automatica e ultime candele</span></div>
 <canvas id="c"></canvas>
 <div class="avvolgi"><table id="tab"></table></div>
 <p class="note">La colonna <b>raffinata</b> e' la parte che porta il vantaggio misurato.
@@ -969,7 +968,7 @@ el("sg").innerHTML=["segnali off","ufficiali","tutti"].map((t,k)=>
 // il puntatore decide quali nomi mostrare; il clic li fissa
 const cv0=el("c");
 const aOra=()=>{off=-8;zy=1;oy=0;draw();};
-el("ora").onclick=aOra; cv0.addEventListener("dblclick",aOra);
+cv0.addEventListener("dblclick",aOra);
 // Un solo insieme di gestori per mouse e dito: i Pointer Events li unificano,
 // e senza questo sul telefono non si poteva ne' zoomare ne' scorrere.
 //   un puntatore  -> scorre in orizzontale e in verticale
@@ -982,14 +981,23 @@ const dueDita=()=>{const[a,b]=[...punt.values()];
 const zona=e=>{const r=cv0.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
  return px>geo.pl+geo.pw?"y":py>geo.pt+geo.ph?"x":"";};
 const CURSORE={y:"ns-resize",x:"ew-resize","":"grab"};
-// pulsanti: lo stesso zoom della rotellina, per chi non la trova
-el("zm").innerHTML=[["↔ −","in largo: piu' candele"],["↔ +","in largo: meno candele"],
- ["↕ −","in alto: scala piu' corta"],["↕ +","in alto: scala piu' lunga"]]
- .map(([t,d])=>`<button title="${d}">${t}</button>`).join("");
-[...el("zm").children].forEach((b,k)=>b.onclick=()=>{
- if(k===0)vis=Math.round(vis*1.25); else if(k===1)vis=Math.round(vis/1.25);
- else if(k===2)zy/=1.25; else zy*=1.25;
- draw();});
+// zoom: f > 1 ingrandisce. In largo resta fermo il punto fx (0 = bordo
+// sinistro, 1 = destro: i pulsanti tengono ferma l'ultima candela)
+const zoomLargo=(f,fx=1)=>{const nv=Math.round(vis/f);
+ off=Math.round(off-(nv-vis)*(1-fx)); vis=nv;};
+const zoomAlto=f=>{zy*=f;};
+// pulsanti: gli stessi della web app (app/static/app.js), nello stesso ordine
+const ZP=1.25;
+const PULSANTI_ZOOM=[
+ ["−","Zoom indietro, in largo e in alto",()=>{zoomLargo(1/ZP);zoomAlto(1/ZP);}],
+ ["+","Zoom avanti, in largo e in alto",()=>{zoomLargo(ZP);zoomAlto(ZP);}],
+ ["↔−","Piu' candele (in largo)",()=>zoomLargo(1/ZP)],
+ ["↔+","Meno candele, piu' larghe (in largo)",()=>zoomLargo(ZP)],
+ ["↕−","Scala dei prezzi piu' corta (in alto)",()=>zoomAlto(1/ZP)],
+ ["↕+","Scala dei prezzi piu' lunga (in alto)",()=>zoomAlto(ZP)],
+ ["Adatta","Scala automatica e ultime candele",()=>{off=-8;zy=1;oy=0;}]];
+el("zm").innerHTML=PULSANTI_ZOOM.map(([t,d])=>`<button title="${d}">${t}</button>`).join("");
+[...el("zm").children].forEach((b,k)=>b.onclick=()=>{PULSANTI_ZOOM[k][2]();draw();});
 cv0.addEventListener("pointerdown",e=>{
  // la cattura del puntatore puo' fallire (eventi sintetici, puntatore gia'
  // rilasciato): se solleva, il resto del gestore non partirebbe e il grafico
@@ -1023,14 +1031,19 @@ const finito=e=>{punt.delete(e.pointerId);
 cv0.addEventListener("pointerup",finito);
 cv0.addEventListener("pointercancel",finito);
 cv0.addEventListener("pointerleave",e=>{if(!punt.size)curY=null;draw();});
-// rotellina: orizzontale, tenendo fermo il punto sotto il puntatore; sulla
-// scala dei prezzi, o con MAIUSC o CTRL, agisce sulla scala verticale
+// rotellina, come nella web app: da sola in largo, tenendo fermo il punto
+// sotto il puntatore; con MAIUSC o sulla scala dei prezzi in alto; con CTRL
+// tutti e due (e il browser non ingrandisce la pagina)
 cv0.addEventListener("wheel",e=>{e.preventDefault();
- if(e.shiftKey||e.ctrlKey||zona(e)==="y"){zy*=e.deltaY>0?1/1.18:1.18;draw();return;}
+ const d=e.deltaY||e.deltaX;                  // con MAIUSC alcuni browser girano su deltaX
+ if(!d)return;
+ const f=d<0?1.12:1/1.12;
  const r=cv0.getBoundingClientRect();
- const fx=Math.min(Math.max((e.clientX-r.left-8)/Math.max(r.width-70,1),0),1);
- const nv=Math.round(vis*(e.deltaY>0?1.18:1/1.18));
- off=Math.round(off-(nv-vis)*(1-fx)); vis=nv; draw();},{passive:false});
+ const fx=Math.min(Math.max((e.clientX-r.left-geo.pl)/Math.max(geo.pw,1),0),1);
+ if(e.ctrlKey){zoomLargo(f,fx);zoomAlto(f);}
+ else if(e.shiftKey||zona(e)==="y")zoomAlto(f);
+ else zoomLargo(f,fx);
+ draw();},{passive:false});
 cv0.addEventListener("click",()=>{if(mosso||!D||!D.zone)return;   // trascinare non fissa
  D.zone.forEach(z=>{const k=chiave(z);
   if(z._sotto){fissate.has(k)?fissate.delete(k):fissate.add(k);}});
