@@ -89,6 +89,13 @@ essere colpito molto piu' spesso dell'obiettivo, in ogni fascia di ogni misura.
 Se in una fascia l'obiettivo risultasse piu' facile dello stop, quella fascia
 contiene futuro e va buttata.
 
+CORREZIONE 04/10/2026: il percorso di ogni operazione arrivava a t_in + 3
+giorni (GIORNI_MAX importato da BQ), senza la chiusura delle 21:00 UTC e del
+venerdi'. La correzione di BQ non passava di qui: la finestra e' calcolata in
+simula(). Ora finisce all'ultima candela prima delle 21:00 del giorno
+d'ingresso (T.ora_chiusura), come in BQ corretta. Con la stessa finestra BQ
+da' +0,027 / -0,099 invece di +0,040 / -0,086.
+
 Uso: XAU_ANNI=2020-2026 python3 run_qualita_zone.py
 Scrive docs/studies/dati/qualita_zone.parquet
 """
@@ -104,12 +111,13 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from framework.data import TIMEFRAMES, load_m1, resample_tf       # noqa: E402
+from framework.taratura import UFFICIALE as T                     # noqa: E402
 
 from run_scalp_scaglioni import cammina_uno                       # noqa: E402
 # la generazione delle zone e le costanti vengono da BQ, invariate: se
 # cambiassero li', devono cambiare anche qui, e il confronto resterebbe valido
 from run_ritracciamenti import (                                  # noqa: E402
-    GIORNI_MAX, ORE, RESPIRO, RICERCA, TETTO, TF_ZONE, VERIFICA, zone_tutte,
+    ORE, RESPIRO, RICERCA, TETTO, TF_ZONE, VERIFICA, zone_tutte,
 )
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -236,7 +244,10 @@ def simula(m1, ev):
         if not (ORE[0] <= t_in.hour < ORE[1]):
             continue
         a = int(e.i_tocco)
-        b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        # chiusura delle 21 UTC del giorno d'ingresso (fino al 04/10/2026:
+        # t_in + GIORNI_MAX giorni, vedi il docstring)
+        b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+            hours=T.ora_chiusura)).value))
         if b - a < 5:
             continue
         stop = (e.rbasso - MARGINE_STOP) if e.lato == 1 else (e.ralto + MARGINE_STOP)
@@ -289,7 +300,8 @@ def main():
           f"{len(t)/max(gg,1):.1f} op/giorno, stop mediano {t['stop$'].median():.3f} $, "
           f"costo medio {t.costo.mean()*100:.1f}% del rischio")
     print(f"  lordo {t.lordo.mean():+.3f} R/op | netto {t.netto.mean():+.3f} R/op "
-          f"| netto totale {t.netto.sum():+.1f} R  (BQ dava +0,040 / -0,086)")
+          f"| netto totale {t.netto.sum():+.1f} R  (BQ corretta: +0,027 / -0,099; "
+          f"prima del 04/10/2026 +0,040 / -0,086)")
 
     righe, verdetti, viol, sep = [], [], [], []
     for col in MISURE:

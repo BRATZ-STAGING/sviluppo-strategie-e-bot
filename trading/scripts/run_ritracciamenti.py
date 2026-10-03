@@ -80,9 +80,7 @@ TETTO = 10.0
 ORE = (7, 21)                 # londra + new york: fuori di li' non si scalpa
 # fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
 # d'ingresso (T.ora_chiusura). Fino al 04/10/2026 il percorso era t_in + 3
-# giorni (docs/studies/rr-intraday-study.md, BQ). GIORNI_MAX resta solo perche'
-# run_qualita_zone (BU) lo importa: qui non e' piu' usato.
-GIORNI_MAX = 3
+# giorni, GIORNI_MAX = 3 (docs/studies/rr-intraday-study.md, BQ)
 RICERCA, VERIFICA = (2020, 2022), (2023, 2026)
 
 

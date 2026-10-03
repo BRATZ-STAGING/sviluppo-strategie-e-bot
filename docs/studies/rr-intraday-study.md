@@ -4852,6 +4852,51 @@ progetto, sull'oro, non ne e' ancora stato trovato uno.
 
 ---
 
+## Appendice BU: cinque misure di qualita' delle zone (solo correzione)
+
+Il testo di questa appendice non era mai stato scritto qui: lo studio sta nel
+docstring di `trading/scripts/run_qualita_zone.py` (commit `1f7c9a6`) e il
+suo esito in una riga di `docs/CONSEGNA-BOT-2026-08.md` ("il placebo separa
+piu' di tutte e cinque"). Gestione fissa: la cella principale di BQ (tocco,
+stop 2 $ oltre la zona, obiettivo 10 $, spread vero per anno); le stesse
+17.162 operazioni divise in terzi per freschezza, ampiezza, impulso, tocchi
+precedenti dell'area, posizione nel giorno e un placebo; criterio: il terzo
+migliore in ricerca 2020-2022 deve restare il migliore in verifica 2023-2026.
+
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script percorreva ogni operazione per **3 giorni** (`GIORNI_MAX` importato
+> da BQ), senza la chiusura delle 21:00 UTC e del venerdi'. Non eredita la
+> correzione di BQ: la finestra e' calcolata in `simula()`, ed e' stata
+> corretta li' allo stesso modo. Lo studio non dichiara una tenuta oltre la
+> giornata (e' "la cella principale di BQ", dichiaratamente intraday).
+> **Prova** (`XAU_ANNI=2020-2026`): lo script vecchio riproduce l'esito
+> pubblicato (parquet identico all'originale; il placebo separa 0,112 e
+> batte 5 misure su 5); con la sua finestra il **13,9%** delle 17.162
+> operazioni esce dopo le 21:00 del giorno d'ingresso e il 2,2% passa il fine
+> settimana. **Corretto**: 17.088 operazioni (74 entrate dopo le 20:55
+> escono). `qualita_zone.parquet` rigenerato.
+>
+> | | corretto | Prima |
+> |---|---|---|
+> | cella fissa, lordo / netto R/op | +0,027 / −0,149 | +0,040 / −0,136 |
+> | 1 freschezza: migliore ric. / ver. | alto / alto, **regge** (−0,123 / −0,075) | alto / alto, regge (−0,085 / −0,079) |
+> | 2 ampiezza | alto / basso, non regge | alto / basso, non regge |
+> | 3 impulso | medio / alto, non regge | medio / alto, non regge |
+> | 4 tocchi precedenti | 1 tocco / 1 tocco, **regge** (−0,099 / −0,066) | 1 tocco / 1 tocco, regge |
+> | 5 posizione nel giorno | medio / medio, **regge** (−0,135 / −0,091) | medio / basso, non regge |
+> | 0 placebo | alto / basso, **non regge** | alto / alto, regge |
+> | separazione in ricerca: placebo contro la migliore vera | **0,126** contro 0,082 | 0,112 contro 0,103 |
+> | fascia migliore in assoluto, netto | −0,014 R/op | −0,015 R/op |
+>
+> **Cosa cambia nelle conclusioni.** Poco. Reggono tre misure invece di
+> due e il placebo non regge piu', ma nessuna delle tre regge nella
+> direzione pre-registrata (freschezza attesa "basso", tocchi attesi
+> "vergine", posizione attesa "basso"), il placebo **separa ancora piu' di
+> tutte e cinque** le misure vere, e nessuna fascia, in nessun periodo, e'
+> netta positiva. La riga della consegna resta vera.
+
+---
+
 ## Appendice BV: la confluenza fra zone — e un placebo che regge dove le ipotesi vere cadono
 
 Idea dell'utente: *"di questi ventisettemila dobbiamo scremare. Prendere per
