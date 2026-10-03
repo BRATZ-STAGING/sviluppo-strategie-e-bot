@@ -35,6 +35,12 @@ IPOTESI PRE-REGISTRATE:
   C. il confine fra nominali che perdono e nominali che guadagnano si abbassa
      un poco rispetto ai 5-6 $ di BZ, ma resta sopra i 4.
 
+CORREZIONE 04/10/2026: il percorso arrivava a t_in + 5 giorni, senza la
+chiusura delle 21:00 UTC e del venerdi', mentre le operazioni sono quelle
+della strategia ufficiale, che chiude alle 21, e il confronto e' con BZ.
+Ora finisce all'ultima candela prima delle 21:00 del giorno d'ingresso
+(T.ora_chiusura), come genera() e verifica_bot.Percorsi.
+
 Uso: XAU_ANNI=2020-2026 python3 run_stop_piu_spread.py
 Scrive docs/studies/dati/stop_piu_spread.parquet
 """
@@ -54,7 +60,9 @@ from framework.taratura import UFFICIALE as T                    # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 MEDIANA_ATR = 25.5968
-GIORNI_MAX = 5
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura). Fino al 04/10/2026 qui c'era GIORNI_MAX = 5
+# (docs/studies/rr-intraday-study.md, CA)
 NOMINALI = [3, 4, 5, 6, 8, 10, 12]
 OBIETTIVI = [1.5, 2.0, 3.0]
 SPREAD = {2020: 0.35, 2021: 0.349, 2022: 0.395, 2023: 0.334,
@@ -96,7 +104,8 @@ def main():
         e = float(o["entry"])
         s = SPREAD.get(o["anno"], 0.40)
         a = int(np.searchsorted(idx, t_in.value))
-        b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+            hours=T.ora_chiusura)).value))
         if b - a < 5:
             continue
         bh, bl, bc = hi[a:b], lo[a:b], cl[a:b]

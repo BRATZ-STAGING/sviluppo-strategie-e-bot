@@ -5707,6 +5707,57 @@ che e' esattamente la proprieta' che l'appendice BN ha misurato come decisiva
 
 ## Appendice CA: lo stop in punti PIU' lo spread — piccolo miglioramento vero
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_stop_piu_spread.py` percorreva ogni operazione
+> per **5 giorni** (`GIORNI_MAX = 5`), senza la chiusura delle 21:00 UTC e
+> del venerdi'. Le operazioni sono le 333 ufficiali, che chiudono alle 21, e
+> il termine di paragone e' BZ: l'appendice non dichiara una tenuta
+> notturna. **Prova** (`XAU_ANNI=2020-2026`): lo script vecchio riproduce ogni
+> numero pubblicato (parquet identico all'originale); con la sua finestra il
+> **26,2%** delle 13.986 righe operazione x nominale x obiettivo x modo esce
+> dopo le 21:00 del giorno d'ingresso e il **6,7%** passa il fine settimana,
+> fino a 120 ore: 4,8% a 3 $ · 1:2, 16,5% a 5 $ · 1:2, 30,0% a 8 $ · 1:2,
+> 39,6% a 8 $ · 1:3, 58,0% a 12 $ · 1:3. **Corretto** (ultima candela prima
+> delle 21:00 del giorno d'ingresso), stesse 333 operazioni;
+> `stop_piu_spread.parquet` rigenerato.
+>
+> Netto R/op, ricerca 2020-2022 / verifica 2023-2026 ("Prima:" il valore
+> pubblicato):
+>
+> | nominale | 1:2 vecchio | 1:2 **+spread** | 1:3 vecchio | 1:3 **+spread** |
+> |---|---|---|---|---|
+> | 3 $ | +0,279 / −0,041 (Prima: +0,273 / −0,000) | +0,324 / **−0,043** (Prima: +0,295 / +0,015) | +0,233 / −0,024 (Prima: −0,005 in ver.) | +0,227 / +0,010 (Prima: +0,015 in ver.) |
+> | 4 $ | +0,327 / −0,039 (Prima: +0,318 / +0,015) | +0,319 / −0,048 (Prima: +0,386 / +0,015) | +0,272 / +0,019 | +0,293 / +0,061 |
+> | 5 $ | +0,219 / −0,019 (Prima: +0,341 / +0,015) | +0,174 / **+0,024** (Prima: +0,318 / +0,030) | +0,352 / +0,090 (Prima: +0,075 in ver.) | +0,322 / **+0,121** (Prima: +0,095 in ver.) |
+> | 6 $ | +0,160 / +0,063 (Prima: +0,295 / +0,030) | +0,146 / +0,095 (Prima: +0,250 / +0,075) | +0,295 / +0,187 (Prima: +0,151 in ver.) | +0,269 / **+0,234** (Prima: +0,230 in ver.) |
+> | 8 $ | +0,154 / +0,251 (Prima: +0,386 / +0,299) | +0,179 / +0,242 (Prima: +0,386 / +0,299) | +0,210 / +0,313 (Prima: +0,397 in ver.) | +0,230 / +0,256 (Prima: +0,374 in ver.) |
+>
+> Ipotesi A, stop presi: vecchio contro +spread **62,4 / 60,0% a 3 $ (−2,4
+> punti)**, 58,1 / 56,3 a 4 $ (−1,8), 54,7 / 53,8 a 5 $ (−0,9), 44,3 / 43,8
+> a 8 $ (−0,5) (Prima: 64,5 / 63,6, −0,9; 62,5 / 62,2, −0,3; 57,3 / 57,5,
+> +0,2). Gli stop presi scendono di 2-20 punti per tutti, perche' le
+> posizioni non attraversano piu' la notte.
+>
+> **Cosa cambia nelle conclusioni.** (1) **Il miglioramento della proposta
+> diventa disuguale**: con 1:3 resta e cresce sui nominali piccoli e medi in
+> verifica (+0,034 a 3 $, +0,042 a 4 $, +0,031 a 5 $, +0,047 a 6 $), ma
+> con 1:2 a 3-4 $ la verifica peggiora di poco (−0,002 / −0,009) e da 8 $ in
+> su la proposta toglie qualcosa (8 $ · 1:3: +0,256 contro +0,313). In
+> ricerca l'esito e' misto. (2) **Ipotesi B regge con 1:2, cade in parte con
+> 1:3**: con 1:2 i nominali 3-4 $ restano negativi in verifica e 5 $ e'
+> appena positivo (+0,024); con 1:3 il +spread e' positivo in entrambi i
+> periodi gia' da 4 $ (+0,293 / +0,061) e a 5 $ fa +0,322 / +0,121. (3)
+> Ipotesi A **non e' piu' respinta in modo netto**: lo stop piu' lontano
+> scatta 2,4 punti in meno a 3 $ e 1,8 a 4 $, poco ma non zero; da 5 $ in su
+> resta sotto il punto. (4) **Confronto col confine di BZ corretta** (BZ,
+> 1:2, verifica: 3 $ −0,039, 4 $ −0,086, 5 $ −0,115, 6 $ +0,045, 8 $
+> +0,193, confine fra 5 e 6 $): con lo stop vecchio CA ritrova lo stesso
+> confine (5 $ −0,019, 6 $ +0,063); con lo stop +spread il confine 1:2 si
+> abbassa fra 4 e 5 $ (5 $ +0,024, margine nullo), con 1:3 fra 3 e 4 $. La
+> frase "la zona profittevole comincia a 6-8 $" va letta "a 5-6 $ con 1:2,
+> a 4-5 $ con 1:3 e lo stop +spread", tutto sul solo 2020-2026 e su 333
+> operazioni.
+
 Proposta dell'utente: *"aggiungi allo stop in punti lo spread"*. Se lo stop
 nominale e' 3 e lo spread 0,63, lo stop va a 3,63 dal prezzo d'ingresso.
 
