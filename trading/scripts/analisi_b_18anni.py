@@ -44,7 +44,9 @@ pd.set_option("display.width", 200)
 def drawdown(r: pd.Series) -> pd.DataFrame:
     """Ogni discesa sotto il massimo: inizio, fondo, recupero, profondita', durata."""
     cum = r.cumsum()
-    picco = cum.cummax()
+    # il massimo parte dal capitale iniziale (0 R), non dalla prima operazione:
+    # se la prima perde, il calo comincia gia' li' (trovato dal verificatore)
+    picco = cum.cummax().clip(lower=0)
     sotto = cum < picco - 1e-9
     righe, i, t = [], 0, r.index
     while i < len(r):

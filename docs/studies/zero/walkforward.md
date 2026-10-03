@@ -199,3 +199,18 @@ lordo_opp, costo, netto, netto_pct, netto_opp_pct), `riproduzione.parquet`,
 `wf_scelte.parquet`, `wf_anni.parquet`, `wf_operazioni_P.parquet`,
 `wf_operazioni_S.parquet`, `wf_sintesi.parquet`, `compra_e_tieni.parquet`;
 `tmp_riproduci\` (operazioni sulla sola scoperta).
+
+## Verifica avversariale (03/10/2026) — verdetto: il NON FUNZIONA regge, e si rafforza
+
+Script di prova nello scratchpad della sessione, nessun file del progetto toccato.
+
+| controllo | esito |
+|---|---|
+| t di S senza sovrapposizioni | per operazione 2,43; somma giornaliera 1,86; settimanale 1,63; mensile 1,65; per cluster (giorno, famiglia, verso) 1,65; sulle 15 medie annuali 1,07; bootstrap a blocchi annuali p(media <= 0) = 0,068. **Con qualunque aggregazione S fallisce anche t >= 2**: i criteri falliti sono due, non uno |
+| placebo "long a caso, stesso anno, stesse durate" | su tutto S lo batte (le op F1 intraday pagano solo il costo), ma dove sta il risultato no: 2018-2026 placebo +0,065 contro +0,113 (p 0,13); solo F5 p 0,08; F4+F5 p 0,07; 2025 p 0,016. Meta' del 2018-2026 e' deriva pura dell'oro |
+| swap FP (−0,715 $/notte long, +0,325 short, mercoledi' x3) | 3.079 notti su 1.059 operazioni: S scende a **+0,0055 %/op, t 0,39** (giornaliero 0,30), 8/15 anni. Quasi zero |
+| scelta su uscita < Y invece che ingresso < Y | 852 op su 2.004.608 escono nell'anno dopo; rifatto: S +0,036 %, t 2,63, 9/15; P −0,030 %, t −0,70, 3/8. Verdetto invariato |
+| fedelta' al protocollo e riproduzione | soglie, minimi, anni, unita' e costi verificati; scelte riprodotte identiche; 1114/1114 varianti; ingressi controllati sui prezzi M5 (causali) |
+
+Per un eventuale studio futuro dello stesso tipo, da registrare prima: t
+aggregato per giorno, swap nel netto, placebo "long a caso stesso anno".

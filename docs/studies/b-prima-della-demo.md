@@ -23,27 +23,34 @@ e `..._spegnimento.parquet` (204 partenze simulate).
 
 | periodo | spread | op | R | R/op | vinte | DD max | giorni sotto il massimo (max) | perdite di fila | anni + |
 |---|---|---|---|---|---|---|---|---|---|
-| 2009-2019 | vero | 374 | **-91,4** | -0,24 | 23,0% | **90,3** | 3.968 | **21** (-23,2 R) | **1/11** |
-| 2009-2019 | 0,30 | 374 | -77,6 | -0,21 | 23,3% | 76,6 | 3.968 | 21 | 1/11 |
+| 2009-2019 | vero | 374 | **-91,4** | -0,24 | 23,0% | **91,4** | 3.968 | **21** (-23,2 R) | **1/11** |
+| 2009-2019 | 0,30 | 374 | -77,6 | -0,21 | 23,3% | 77,6 | 3.968 | 21 | 1/11 |
 | 2020-2026 | vero | 338 | +174,3 | +0,52 | 37,3% | 13,1 | 309 | 12 | 7/7 |
-| 2009-2026 | vero | 712 | +82,9 | +0,12 | 29,8% | 90,3 | 5.526 | 21 | 8/18 |
+| 2009-2026 | vero | 712 | +82,9 | +0,12 | 29,8% | 91,4 | 5.526 | 21 | 8/18 |
 
-**Perche' i documenti davano 87,4 e 89,8 R.** Sono misure dello stesso
-drawdown prese in momenti diversi del progetto: cambiano lo spread usato
-(0,30 contro quello vero) e il campione (382 operazioni prima della correzione
-delle domeniche dell'appendice BD, 374 dopo). Con le regole e lo spread di
-oggi il numero e' **90,3 R** (76,6 R con lo spread a 0,30).
+**87,4 / 89,8 / 90,3 / 91,4 R** (corretto dopo la verifica avversariale).
+- **91,4 R** e' il valore giusto con le regole e lo spread di oggi (77,6 R
+  con lo spread a 0,30). La prima versione di questo studio diceva 90,3: il
+  massimo partiva dalla prima operazione invece che dal capitale iniziale, e
+  la prima operazione (13/01/2009) perde. Lo stesso difetto e' in
+  `misure()` di `verifica_bot.py` (non corretto qui: tocca numeri pubblicati).
+- **89,8 R** (appendice AU) e' giusto per il suo momento: spread 0,30 e 382
+  operazioni, prima della correzione delle domeniche (appendice BD).
+- **87,4 R** (`bots/SCHEDE-STRATEGIE.md`, 04/08/2026, e la consegna) **non e'
+  riproducibile**: nessuna combinazione di spread e campione lo da', e la sua
+  origine non e' stata rintracciata in alcuno script o appendice. Va
+  considerato superato da 91,4.
 
 ## 3. La discesa: una sola, lunga quindici anni
 
 | inizio | fondo | recupero | R | operazioni | giorni |
 |---|---|---|---|---|---|
-| 13/01/2009 | 25/11/2019 | **01/03/2024** | **90,3** | 556 | 5.526 |
+| 13/01/2009 | 25/11/2019 | **01/03/2024** | **91,4** | 557 | 5.526 |
 | 28/01/2026 | 09/06/2026 | 24/06/2026 | 12,6 | 14 | 146 |
 | 11/04/2025 | 12/08/2025 | 03/09/2025 | 9,9 | 17 | 145 |
 
 Chi avesse cominciato nel gennaio 2009 sarebbe tornato in pari nel **marzo
-2024**. Allo 0,24% per operazione il fondo vale -21,7% del conto.
+2024**. Allo 0,24% per operazione il fondo vale -21,9% del conto.
 
 ## 4. Lo spegnimento a -15 R
 
@@ -70,8 +77,12 @@ peggiore, 12,6 R nel 2026, resta sotto la soglia). Esempi: partenza 01/01/2009
    costo e' l'altra faccia: chi si fosse fermato nel 2009-2019 non sarebbe
    stato dentro quando la strategia ha ripreso a funzionare nel 2020.
 3. In demo il rischio e' zero; il numero da tenere a mente per un eventuale
-   conto vero e' il -2,5% / -3,9% dello stop, non il -21,7% della discesa
+   conto vero e' il -2,5% / -3,9% dello stop, non il -21,9% della discesa
    intera.
+
+Verifica avversariale (03/10): numeri riprodotti; corretti il drawdown (90,3 -> 91,4) e la
+spiegazione di 87,4. Lo spegnimento e il suo clip a 0 sono corretti; lo stop e' datato
+all'ingresso dell'operazione che lo fa scattare, non alla sua uscita.
 
 Nessuna conclusione di validita': e' una descrizione della strategia gia'
 nota, misurata con le regole di oggi.
