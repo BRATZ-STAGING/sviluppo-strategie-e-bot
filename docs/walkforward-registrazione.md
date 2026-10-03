@@ -24,6 +24,18 @@ processo che si adatta; se no, la risposta e' no.
   che non si modificano. La famiglia 6 (fra mercati) e' fuori perche' usa
   l'argento HistData. Il numero esatto di varianti si scrive qui sotto prima
   di calcolare i risultati.
+- **Conteggio (03/10/2026 21:40, prima di qualunque calcolo walk-forward)**:
+  **1114 varianti** dell'oro = F1 orologio 124 (R1 48, R2 6, R4a 36, R4c 4,
+  R5 30) + F2 momentum 396 (33 celle consistenti in scoperta x 12 regole,
+  direzione fissata dalla scoperta, come in `f2_faseb.parquet`) + F3 range 432
+  (a 216, b 216) + F4 volatilita' 104 (a 56, b 32, c 16) + F5 calendario 58
+  (a 10, b 38, c 10). Contate sui parquet di scoperta `D:\ricerca_zero\risultati\`
+  filtrati a XAUUSD e verificate con il conteggio combinatorio delle
+  dichiarazioni. Il 2018-2026 e' gia' stato aperto una volta per le 5 ipotesi
+  di `docs/ricerca-da-zero-candidati.md` (commit b2c6202; esito in
+  `docs/studies/zero/verifica-2018-2026.md`: nessuna passa): per quelle 5
+  regole non e' piu' "mai visto". Contatore delle prove multiple del progetto:
+  circa 7.370 varianti in scoperta, circa 110 descrittive, 5 in verifica.
 - Dati: le candele M5/M15/H1/D1 dell'oro 2009-01-01 -> 2026-07-06 come
   un'unica serie continua (scoperta + verifica concatenate), indicatori
   calcolati in modo causale sulla serie intera.
