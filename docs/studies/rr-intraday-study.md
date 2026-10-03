@@ -5514,6 +5514,49 @@ come ipotesi a se', pre-registrata, non raccolta da una tabella.
 
 ---
 
+## Appendice BY: allargare la zona raffinata sopra e sotto (solo correzione)
+
+Come BU, il testo di questa appendice non era mai stato scritto qui: lo studio
+sta nel docstring di `trading/scripts/run_zona_allargata.py` (commit
+`1f7c9a6`) e il suo esito in una riga di `docs/CONSEGNA-BOT-2026-08.md` ("il
+vantaggio lordo scende"). Richiesta dell'utente: allargare la zona raffinata
+di 0,25 / 0,5 / 1 $ sopra e sotto (piu' 0,5 respiro M1 e un placebo casuale
+0-1 $), ingresso al tocco del bordo allargato, stop 2 $ oltre la zona
+ORIGINALE, obiettivo 10 $, spread vero per anno.
+
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script percorreva ogni operazione per **3 giorni** (`GIORNI_MAX = 3`, "e'
+> intraday"), senza la chiusura delle 21:00 UTC e del venerdi', come BQ; non
+> dichiara una tenuta notturna. **Prova** (`XAU_ANNI=2020-2026`): lo script
+> vecchio riproduce l'esito pubblicato (parquet identico all'originale); con
+> la sua finestra il **17,1%** delle 108.504 righe esce dopo le 21:00 del
+> giorno d'ingresso (dal 13,9% a 0 $ al 20,9% a 1 $: piu' si allarga, piu'
+> l'ingresso e' lontano dal bersaglio e piu' la posizione dura) e il 2,8%
+> passa il fine settimana. **Corretto** (ultima candela prima delle 21:00 del
+> giorno d'ingresso); `zona_allargata.parquet` rigenerato.
+>
+> Lordo R/op, ricerca 2020-2022 / verifica 2023-2026:
+>
+> | allargamento | corretto | Prima |
+> |---|---|---|
+> | 0,00 $ (riferimento) | −0,003 / **+0,054** | +0,020 / +0,057 |
+> | 0,25 $ | +0,002 / +0,040 | +0,023 / +0,037 |
+> | 0,50 $ | +0,005 / +0,027 | +0,028 / +0,023 |
+> | 1,00 $ | −0,013 / +0,017 | +0,006 / +0,013 |
+> | 0,5 respiro M1 | +0,001 / +0,020 | +0,025 / +0,019 |
+> | placebo 0-1 $ | +0,001 / +0,023 | +0,021 / +0,026 |
+> | delta 1 $ − 0 $, R/op | −0,010 / −0,037: **scende in entrambi** | −0,014 / −0,044: scende in entrambi |
+> | delta 1 $ − 0 $, $/op | −0,036 / −0,083: scende in entrambi | −0,027 / −0,104: scende in entrambi |
+> | netto R/op, dal migliore al peggiore | −0,124 / −0,117 ... −0,162 / −0,137 | −0,103 / −0,122 ... −0,139 / −0,137 |
+>
+> **Cosa cambia nelle conclusioni.** Niente nella sostanza: il lordo per
+> operazione scende allargando in entrambi i periodi, in R e in dollari;
+> il migliore in ricerca (0,50 $) non e' il migliore in verifica (0 $); il
+> netto e' negativo in ogni cella. Il 2020-2022 scende a zero lordo in tutte
+> le varianti (da −0,013 a +0,005). La riga della consegna resta vera.
+
+---
+
 ## Appendice BZ: la scalp dentro il solo 2020-2026, col criterio del cliente
 
 > **CORREZIONE 04/10/2026 — ereditata da BT.** Lo script

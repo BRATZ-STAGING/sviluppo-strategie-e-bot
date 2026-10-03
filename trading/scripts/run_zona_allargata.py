@@ -90,6 +90,10 @@ NIENTE LOOKAHEAD:
     sapendo gia' dove il prezzo e' andato;
   - nella stessa candela lo stop prevale sull'obiettivo (``cammina_uno``).
 
+CORREZIONE 04/10/2026: il percorso arrivava a t_in + 3 giorni, senza la
+chiusura delle 21:00 UTC e del venerdi', come in BQ e BV. Ora finisce
+all'ultima candela prima delle 21:00 del giorno d'ingresso (T.ora_chiusura).
+
 Uso: cd <repo> && XAU_ANNI=2020-2026 python3 trading/scripts/run_zona_allargata.py
 Scrive docs/studies/dati/zona_allargata.parquet
 """
@@ -104,6 +108,7 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from framework.data import TIMEFRAMES, load_m1, resample_tf       # noqa: E402
+from framework.taratura import UFFICIALE as T                     # noqa: E402
 
 from export_lab import zone_ob                                    # noqa: E402
 from run_scalp_scaglioni import cammina_uno                       # noqa: E402
@@ -116,7 +121,9 @@ RESPIRO = 30                  # candele M1 su cui si misura il respiro corrente
 TETTO = 10.0                  # obiettivo in dollari
 MARGINE = 2.0                 # lo stop 2 $ oltre il bordo della zona ORIGINALE
 ORE = (7, 21)                 # londra + new york
-GIORNI_MAX = 3                # e' intraday: oltre tre giorni non e' piu' quello
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura). Fino al 04/10/2026 qui c'era GIORNI_MAX = 3
+# (docs/studies/rr-intraday-study.md, BY)
 K_MIN, K_MAX = 0.5, 25.0      # sotto mezzo dollaro e' una tassa, sopra 25 non
                               # e' piu' un ritracciamento
 RICERCA, VERIFICA = (2020, 2022), (2023, 2026)
@@ -226,7 +233,8 @@ def main():
             kk = abs(prezzo - stop)
             if kk < K_MIN or kk > K_MAX:
                 continue
-            b2 = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+            b2 = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+                hours=T.ora_chiusura)).value))
             if b2 - k0 < 5:
                 continue
             o_, h_, l_, c_ = ap_[k0:b2], hi[k0:b2], lo[k0:b2], cl[k0:b2]
