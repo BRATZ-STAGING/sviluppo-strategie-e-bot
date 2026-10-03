@@ -114,7 +114,9 @@ Otto strade chiuse. Riaprirne una senza un'idea nuova e' tempo perso.
 
 **La lezione di metodo**: in questo progetto il placebo — un numero casuale
 trattato come un'ipotesi — ha battuto o pareggiato le ipotesi vere in
-**quattro studi su cinque**. Con qualche migliaio di operazioni, 0,1-0,5 R/op
+**quattro studi su cinque** (corretto 04/10/2026, appendici BP e BV: con la
+chiusura delle 21 il placebo non regge piu' ne' in BP ne' in BV; in BU separa
+ancora piu' di tutte le misure vere). Con qualche migliaio di operazioni, 0,1-0,5 R/op
 di separazione apparente nasce dal nulla. Qualunque idea nuova va misurata
 contro un placebo, o non e' stata misurata.
 
