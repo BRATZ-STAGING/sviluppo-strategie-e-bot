@@ -43,8 +43,15 @@ BARRE_MT5 = 99_000          # ~15 settimane: il limite del terminale e' 100.000 
 OGNI_MT5 = 3.0              # secondi fra due letture del terminale
 SESSIONE_M1 = 2_000         # minuti: piu' di una sessione, per trovare l'ultima riapertura
 
-TF = {"M1": "1min", "M5": "5min", "M15": "15min", "M30": "30min",
-      "H1": "1h", "H4": "4h", "D1": "1D", "W1": "1W"}
+# in ordine di durata. M33 e M66 non dividono il giorno: come nel resto del
+# progetto (framework.data.resample) le candele sono ancorate all'epoch, cosi'
+# sono sempre le stesse qualunque pezzo di archivio si carichi
+TF = {"M1": "1min", "M2": "2min", "M3": "3min", "M5": "5min", "M6": "6min",
+      "M10": "10min", "M12": "12min", "M15": "15min", "M20": "20min",
+      "M30": "30min", "M33": "33min", "H1": "1h", "M66": "66min", "H2": "2h",
+      "H3": "3h", "H4": "4h", "H6": "6h", "H8": "8h", "H12": "12h",
+      "D1": "1D", "W1": "1W", "MN1": "1MS"}
+LUNGHI = ("D1", "W1", "MN1")    # costruiti sulla giornata dell'oro, non sull'orologio
 AGG = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
 
 _lock = threading.Lock()
@@ -71,10 +78,11 @@ def m1_anno(anno: int) -> pd.DataFrame:
 def ricampiona(m1: pd.DataFrame, tf: str) -> pd.DataFrame:
     if tf == "M1":
         return m1
-    if tf in ("D1", "W1"):
+    if tf in LUNGHI:
         # come le mostra il broker (e il grafico live): la giornata dell'oro va
         # dalle 17:00 alle 17:00 di New York, quindi la domenica sera e' gia'
-        # lunedi'; la settimana va da domenica sera a venerdi'. Ogni candela
+        # lunedi'; la settimana va da domenica sera a venerdi', il mese
+        # raccoglie le giornate di contrattazione con quella data. Ogni candela
         # porta l'istante vero di apertura, cosi' i disegni restano allineati
         # fra i timeframe; la data della giornata la scrive la pagina.
         if m1.empty:
@@ -85,11 +93,13 @@ def ricampiona(m1: pd.DataFrame, tf: str) -> pd.DataFrame:
              + pd.Timedelta(hours=7)).normalize()
         if tf == "W1":
             g = g - pd.to_timedelta(g.dayofweek, unit="D")
+        elif tf == "MN1":
+            g = g - pd.to_timedelta(g.day - 1, unit="D")
         out = h1.groupby(g).agg(AGG)
         inizio = pd.DatetimeIndex(out.index) - pd.Timedelta(hours=7)
         out.index = inizio.tz_localize("America/New_York").tz_convert("UTC")
         return out
-    return m1.resample(TF[tf]).agg(AGG).dropna(subset=["open"])
+    return m1.resample(TF[tf], origin="epoch").agg(AGG).dropna(subset=["open"])
 
 
 @lru_cache(maxsize=16)
@@ -136,8 +146,8 @@ def barre_prima(tf: str, prima: pd.Timestamp | None, n: int):
     if not pezzi:
         return pd.DataFrame(columns=list(AGG)), False
     tutto = pd.concat(pezzi[::-1]).sort_index(kind="stable")
-    if tf in ("D1", "W1"):
-        # una giornata o una settimana puo' stare a cavallo fra due fonti
+    if tf in LUNGHI:
+        # una giornata, una settimana o un mese puo' stare a cavallo fra due fonti
         # (archivio e terminale, o due anni dell'archivio): i pezzi non si
         # sovrappongono, quindi vanno sommati, non scartati
         tutto = tutto.groupby(level=0).agg(AGG)

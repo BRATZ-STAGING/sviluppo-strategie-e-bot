@@ -96,6 +96,19 @@ select, input[type="text"] {
 }
 .tendina label { display: flex; gap: 8px; padding: 4px; cursor: pointer; }
 
+/* elenco di tutti i timeframe, con la stella per la barra */
+.elenco-tf { max-height: 70vh; overflow-y: auto; min-width: 200px; }
+.gruppo-tf { color: var(--tenue); font-size: 11px; text-transform: uppercase; padding: 8px 4px 2px; }
+.gruppo-tf:first-child { padding-top: 2px; }
+.riga-tf { display: flex; align-items: center; }
+.riga-tf button { background: transparent; border: 0; border-radius: 4px; color: var(--testo); font: inherit; cursor: pointer; }
+.riga-tf button:hover { background: var(--superficie); }
+.riga-tf .stella { color: var(--tenue); padding: 2px 6px; font-size: 15px; }
+.riga-tf .stella[aria-pressed="true"] { color: var(--accento); }
+.riga-tf .nome-tf { flex: 1; display: flex; justify-content: space-between; gap: 12px; padding: 4px 6px; text-align: left; }
+.riga-tf .nome-tf span { color: var(--tenue); }
+.riga-tf .nome-tf[aria-pressed="true"] b { color: var(--accento); }
+
 .corpo { flex: 1; display: flex; min-height: 0; }
 .strumenti {
   display: flex;

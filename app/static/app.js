@@ -1,11 +1,32 @@
 /* Grafico XAUUSD: KLineChart 10 + disegni salvati + backtest sopra il grafico. */
 "use strict";
 
+// in ordine di durata, come in server.py (M33 e M66 sono del progetto)
 const TF = {
-  M1: { type: "minute", span: 1 }, M5: { type: "minute", span: 5 },
-  M15: { type: "minute", span: 15 }, M30: { type: "minute", span: 30 },
-  H1: { type: "hour", span: 1 }, H4: { type: "hour", span: 4 },
-  D1: { type: "day", span: 1 }, W1: { type: "week", span: 1 },
+  M1: { type: "minute", span: 1 }, M2: { type: "minute", span: 2 },
+  M3: { type: "minute", span: 3 }, M5: { type: "minute", span: 5 },
+  M6: { type: "minute", span: 6 }, M10: { type: "minute", span: 10 },
+  M12: { type: "minute", span: 12 }, M15: { type: "minute", span: 15 },
+  M20: { type: "minute", span: 20 }, M30: { type: "minute", span: 30 },
+  M33: { type: "minute", span: 33 }, H1: { type: "hour", span: 1 },
+  M66: { type: "minute", span: 66 }, H2: { type: "hour", span: 2 },
+  H3: { type: "hour", span: 3 }, H4: { type: "hour", span: 4 },
+  H6: { type: "hour", span: 6 }, H8: { type: "hour", span: 8 },
+  H12: { type: "hour", span: 12 }, D1: { type: "day", span: 1 },
+  W1: { type: "week", span: 1 }, MN1: { type: "month", span: 1 },
+};
+// quelli nella barra in alto; gli altri sono nell'elenco, da cui si aggiungono con la stella
+const PREFERITI_BASE = ["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"];
+const GRUPPI_TF = [
+  ["Minuti", (k) => TF[k].type === "minute"],
+  ["Ore", (k) => TF[k].type === "hour"],
+  ["Giorni e oltre", (k) => !["minute", "hour"].includes(TF[k].type)],
+];
+const durata = (k) => {
+  const { type, span } = TF[k];
+  if (type === "minute") return span === 1 ? "1 minuto" : `${span} minuti`;
+  if (type === "hour") return span === 1 ? "1 ora" : `${span} ore`;
+  return { day: "giorno", week: "settimana", month: "mese" }[type];
 };
 const NOME_TF = (p) => Object.keys(TF).find((k) => TF[k].type === p.type && TF[k].span === p.span);
 
@@ -35,6 +56,7 @@ const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n
 
 let tfAttivo = memoria.leggi("tf", "M15");
 if (!TF[tfAttivo]) tfAttivo = "M15";
+let preferiti = memoria.leggi("tfPreferiti", PREFERITI_BASE).filter((k) => TF[k]);
 let disegni = [];            // [{id, name, points:[{timestamp,value}], extendData:{testo, nascosto:[]}}]
 let selezionato = null;
 let primoCaricamento = true;
@@ -206,7 +228,7 @@ const chart = klinecharts.init("grafico", { timezone: memoria.leggi("fuso", "UTC
 chart.setFormatter({
   formatDate: ({ dateTimeFormat, timestamp, template }) => {
     const p = chart.getPeriod();
-    const lungo = p && (p.type === "day" || p.type === "week");
+    const lungo = p && ["day", "week", "month"].includes(p.type);
     return klinecharts.utils.formatDate(dateTimeFormat, lungo ? timestamp + 7 * 3600e3 : timestamp, template);
   },
 });
@@ -255,17 +277,67 @@ chart.setDataLoader({
 });
 
 // ------------------------------------------------------------- timeframe
+// Nella barra: i preferiti, piu' quello attivo se non lo e'. Accanto, l'elenco
+// di tutti: clic sul nome per aprirlo, sulla stella per metterlo o toglierlo
+// dalla barra (scelta ricordata dal browser).
 function disegnaTf() {
   const nav = $("tf");
+  const aperto = nav.querySelector("details")?.open;   // la stella non chiude l'elenco
   nav.innerHTML = "";
-  Object.keys(TF).forEach((k) => {
+  Object.keys(TF).filter((k) => preferiti.includes(k) || k === tfAttivo).forEach((k) => {
     const b = document.createElement("button");
     b.textContent = k;
+    b.title = durata(k);
     b.setAttribute("aria-pressed", String(k === tfAttivo));
     b.onclick = () => cambiaTf(k);
     nav.appendChild(b);
   });
+  const menu = document.createElement("details");
+  menu.className = "menu";
+  menu.open = Boolean(aperto);
+  const titolo = document.createElement("summary");
+  titolo.textContent = "▾";
+  titolo.title = "Tutti i timeframe";
+  const tendina = document.createElement("div");
+  tendina.className = "tendina elenco-tf";
+  GRUPPI_TF.forEach(([nomeGruppo, delGruppo]) => {
+    const h = document.createElement("div");
+    h.className = "gruppo-tf";
+    h.textContent = nomeGruppo;
+    tendina.appendChild(h);
+    Object.keys(TF).filter(delGruppo).forEach((k) => {
+      const riga = document.createElement("div");
+      riga.className = "riga-tf";
+      const pref = preferiti.includes(k);
+      const stella = document.createElement("button");
+      stella.className = "stella";
+      stella.textContent = pref ? "★" : "☆";
+      stella.title = pref ? "Togli dalla barra" : "Metti nella barra";
+      stella.setAttribute("aria-pressed", String(pref));
+      stella.onclick = () => {
+        // nell'ordine dell'elenco, non in quello dei clic
+        preferiti = Object.keys(TF).filter((x) => (x === k ? !pref : preferiti.includes(x)));
+        memoria.scrivi("tfPreferiti", preferiti);
+        disegnaTf();
+      };
+      const nome = document.createElement("button");
+      nome.className = "nome-tf";
+      nome.innerHTML = `<b>${k}</b> <span>${durata(k)}</span>`;
+      nome.setAttribute("aria-pressed", String(k === tfAttivo));
+      nome.onclick = () => { menu.open = false; cambiaTf(k); };
+      riga.append(stella, nome);
+      tendina.appendChild(riga);
+    });
+  });
+  menu.append(titolo, tendina);
+  nav.appendChild(menu);
 }
+// l'elenco si chiude cliccando fuori (la stella ridisegna la barra: il suo
+// pulsante, ormai staccato dalla pagina, non conta come "fuori")
+document.addEventListener("click", (e) => {
+  const m = $("tf").querySelector("details");
+  if (m?.open && e.target.isConnected && !m.contains(e.target)) m.open = false;
+});
 function cambiaTf(k) {
   tfAttivo = k;
   memoria.scrivi("tf", k);
