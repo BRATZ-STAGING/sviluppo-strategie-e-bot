@@ -104,7 +104,9 @@ def misure(n, date, anni):
 
 # (nome, rr, pareggio, trail, oltre_giorno, soglia_weekend)
 BOT = [("in uso  1:10, pareggio +3R, EOD", 10.0, 3.0, None, False, None),
-       ("A       1:8, pareggio +3R, chiude venerdi'", 8.0, 3.0, None, True, -99.0),
+       # soglia +inf: si chiude SEMPRE prima del fine settimana (con -99 non si
+       # chiudeva mai, vedi docs/studies/verifica-bot-discrepanze.md)
+       ("A       1:8, pareggio +3R, chiude venerdi'", 8.0, 3.0, None, True, np.inf),
        ("B       1:8, trail MFE-2 da +3R, weekend se >+1R", 8.0, None, (3.0, 2.0), True, 1.0),
        ("1:2     secco, niente pareggio, EOD", 2.0, None, None, False, None)]
 
@@ -129,8 +131,15 @@ class Percorsi:
         self.idx = pd.DatetimeIndex(m1.index).as_unit("ns").asi8
         self.o, self.h = m1.open.values, m1.high.values
         self.l, self.c = m1.low.values, m1.close.values
-        t_abs = pd.DatetimeIndex(m1.index)
-        self.eod = (t_abs.hour == ora_chiusura) & (t_abs.minute == 0)
+        # fine giornata = ULTIMA candela prima delle 21:00 della sua giornata.
+        # Cercare la candela delle 21:00 sbagliava: con l'ora legale USA
+        # (aprile-ottobre) l'oro chiude alle 21:00 e quella candela non
+        # esiste, quindi d'estate le posizioni restavano aperte per giorni
+        # (docs/studies/verifica-bot-discrepanze.md)
+        t21 = (pd.DatetimeIndex(m1.index).normalize()
+               + pd.Timedelta(hours=ora_chiusura)).as_unit("ns").asi8
+        succ = np.append(self.idx[1:], np.iinfo(np.int64).max)
+        self.eod = (self.idx < t21) & (succ >= t21)
         # buco[i]: fra la candela i e la i+1 il mercato e' rimasto chiuso
         self.buco = np.append(np.diff(self.idx) / 60_000_000_000 > CHIUSURA_MIN, False)
 
