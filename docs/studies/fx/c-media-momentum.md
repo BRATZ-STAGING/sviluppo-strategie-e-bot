@@ -271,7 +271,7 @@ con le coppie selezionate in campione: va letto come indizio, non come regola.
    York (mercato sottile) e minimo nella sovrapposizione Londra-New York,
    dove si spegne gia' oltre i 15 minuti. Ma il decile dei movimenti grandi
    restituisce in mediana 0,1-0,4 pip, cioe' 0,1-0,35 volte il costo; anche
-   le regole selezionate con soglia k >= 2 hanno lordo mediano 0,24 costi a
+   le regole (gia' orientate nel verso della cella) hanno lordo mediano 0,24 costi a
    5 minuti e 0,38-0,47 a 15-60 minuti. Parte dell'effetto sotto i 15 minuti
    e' rumore di quotazione BID (rimbalzo fra quote), non un movimento
    negoziabile.
