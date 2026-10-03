@@ -41,6 +41,7 @@ PORTA = int(os.environ.get("APP_PORTA", "8095"))
 USA_MT5 = "--mt5" in sys.argv or os.environ.get("APP_MT5") == "1"
 BARRE_MT5 = 99_000          # ~15 settimane: il limite del terminale e' 100.000 barre
 OGNI_MT5 = 3.0              # secondi fra due letture del terminale
+SESSIONE_M1 = 2_000         # minuti: piu' di una sessione, per trovare l'ultima riapertura
 
 TF = {"M1": "1min", "M5": "5min", "M15": "15min", "M30": "30min",
       "H1": "1h", "H4": "4h", "D1": "1D"}
@@ -155,36 +156,59 @@ def oro_aperto(ny: pd.Timestamp) -> bool:
     return not 17 <= h < 18
 
 
-def ultima_chiusura(ny: pd.Timestamp) -> pd.Timestamp:
-    """L'ultima chiusura delle 17:00 di New York prima di adesso."""
-    c = ny.normalize() + pd.Timedelta(hours=17)
-    if c > ny:
-        c -= pd.Timedelta(days=1)
-    while c.dayofweek >= 5:   # sabato e domenica non chiudono nulla
-        c -= pd.Timedelta(days=1)
-    return c
+def riaperture(ny: pd.Timestamp, giorni: int = 8) -> list[pd.Timestamp]:
+    """Le riaperture delle 18:00 di New York (da domenica a giovedi') degli
+    ultimi giorni, fino ad adesso."""
+    oggi = ny.tz_localize(None).normalize()
+    tutte = []
+    for k in range(giorni):
+        g = oggi - pd.Timedelta(days=k)
+        if g.dayofweek in (6, 0, 1, 2, 3):
+            r = (g + pd.Timedelta(hours=18)).tz_localize("America/New_York")
+            if r <= ny:
+                tutte.append(r)
+    return tutte
 
 
-def scarto_server(tick_s: int, ultima_barra_s: int) -> int:
+def riapertura(tempi) -> int | None:
+    """Ora del server della prima candela dopo l'ultima pausa di almeno 30
+    minuti (quotidiana o del fine settimana); None se le candele non ne hanno."""
+    if tempi is None or len(tempi) < 2:
+        return None
+    t = np.asarray(tempi, dtype="int64")
+    salti = np.flatnonzero(np.diff(t) >= 1800)
+    return int(t[salti[-1] + 1]) if len(salti) else None
+
+
+def scarto_server(tick_s: int | None, riapertura_s: int | None,
+                  adesso: pd.Timestamp | None = None) -> int:
     """Di quante ore l'orologio del broker e' avanti rispetto a UTC.
 
-    A mercato aperto lo dice l'ultimo tick, confrontato con l'ora attuale. A
-    mercato chiuso (pausa, fine settimana) il tick e' vecchio di ore: allora la
-    fine dell'ultima candela, in ora del server, coincide con l'ultima
-    chiusura delle 17:00 di New York.
+    La prima candela dopo una pausa e' una riapertura delle 18:00 di New York:
+    su questo i broker concordano. Sulla chiusura no: il mercato chiude alle
+    17:00 di New York (23 in Italia), MetaQuotes-Demo smette di quotare
+    un'ora prima, e confrontare l'ultima candela con la chiusura dava +2
+    invece di +3. La riapertura non dipende da quanto e' vecchio il tick,
+    quindi vale anche a mercato chiuso; il tick serve solo se le candele non
+    contengono una pausa. ``adesso`` serve solo alle prove.
     """
-    adesso = pd.Timestamp.now("UTC")
+    adesso = pd.Timestamp.now("UTC") if adesso is None else adesso
     ny = adesso.tz_convert("America/New_York")
-    if oro_aperto(ny):
+    if riapertura_s is not None:
+        inizio = pd.Timestamp(riapertura_s, unit="s", tz="UTC")
+        buoni = []
+        for r in riaperture(ny):
+            ore = (inizio - r.tz_convert("UTC")).total_seconds() / 3600
+            if abs(ore - round(ore)) <= 5 / 60 and abs(round(ore)) <= 14:
+                buoni.append(int(round(ore)))
+        if buoni:
+            return min(buoni, key=abs)
+    if tick_s is not None and oro_aperto(ny):
         ore = (pd.Timestamp(tick_s, unit="s", tz="UTC") - adesso).total_seconds() / 3600
         if abs(ore - round(ore)) < 0.1 and abs(round(ore)) <= 14:
             return int(round(ore))
-    fine = pd.Timestamp(ultima_barra_s, unit="s", tz="UTC") + pd.Timedelta(minutes=1)
-    ore = (fine - ultima_chiusura(ny).tz_convert("UTC")).total_seconds() / 3600
-    if abs(ore - round(ore)) > 0.25 or abs(round(ore)) > 14:
-        raise RuntimeError(f"fuso del broker non ricavabile (ultima candela a {ore:+.2f} h "
-                           f"dall'ultima chiusura di New York): festivita' o terminale scollegato?")
-    return int(round(ore))
+    raise RuntimeError("fuso del broker non ricavabile: nessuna riapertura delle 18:00 di "
+                       "New York nelle candele (festivita' o terminale scollegato?)")
 
 
 def leggi_mt5(quante: int):
@@ -200,6 +224,9 @@ def leggi_mt5(quante: int):
         mt5.symbol_select(simbolo, True)
         barre = mt5.copy_rates_from_pos(simbolo, mt5.TIMEFRAME_M1, 0, quante)
         tick = mt5.symbol_info_tick(simbolo)
+        # piu' di una sessione intera: contiene sempre l'ultima pausa
+        sessione = barre if barre is not None and len(barre) >= SESSIONE_M1 else \
+            mt5.copy_rates_from_pos(simbolo, mt5.TIMEFRAME_M1, 0, SESSIONE_M1)
     finally:
         mt5.shutdown()
     if barre is None or len(barre) == 0:
@@ -209,8 +236,8 @@ def leggi_mt5(quante: int):
     df = df[["open", "high", "low", "close", "tick_volume"]].astype("float64")
     df.columns = ["open", "high", "low", "close", "volume"]
     # MT5 da' l'ora del SERVER del broker, non UTC (FP: UTC+3)
-    ultima = int(barre[-1]["time"])
-    df.index = df.index - pd.Timedelta(hours=scarto_server(int(tick.time) if tick else ultima, ultima))
+    inizio = riapertura(sessione["time"] if sessione is not None else None)
+    df.index = df.index - pd.Timedelta(hours=scarto_server(int(tick.time) if tick else None, inizio))
     return simbolo, df
 
 
