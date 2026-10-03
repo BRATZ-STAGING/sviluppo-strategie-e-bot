@@ -3953,6 +3953,58 @@ confermata, proposta 1:1 respinta.
 
 ## Appendice BM: lo scalp a punti fissi e l'uscita in tre scaglioni
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_scalp_scaglioni.py` percorreva ogni operazione
+> per **30 giorni** (`GIORNI_MAX = 30`), senza la chiusura delle 21:00 UTC e
+> senza quella del venerdi': stop e obiettivi restavano attivi la notte e nel
+> fine settimana. L'appendice non dichiara una tenuta oltre la sera: prende
+> "le stesse operazioni della strategia" (che chiude alle 21, `T.ora_chiusura`)
+> e "cambia solo la gestione", con la riga "ufficiale" come riferimento. La
+> tenuta notturna e' un'altra gestione, misurata e respinta nelle appendici
+> AO-AQ. **Prova** (`XAU_ANNI=2020-2026`): lo script vecchio riproduce la
+> tabella pubblicata alla terza cifra; con la sua finestra 120 operazioni
+> ufficiali su 333 escono dopo le 21:00 del giorno d'ingresso, in tutti e
+> dodici i mesi, 27 entrate di venerdi' passano il fine settimana e la piu'
+> lunga resta aperta 22,9 giorni. **Corretto** (il percorso finisce
+> all'ultima candela prima delle 21:00 del giorno d'ingresso, come `genera()`
+> e `verifica_bot.Percorsi`): la riga ufficiale coincide con il motore
+> ufficiale (`run_scale_trailing.esito`) su 333/333 operazioni e fa +171,97 R
+> a spread 0,30, il numero della taratura.
+>
+> Campione ufficiale, 333 operazioni, spread 0,30 (netto R/op · vinte · DD R ·
+> R/DD · anni+; fra parentesi "Prima:" il valore pubblicato):
+>
+> | gestione | netto R/op | vinte% | DD R | R/DD | anni+ |
+> |---|---|---|---|---|---|
+> | ufficiale 1:10, pareggio +3R | **+0,516** (Prima: +0,652) | **35,7%** (Prima: 13,5%) | **15,6** (Prima: 20,8) | **11,03** (Prima: 10,45) | **7/7** (Prima: 6/7) |
+> | strutturale, 3 scaglioni | +0,105 (Prima: +0,097) | 56,8% (Prima: 55,6%) | 12,6 (Prima: 14,2) | 2,80 (Prima: 2,27) | 5/7 |
+> | stop 3 $, obiettivo 5 $ | +0,090 (Prima: +0,088) | 45,0% (Prima: 44,4%) | 19,4 | 1,54 (Prima: 1,51) | 6/7 |
+> | stop 5 $, obiettivo 8 $ | +0,074 (Prima: +0,096) | 45,6% (Prima: 44,4%) | 20,6 (Prima: 21,4) | 1,20 (Prima: 1,49) | 5/7 (Prima: 6/7) |
+> | stop 3 $, 3 scaglioni | +0,062 (Prima: +0,056) | 56,8% (Prima: 56,2%) | 16,3 | 1,26 (Prima: 1,14) | 6/7 |
+> | stop 5 $, 3 scaglioni | +0,028 (Prima: +0,034) | 54,1% (Prima: 53,5%) | 20,6 (Prima: 21,4) | 0,45 (Prima: 0,52) | 4/7 |
+>
+> Campione largo, 1.290 operazioni (netto R/op, netto R, anni+): ufficiale
+> **+0,183, +236,7 R**, 6/7 (Prima: +0,386, +497,9); 3 scaglioni strutturale
+> +0,006, +7,6 (Prima: 0,000, +0,2), 3/7; stop 3/5 −0,056, −72,5 (Prima:
+> −0,051, −65,3), 2/7; stop 5/8 **−0,043, −55,9** (Prima: −0,011, −14,7), 2/7;
+> stop 3 $ a scaglioni −0,066, −85,7 (Prima: −0,062, −80,4), 2/7; stop 5 $ a
+> scaglioni −0,052, −67,4 (Prima: −0,039, −50,4), 2/7 (Prima: 3/7). Ipotesi C
+> (largo, stop 3 $ / obiettivo 5 $): uguale salvo 2023 +0,09 (Prima: +0,13)
+> con il 50,0% di stop (Prima: 54,0%) e 2024 −0,10 (Prima: −0,08); il 2026
+> resta −0,31 con il 70,2% di stop.
+>
+> **Cosa cambia nelle conclusioni.** (1) Ipotesi A **confermata come prima**:
+> ogni cella a stop fisso resta sotto l'ufficiale, e sul campione largo sono
+> tutte negative. (2) Ipotesi B **respinta nel merito come prima, ma con
+> numeri meno estremi**: i tre scaglioni portano le vinte dal **35,7%** (non
+> dal 13,5%) al 56,8%, costano l'**80%** del rendimento (non l'85%: da +0,516
+> a +0,105) e tagliano la perdita massima del **20%** (non del 32%: da 15,6 a
+> 12,6 R); R/DD da 11,03 a 2,80. L'argomento "psicologico" del paragrafo sui
+> tre scaglioni e' piu' debole: la gestione ufficiale vince gia' una
+> operazione su tre, non una su sette. (3) Ipotesi C e conclusione finale
+> invariate. Il testo qui sotto e' quello originale, con i numeri del 30
+> giorni.
+
 Specifica dell'utente: entrare "anche da pochi punti" (stop 3 $ / obiettivo
 5 $, oppure 5 $ / 8 $) invece dello stop strutturale; oppure **tre operazioni
 da 0,25% di rischio**, la prima a 1:1, e quando incassa le altre due a
@@ -4387,6 +4439,91 @@ ufficiale, e da due a quattro volte tanto su qualunque variante a stop stretto.
 
 ## Appendice BR: il criterio giusto — 6% annuo, drawdown piccolo, buon rate
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata.** Lo
+> script `trading/scripts/run_prodotto_clienti.py` percorreva ogni operazione
+> per **30 giorni** (`GIORNI_MAX = 30`): nessuna chiusura alle 21:00 UTC,
+> nessuna chiusura del venerdi'. L'appendice non dichiara una tenuta oltre la
+> sera: la riga di riferimento e' "ufficiale 1:10, pareggio +3R", cioe' la
+> gestione in vigore che chiude alle 21, e l'appendice BZ la descrive come
+> priva di posizioni notturne. **Prova** (`XAU_ANNI=2020-2026`): lo script
+> vecchio riproduce alla terza cifra ogni numero pubblicato qui sotto; con la
+> sua finestra 120 operazioni ufficiali su 333 escono dopo le 21:00 del giorno
+> d'ingresso (in tutti i mesi), 27 entrate di venerdi' passano il fine
+> settimana, la piu' lunga dura 22,9 giorni. **Corretto** con la finestra del
+> motore ufficiale (ultima candela prima delle 21:00 del giorno d'ingresso,
+> come `genera()` e `verifica_bot.Percorsi`): la riga ufficiale coincide con
+> `run_scale_trailing.esito` su 333/333 operazioni, e la 1:2 fa +71,3 R con il
+> 48,0% di vinte, gli stessi numeri della 1:2 corretta di `verifica_bot`
+> (`bots/SCHEDE-STRATEGIE.md`). Il dettaglio per operazione e' in
+> `docs/studies/dati/prodotto_clienti.parquet` (rigenerato).
+>
+> Campione ufficiale, tutte riscalate al 6% annuo, spread vero di BN (fra
+> parentesi "Prima:" il valore pubblicato):
+>
+> | gestione | vinte% | rischio/op | **DD max** | anno peggiore | anni+ | mesi+ | **perdite di fila** |
+> |---|---|---|---|---|---|---|---|
+> | ufficiale 1:10, pareggio +3R | **35,7%** (Prima: 13,5%) | 0,26% (Prima: 0,20%) | **4,2%** (Prima: 4,3%) | **+2,2%** (Prima: −1,8%) | **7/7** (Prima: 6/7) | 49,3% (Prima: 40,6%) | **11** (Prima: 25) |
+> | tutto a 1:2 | 48,0% (Prima: 45,7%) | **0,59%** (Prima: 0,47%) | **6,4%** (Prima: 5,7%) | −1,5% | **5/7** (Prima: 6/7) | 52,2% (Prima: 53,6%) | 7 |
+> | tutto a 1:3, pareggio +1R | 31,5% (Prima: 23,4%) | 0,73% (Prima: 0,79%) | 10,5% (Prima: 15,4%) | −1,9% (Prima: −2,7%) | 6/7 (Prima: 5/7) | 46,4% (Prima: 43,5%) | 11 (Prima: 16) |
+> | meta' 1:2 + meta' 1:10 | 46,2% (Prima: 45,7%) | 2,08% (Prima: 1,44%) | 15,2% (Prima: 12,7%) | −8,1% (Prima: −3,9%) | 5/7 | 47,8% (Prima: 49,3%) | 7 |
+> | meta' 1:1,5 + meta' 1:10 | 49,2% (Prima: 49,0%) | 7,96% (Prima: 8,33%) | 79,4% (Prima: 89,3%) | −25,3% (Prima: −36,8%) | 4/7 | 49,3% (Prima: 43,5%) | 7 |
+> | tutto a 1:1 | 56,8% (Prima: 55,6%) | 5,03% (Prima: 7,65%) | 71,8% (Prima: 124,6%) | −21,5% (Prima: −34,2%) | 4/7 | 46,4% (Prima: 44,9%) | 7 |
+> | meta' 1:1 + meta' 1:10 | 55,3% | — in perdita — | | | | | |
+> | tre scaglioni 1/1,5/2 | 53,5% | — in perdita — | | | | | |
+>
+> Ricerca 2020-2022 contro verifica 2023-2026 (R/op, anni+, R/DD):
+>
+> | gestione | ricerca | verifica |
+> |---|---|---|
+> | ufficiale 1:10 | +0,449, 3/3, 5,97 (Prima: +0,510, 3/3, 3,14) | +0,517, **4/4**, 6,38 (Prima: +0,701, 3/4, 6,78) |
+> | tutto a 1:2 | **+0,295**, 3/3, 4,41 (Prima: +0,419, 3/3, 6,43) | +0,161, **2/4**, 2,96 (Prima: +0,174, 3/4, 2,83) |
+> | tutto a 1:3, pareggio +1R | +0,104, **3/3**, 1,00 (Prima: +0,101, 2/3, 0,68) | **+0,218**, 3/4, **3,05** (Prima: +0,199, 3/4, 2,61) |
+> | meta' 1:2 + 1:10 | +0,083, 3/3, 1,70 (Prima: +0,128, 3/3, 2,74) | +0,046, 2/4, 1,26 (Prima: +0,061, 2/4, 1,39) |
+> | tutto a 1:1 | +0,043, 2/3 (Prima: +0,042) | +0,013, 2/4 (Prima: −0,000) |
+> | tre scaglioni | −0,060, 0/3 | −0,032, 0/4 |
+>
+> Campione largo (R/op ricerca / verifica): tutto a 1:2 **−0,015** / +0,058
+> (Prima: +0,046 / +0,068), ricerca 1/3 anni; 1:1 −0,059 / −0,013; tre
+> scaglioni −0,084 / −0,060; meta' 1:2 + 1:10 −0,055 / −0,006; 1:3 con
+> pareggio +1R −0,054 / +0,092. Riscalata al 6% annuo la 1:2 del campione
+> largo chiede 1,25% a operazione con DD 60,9% (Prima: 0,56%, DD 27,6%).
+>
+> **Cosa cambia nelle conclusioni.**
+>
+> 1. **"L'1:2 e' l'unico obiettivo vicino che sopravvive" non regge piu'.**
+>    Sul campione largo l'1:2 e' negativo nel periodo di ricerca (−0,015
+>    R/op, 1 anno positivo su 3): **nessun** obiettivo vicino sopravvive su
+>    entrambi i campioni. Sugli ufficiali l'1:2 resta positivo nei due periodi,
+>    ma in verifica ha solo 2 anni positivi su 4, e l'1:3 con pareggio a +1R
+>    fa altrettanto o meglio (3/3 e 3/4, R/DD in verifica 3,05 contro 2,96).
+>    L'1:2 non e' piu' distinguibile dalle alternative: sceglierlo adesso
+>    sarebbe pescare.
+> 2. **Il candidato peggiora**: per il 6% annuo serve lo **0,59%** a
+>    operazione (non 0,47%), il drawdown e' **6,4%** (non 5,7%), gli anni
+>    positivi 5/7 (non 6/7; 2023 −0,3 R e 2026 −2,6 R), i mesi positivi
+>    52,2%. Restano 7 perdite di fila (−4,1% di conto alla nuova taglia) e
+>    l'anno peggiore −1,5%.
+> 3. **Il confronto con l'ufficiale si ribalta.** Il vantaggio dichiarato
+>    ("sette perdite di fila contro venticinque") era il difetto: la gestione
+>    in vigore, chiusa davvero alle 21, ne ha **11**, vince il **35,7%** delle
+>    operazioni e, a parita' di 6% annuo, ha **drawdown minore** (4,2% contro
+>    6,4%), anno peggiore **positivo** (+2,2% contro −1,5%) e **7/7** anni. La
+>    1:2 vince solo su vinte (48% contro 36%), perdite di fila (7 contro 11) e
+>    mesi positivi (52,2% contro 49,3%).
+> 4. **Primo avvertimento**: il vantaggio della 1:2 cala da +0,295 a +0,161
+>    R/op fra ricerca e verifica (−45%, prima −58%); sul solo 2023-2026 la
+>    taglia dello 0,59% rende circa il **4,8%** annuo (prima "circa il 4%").
+> 5. **"Perche' non 1:1"** regge: l'1:1 chiede ancora il 5,0% a operazione con
+>    DD 71,8%. Il secondo avvertimento (l'ingresso e' bocciato sul 2009-2019)
+>    vale come prima.
+>
+> **Appendice BS**: usa lo stesso script con `XAU_ANNI=2009-2019` e aveva lo
+> stesso difetto; i suoi numeri principali sono ricalcolati nella nota in
+> testa a BS (sedici celle su sedici restano negative). **Appendice BZ**: il suo confronto con BR usa i numeri
+> vecchi (6% con DD 5,7%, 45,7% di vinte, 53,6% di mesi positivi).
+>
+> Il testo qui sotto e' quello originale, con i numeri dei 30 giorni.
+
 L'utente ha cambiato la domanda, e la nuova e' molto migliore della vecchia:
 *"non mi interessa moltiplicare i conti. Voglio una strategia stabile con un
 buon rate, poche perdite, drawdown basso. La banca da' il 4% annuo: se diamo
@@ -4492,6 +4629,19 @@ fra un cliente che resta e uno che se ne va, anche a parita' di euro persi.
 ---
 
 ## Appendice BS: l'1:2 sul 2009-2019 — nessuna gestione salva l'ingresso
+
+> **NOTA 04/10/2026 (stesso difetto di BR, testo non rifatto).** I numeri
+> sotto vengono da `run_prodotto_clienti.py` con `XAU_ANNI=2009-2019`, cioe'
+> dallo script di BR prima della correzione: percorso di 30 giorni, nessuna
+> chiusura alle 21 ne' il venerdi' (138 operazioni ufficiali su 374 uscite
+> dopo le 21:00 del giorno d'ingresso). Ricalcolati con la chiusura corretta,
+> campione ufficiale, R/op netto (Prima:): ufficiale 1:10 −0,14 (−0,10), 1:2
+> **−0,18** (−0,27), 1:3 con pareggio +1R **−0,24** (−0,26), meta' 1:2 + 1:10
+> −0,18 (−0,21), meta' 1:1,5 + 1:10 −0,20 (−0,19), tre scaglioni −0,18
+> (−0,17), 1:1 −0,20 (−0,17), meta' 1:1 + 1:10 −0,18 (−0,16); campione largo
+> fra −0,14 e −0,18 (Prima: fra −0,15 e −0,20). **La conclusione regge:
+> sedici celle su sedici negative.** Non regge invece "l'1:2 e' il peggiore
+> sul 2009-2019": corretto e' a meta' classifica, il peggiore e' l'1:3.
 
 L'appendice BR aveva trovato un candidato serio per il prodotto da clienti:
 ingresso ufficiale, obiettivo 1:2, rischio 0,47% -> 6% annuo con 5,7% di
