@@ -137,8 +137,10 @@ M1 (dal 19/06), attaccate all'archivio dal 07/07 senza buchi. Tre lezioni:
   se il terminale non e' collegato a un conto: per questo legge in un
   processo separato
 - il fuso del broker dal solo ultimo tick sbaglia a mercato chiuso (sabato:
-  -19,8 h); a mercato chiuso si ricava dalla chiusura delle 17:00 di NY.
-  Lo stesso difetto e' in `trading/scripts/grafico_live.py`
+  -19,8 h). Ricavarlo dalla chiusura delle 17:00 di NY era SBAGLIATO
+  (MetaQuotes-Demo smette di quotare un'ora prima: dava +2 invece di +3);
+  corretto in 526e89a con la riapertura delle 18:00 di NY, verificata contro
+  Dukascopy (0,27 $ di scarto con +3, ~10 $ con +2), anche in grafico_live.py
 - il terminale da' al massimo 100.000 barre (impostazione `maxbars`)
 
 Da fare:
