@@ -33,7 +33,7 @@ IPOTESI PRE-REGISTRATE, scritte prima di guardare:
      stessa operazione. Se la percentuale di stop cresce di anno in anno, la
      regola non e' tarabile e va scritta in ATR.
 
-Uso: python3 run_scalp_scaglioni.py
+Uso: XAU_ANNI=2020-2026 python3 run_scalp_scaglioni.py
 Scrive docs/studies/dati/scalp_scaglioni.parquet
 """
 from __future__ import annotations
@@ -51,7 +51,10 @@ from framework.segnali import genera                             # noqa: E402
 from framework.taratura import UFFICIALE as T                    # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GIORNI_MAX = 30
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura), come genera() e verifica_bot.Percorsi. Fino al
+# 04/10/2026 qui c'era GIORNI_MAX = 30 e il percorso durava 30 giorni: nessuna
+# chiusura serale ne' del venerdi' (docs/studies/rr-intraday-study.md, BM/BR)
 SCAGLIONI = [1.0, 1.5, 2.0]        # gli obiettivi dei tre terzi, come chiesti
 
 
@@ -150,7 +153,8 @@ def main():
                 e = o["entry"]
                 k = float(punti) if punti else float(o["rischio"])
                 a = int(np.searchsorted(idx, t_in.value))
-                b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+                b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+                    hours=T.ora_chiusura)).value))
                 o_, h_, l_, c_ = ap_[a:b], hi[a:b], lo[a:b], cl[a:b]
                 if len(c_) < 2:
                     continue

@@ -38,7 +38,8 @@ ogni singolo confronto. Ma il rate alto lo da' proprio l'incasso vicino. Meta'
 e meta' e' il compromesso che le due misure suggeriscono: si compra il rate
 con meta' posizione invece che con tutta.
 
-Uso: python3 run_prodotto_clienti.py
+Uso: XAU_ANNI=2020-2026 python3 run_prodotto_clienti.py   (appendice BR;
+     XAU_ANNI=2009-2019 per l'appendice BS)
 Scrive docs/studies/dati/prodotto_clienti.parquet
 """
 from __future__ import annotations
@@ -56,7 +57,10 @@ from framework.segnali import genera                             # noqa: E402
 from framework.taratura import UFFICIALE as T                    # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GIORNI_MAX = 30
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura), come genera() e verifica_bot.Percorsi. Fino al
+# 04/10/2026 qui c'era GIORNI_MAX = 30 e il percorso durava 30 giorni: nessuna
+# chiusura serale ne' del venerdi' (docs/studies/rr-intraday-study.md, BM/BR)
 OBIETTIVO_ANNUO = 6.0            # il bersaglio dell'utente, in percento
 MEDIANA_ATR = 25.5968            # riferimento 2020-2024, congelato nelle schede
 # spread vero misurato nell'appendice BN, per anno
@@ -173,7 +177,8 @@ def main():
                 segno = 1 if o["lato"] == "long" else -1
                 e, k = o["entry"], float(o["rischio"])
                 a = int(np.searchsorted(idx, t_in.value))
-                b = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+                b = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+                    hours=T.ora_chiusura)).value))
                 if b - a < 2:
                     continue
                 o_, h_, l_, c_ = ap_[a:b], hi[a:b], lo[a:b], cl[a:b]
