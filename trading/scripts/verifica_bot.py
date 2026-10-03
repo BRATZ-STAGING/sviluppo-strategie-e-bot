@@ -79,7 +79,11 @@ def cammina(apri, fav, sfav, chiu, buchi, fine_gio, rr, pareggio, trail,
 
 
 def misure(n, date, anni):
-    cum = np.cumsum(n)
+    # Il massimo parte dal capitale iniziale (0), non dalla prima operazione:
+    # altrimenti una serie che apre in perdita sottostima il drawdown (B sul
+    # 2009-2019: 90,3 invece di 91,4 R). Sul 2020-2026 non cambia nulla, vedi
+    # docs/studies/verifica-bot-discrepanze.md.
+    cum = np.concatenate([[0.0], np.cumsum(n)])
     dd = float((np.maximum.accumulate(cum) - cum).max())
     pa = pd.Series(n).groupby(anni).sum()
     peggio = corrente = 0
