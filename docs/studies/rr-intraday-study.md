@@ -4899,6 +4899,52 @@ migliore in ricerca 2020-2022 deve restare il migliore in verifica 2023-2026.
 
 ## Appendice BV: la confluenza fra zone — e un placebo che regge dove le ipotesi vere cadono
 
+> **CORREZIONE 04/10/2026 — mancava la chiusura di fine giornata, e l'esito
+> formale cambia.** Lo script `trading/scripts/run_confluenza_zone.py`
+> percorreva ogni ritracciamento per **3 giorni** (`GIORNI_MAX = 3`), senza
+> la chiusura delle 21:00 UTC e del venerdi', come BQ; lo studio e' la
+> stessa cella intraday di BQ (ingressi 7-21) e non dichiara una tenuta
+> notturna. **Prova** (`XAU_ANNI=2020-2026`): lo script vecchio riproduce
+> ogni numero pubblicato (parquet identico all'originale); con la sua
+> finestra il **13,9%** delle 17.403 operazioni esce dopo le 21:00 del giorno
+> d'ingresso e il 2,2% passa il fine settimana. **Corretto** (ultima candela
+> prima delle 21:00 del giorno d'ingresso): 17.328 operazioni, lordo medio
+> **+0,027** (Prima: +0,038), netto −0,148 (Prima: −0,137).
+> `confluenza_zone.parquet` rigenerato.
+>
+> Lordo R/op, ricerca / verifica:
+>
+> | fascia | corretto | Prima |
+> |---|---|---|
+> | A · 0 isolata | +0,018 / +0,045 | +0,023 / +0,043 |
+> | A · 1 tf | −0,019 / +0,050 | +0,034 / +0,058 |
+> | A · 2 tf | −0,182 / +0,171 | −0,121 / +0,188 |
+> | A · **3+ tf** (102 / 68 op) | **+0,051 / +0,193** | −0,023 / +0,290 |
+> | A · verdetto | **3+ tf / 3+ tf: REGGE** | 1 tf / 3+ tf: non regge |
+> | B · migliore ric. / ver. | M12 +0,032 / M66 +0,218, non regge | M12 +0,092 / M66 +0,248, non regge |
+> | C · migliore ric. / ver. | 3 (+0,176) / 4+ (+0,351), non regge | 3 (+0,166) / 4+ (+0,455), non regge |
+> | C · 3 zone, netto | +0,041 / +0,025 (201 op) | +0,031 / +0,012 |
+> | placebo q1 / q2 / q3 / q4 | −0,009 / −0,051 / −0,003 / **+0,051** (ric.) · +0,096 / +0,069 / +0,007 / +0,045 (ver.) | +0,084 / −0,072 / +0,062 / −0,004 · +0,140 / −0,003 / +0,074 / +0,016 |
+> | placebo · verdetto | q4 / q1: **non regge** | q1 / q1: regge |
+>
+> **Cosa cambia nelle conclusioni.** (1) **Il titolo non regge piu'**: il
+> placebo non regge, e l'ipotesi A **regge formalmente** — i "3+ timeframe"
+> sono la fascia migliore in entrambi i periodi. **Era una strada respinta e
+> con la correzione cambia esito: va verificata sui 18 anni prima di
+> trarne qualcosa.** (2) Le riserve che restano sono pesanti: la fascia ha
+> **170 operazioni** in tutto; in ricerca la sequenza non e' monotona (0 tf
+> +0,018, 1 tf −0,019, 2 tf −0,182, 3+ tf +0,051), quindi la crescita
+> pre-registrata si vede solo in verifica; il netto in ricerca e' −0,085
+> (+0,062 in verifica). Con le etichette delle fasce permutate a caso
+> (2.000 volte, stesse numerosita') l'argmax coincide nel 30% dei casi, e
+> coincide con un lordo migliore almeno uguale in entrambi i periodi nel
+> **10,2%**: non e' distinguibile dal caso a p 0,05. (3) Ipotesi B e C
+> restano respinte; "3 zone sovrapposte" resta positiva al netto in
+> entrambi i periodi, su 201 operazioni. (4) Il netto medio resta negativo
+> (−0,148). La frase "la confluenza fra zone non porta informazione
+> misurabile" va attenuata in "non porta informazione distinguibile dal
+> caso sul 2020-2026; la fascia 3+ timeframe e' da rimisurare sui 18 anni".
+
 Idea dell'utente: *"di questi ventisettemila dobbiamo scremare. Prendere per
 buoni solo quelli che hanno piu' di un riferimento: un ritraccio su M12, poi
 vedere se magari anche su M33 o H2."*

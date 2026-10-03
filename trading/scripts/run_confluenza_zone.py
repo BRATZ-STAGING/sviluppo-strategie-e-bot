@@ -49,7 +49,11 @@ CONTROLLI OBBLIGATORI:
   - il controllo di assurdita': stop vicino colpito piu' dell'obiettivo lontano;
   - ricerca 2020-2022 contro verifica 2023-2026, sempre entrambe riportate.
 
-Uso: python3 run_confluenza_zone.py
+CORREZIONE 04/10/2026: il percorso arrivava a t_in + 3 giorni, senza la
+chiusura delle 21:00 UTC e del venerdi', come in BQ. Ora finisce all'ultima
+candela prima delle 21:00 del giorno d'ingresso (T.ora_chiusura).
+
+Uso: XAU_ANNI=2020-2026 python3 run_confluenza_zone.py
 Scrive docs/studies/dati/confluenza_zone.parquet
 """
 from __future__ import annotations
@@ -77,7 +81,9 @@ RESPIRO = 30
 TETTO = 10.0
 MARGINE = 2.0                 # lo stop 2 $ oltre la zona, regola dell'utente
 ORE = (7, 21)
-GIORNI_MAX = 3
+# fine giornata: si chiude all'ULTIMA candela prima delle 21:00 UTC del giorno
+# d'ingresso (T.ora_chiusura). Fino al 04/10/2026 qui c'era GIORNI_MAX = 3
+# (docs/studies/rr-intraday-study.md, BV)
 RICERCA, VERIFICA = (2020, 2022), (2023, 2026)
 SPREAD = {2020: 0.35, 2021: 0.349, 2022: 0.395, 2023: 0.334,
           2024: 0.384, 2025: 0.632, 2026: 0.631}
@@ -192,7 +198,8 @@ def main():
         kk = abs(prezzo - stop)
         if kk < 0.5 or kk > 25:
             continue
-        b2 = int(np.searchsorted(idx, (t_in + pd.Timedelta(days=GIORNI_MAX)).value))
+        b2 = int(np.searchsorted(idx, (t_in.normalize() + pd.Timedelta(
+            hours=T.ora_chiusura)).value))
         if b2 - k < 5:
             continue
         o_, h_, l_, c_ = ap_[k:b2], hi[k:b2], lo[k:b2], cl[k:b2]

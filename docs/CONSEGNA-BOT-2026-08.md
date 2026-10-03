@@ -106,7 +106,7 @@ Otto strade chiuse. Riaprirne una senza un'idea nuova e' tempo perso.
 | soglie in unita' di volatilita' | BO, BX | stabilizza la regola, non crea vantaggio |
 | conferme fini su M1/M3 (5 famiglie) | BP | nessuna regge; il placebo separa piu' di tutte. **Corretto 04/10/2026, appendice BP**: con la chiusura delle 21 ne reggono quattro su cinque e il placebo no; la distanza dal VWAP (terzo medio +0,377 / +0,382 R/op) si stacca dal placebo. Solo 2020-2026: da verificare sui 18 anni |
 | ritracciamenti in zona (27.127 eventi) | BQ | vantaggio lordo zero |
-| confluenza fra zone di TF diversi | BV | il placebo regge, le ipotesi vere no |
+| confluenza fra zone di TF diversi | BV | il placebo regge, le ipotesi vere no. **Corretto 04/10/2026, appendice BV**: con la chiusura delle 21 il placebo non regge e l'ipotesi A regge formalmente (3+ timeframe migliore in ricerca e verifica, lordo +0,051 / +0,193 R/op) ma su 170 operazioni, non monotona in ricerca e nel 10% delle permutazioni a caso; netto medio −0,148. Solo 2020-2026: da verificare sui 18 anni |
 | qualita' delle zone (5 misure) | BU | il placebo separa piu' di tutte e cinque |
 | allargare la zona raffinata | BY | il vantaggio lordo scende |
 | scalp da zero: media, orologio, candele, livelli | CB, CC | il solo effetto vero (ritorno alla media) e' 5-10 volte sotto la soglia dei costi |
