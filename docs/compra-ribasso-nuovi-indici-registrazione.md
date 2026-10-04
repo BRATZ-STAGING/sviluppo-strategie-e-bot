@@ -44,6 +44,21 @@ placebo p < 0,05 sia a direzione casuale sia a date casuali (stessa direzione,
 date estratte fra le giornate nello stesso stato rispetto alla media 200).
 Per indice si riporta tutto, senza verdetto separato.
 
+## Emendamento 1 — qualita' del dato (04/10/2026, prima di qualunque calcolo della regola)
+
+Trovato preparando i dati, senza calcolare segnali ne' risultati:
+- **ETXEUR dal 17/12/2018 non e' l'Euro Stoxx 50** (salto a ~8.900 punti,
+  livello dell'IBEX 35); HistData non ha ETXEUR dopo il 2019. Si usa
+  **11/2010 -> 14/12/2018**. Gli altri tre indici: livelli plausibili; i salti
+  bruschi sono eventi veri (Fukushima 15/03/2011, Brexit 24/06/2016, marzo
+  2020).
+- **Giornata valida**: su HistData questi indici quotano meno ore dei mercati
+  del paniere (M5 mediane per giornata: Euro Stoxx ~124, CAC ~167, FTSE
+  ~168, Nikkei ~227) e la soglia fissa di 150 M5 scartava l'80% delle
+  giornate dell'Euro Stoxx. Si sostituisce con: **valida se le M5 della
+  giornata sono almeno l'80% della mediana di quel mercato**. Le M5 si
+  contano come nel paniere (intervalli di 5 minuti con almeno un dato).
+
 ## Previsioni
 
 1. Il lato long e' positivo su almeno 3 indici su 4.
