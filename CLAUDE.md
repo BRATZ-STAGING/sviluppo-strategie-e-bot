@@ -257,6 +257,12 @@ non a un'altra variante di questa.
   frequenza chiesta (1-5/settimana) si ottiene, il vantaggio no. L'OB e' un
   filtro sul segnale validato, non un ingresso. Appendice W.
 
+- **Distanza dal VWAP all'ingresso come filtro** (famiglia 3 di BP, l'unica
+  che dopo la correzione della fine giornata batteva il placebo sul
+  2020-2026): sul 2009-2019 con i terzi congelati NON regge. Medio contro resto
+  +0,005 R/op (p 0,48, 4/11 anni), il terzo basso diventa il migliore, tutte le
+  fasce negative. `docs/studies/vwap-distanza-18anni.md`.
+
 - **Trend following multi-giorno sull'oro** (TSMOM 12 mesi, Donchian 55/20,
   medie 50/200, parametri canonici, 2009-2026, swap FP): nessuna passa. F1 e F2
   positive ma non battono il placebo a direzione casuale (p 0,07 e 0,10), F2

@@ -58,6 +58,28 @@ dispersione del placebo di BP, non un segnale.
 
 ## Cosa resta
 
-La separazione per distanza dal VWAP e' un fatto del 2020-2026, come il
-vantaggio della strategia stessa. Sul periodo indipendente non c'e', e il
-2009 (+0,73) e' l'unico anno in cui va nella direzione di BP con forza.
+H1 **non e' confermata e non si distingue dal rumore**, ma non e' smentita:
+con una deviazione del nullo di circa 0,10 R/op il test vede solo differenze
+oltre ~0,2 R/op, mentre l'effetto di BP nel 2023-2026 valeva +0,14 (medio
+0,382 contro 0,240 del resto), dentro l'intervallo del 2009-2019 (bootstrap a
+blocchi per giorno, IC95 H1 [-0,20; +0,23]). H2 invece e' smentita nel segno
+(2 anni su 11). In pratica: nessuna prova che la distanza dal VWAP selezioni
+qualcosa fuori dal 2020-2026, e nessuna fascia che guadagni sul 2009-2019.
+
+## Verifica avversariale (05/10/2026): il NON REGGE regge
+
+- Numeri riprodotti alla quarta cifra; fedelta' a BP e alla registrazione
+  confermate; campione 2009-2019 causale, dati completi, nessun anno anomalo.
+- **Un minuto nel futuro, ereditato da BP** (gravita' bassa): la misura legge
+  il VWAP della candela che si apre all'istante d'ingresso, mentre l'entry e'
+  la chiusura della candela prima. Con il VWAP della candela precedente
+  cambiano 2 fasce su 1.389 e H1 diventa -0,011 (p 0,53): nessun effetto sul
+  verdetto. Da correggere in `run_selezione_fine.py` se BP viene riaperta.
+- Il placebo per operazione non e' stretto (operazioni dello stesso giorno
+  correlate 0,52), ma le fasce variano dentro il giorno: il bootstrap per
+  giorno da' la stessa dispersione. Per un eventuale risultato positivo futuro
+  usare il placebo a livello di giorno.
+- Le righe descrittive "2020-2026 sull'archivio intero" e "2009-2026 intero"
+  NON sono BP: con undici anni di storia in piu' cambiano i mesi ad alta
+  volatilita' e le soglie (1.288 operazioni contro 1.290, 656 con netto
+  diverso).
