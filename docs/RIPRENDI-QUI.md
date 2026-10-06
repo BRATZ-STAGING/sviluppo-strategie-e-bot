@@ -1,4 +1,14 @@
-# Riprendi qui — stato al 04/08/2026
+# Riprendi qui — stato al 06/10/2026
+
+> **Punto di ripresa attuale: `docs/piano-di-lavoro.md`** (direzione scelta
+> dalla Regia del 06/10: due binari, la B verso la demo come scommessa sul
+> regime e un'ultima scommessa di ricerca sui tick; scalp vincolante finche'
+> la strada non e' bloccata). Prossimo blocco: **Dati**, inventario ed
+> estensione dei tick. Tutto quello che segue e' la storia fino al 04/08 e
+> alcune parti sono superate (i dati M1 ora coprono 2009-2026, la taratura
+> perde sul 2009-2019: vedi `docs/strade-respinte.md`).
+
+## Storia: stato al 04/08/2026
 
 > **La ricerca e' in pausa. Si passa alla produzione.**
 > Per portare le strategie su MT5 e avviarle sul VPS: **`docs/AVVIO-MT5-VPS.md`**
