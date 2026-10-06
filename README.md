@@ -48,6 +48,6 @@ sprecare contesto nelle analisi sono in `CLAUDE.md`.
 
 ## Cosa NON fare
 
-Le strade gia' misurate e respinte sono elencate in `CLAUDE.md`. Non
+Le strade gia' misurate e respinte sono elencate in `docs/strade-respinte.md`. Non
 ripercorrerle: i numeri ci sono, ripetere lo studio costa tempo e non cambia
 la risposta.

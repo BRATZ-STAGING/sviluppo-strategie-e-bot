@@ -75,8 +75,8 @@ Da incollare come primo messaggio:
 >
 > Tre vincoli che non vanno violati: non cambiare `framework/taratura.py` senza
 > verifica fuori campione; non ripercorrere le strade elencate come respinte in
-> `CLAUDE.md`; pushare spesso, perche' i container vengono ricreati e il lavoro
-> non pushato sparisce.
+> `docs/strade-respinte.md`; solo commit locali, push solo quando l'utente lo
+> chiede.
 >
 > Dimmi da dove parti prima di iniziare.
 
@@ -125,7 +125,7 @@ Le regole stanno in `CLAUDE.md` e non sono decorative: sono state pagate.
   produce configurazioni che crollano fuori campione: misurato, la migliore in
   campione faceva +0,63 R/op e fuori campione +0,03.
 - **Confronti a parita' di perdita massima**, non di percentuale rischiata.
-- **Le strade respinte sono elencate in `CLAUDE.md`**: non ripercorrerle, i
+- **Le strade respinte sono elencate in `docs/strade-respinte.md`**: non ripercorrerle, i
   numeri ci sono.
 - **Push frequenti.** I container sono effimeri: durante la sessione precedente
   se ne sono ricreati cinque, e ogni volta il lavoro non pushato e' sparito.
