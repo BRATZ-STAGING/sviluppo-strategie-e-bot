@@ -44,7 +44,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 TF_ZONE = ["M6", "M12", "M33", "M66", "H2", "H3", "H6", "H12"]
 VALIDITA = 30              # candele di vita di una zona, come negli studi
-BARRE_M1 = 60_000          # ~6 settimane dal terminale: basta per zone e struttura
+BARRE_M1 = 99_000          # ~15 settimane (limite del terminale 100.000): copre il buco fra archivio e terminale
 MESI_STORIA = 15           # mesi di archivio da anteporre, per il contesto
 AGGIORNA = 3.0             # secondi fra un ricalcolo e l'altro
 SEGNALI_OGNI = 300         # secondi fra due ricalcoli dei segnali passati
