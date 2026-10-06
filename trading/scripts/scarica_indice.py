@@ -82,7 +82,8 @@ def tira(simbolo, lato, giorni):
     with open(conf, "w") as f:
         for g in giorni:
             f.write(f'url = "{url_di(simbolo, lato, g)}"\n'
-                    f'output = "{base(simbolo, lato, g)}.bi5"\n')
+                    # barre in avanti: curl legge "\" come carattere speciale
+                    f'output = "{base(simbolo, lato, g).replace(chr(92), "/")}.bi5"\n')
     subprocess.run(["curl", "-sS", "-Z", "--parallel-max", str(PARALLELO),
                     "--retry", "3", "--retry-delay", "1", "-K", conf],
                    check=False)

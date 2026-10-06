@@ -81,7 +81,8 @@ def scarica(coppie):
         with open(conf, "w") as f:
             for g, h in manca[i:i + 400]:
                 f.write(f'url = "{url(g, h)}"\n'
-                        f'output = "{os.path.join(CACHE, f"{g}_{h:02d}.bi5")}"\n')
+                        # barre in avanti: curl legge "\" come carattere speciale
+                        f'output = "{os.path.join(CACHE, f"{g}_{h:02d}.bi5").replace(chr(92), "/")}"\n')
         subprocess.run(["curl", "-sS", "-Z", "--parallel-max", "12", "--retry", "3",
                         "--retry-delay", "1", "-K", conf], check=False)
         print(f"  scaricati {min(i + 400, len(manca))}/{len(manca)}", flush=True)

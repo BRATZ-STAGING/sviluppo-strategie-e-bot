@@ -29,13 +29,25 @@ blocco chiuso. Prima di scaricare qualcosa, controllare qui se c'e' gia'.
 
 ## Problemi aperti
 
-- **File di cache finiti nel posto sbagliato**: 121 file `.bi5` con nomi tipo
-  `Usersgabrisviluppo-strategie-e-bot..cache_m1<data>.bi5` nella cartella
-  principale del repo e 414 `cache_indici*.bi5` nella radice di `D:\`. Il
-  percorso della cache perde le barre (probabile percorso Windows passato
-  male da uno script/shell). Da sistemare in una chat Dati: correggere il
-  percorso, spostare i file nella cache giusta, verificare che i downloader
-  li ritrovino.
+- **File di cache finiti nel posto sbagliato** (causa trovata e corretta il
+  06/10/2026): nel file di configurazione di curl le barre `\` del percorso
+  Windows sono lette come caratteri speciali, e curl salvava nella cartella
+  corrente con nomi storpiati. Corretti `estendi_storico.py`,
+  `scarica_indice.py` e `run_spread_orario.py` (percorsi con `/`), con prova.
+  I **121 file della cartella del repo sono stati spostati** in
+  `C:\Users\gabri\cache_m1` col nome giusto. **Restano da spostare** i 414
+  `cache_indici*.bi5` nella radice di `D:\` (vengono da `scarica_indice.py`).
+- **M1 oro 2026 oltre il 06/07: incompleto.** Archivio fino al 06/07/2026. In
+  `C:\Users\gabri\cache_m1` ci sono 122 file giornalieri 2026: gennaio-luglio
+  sparsi, 07/07-17/07 completi e il 12/08. Dukascopy limita (429 e timeout
+  per ore dal 06/10). Per finire: `python trading/scripts/riempi_m1_lento.py
+  2026-07-18` (un file alla volta, attese crescenti), poi
+  `python trading/scripts/estendi_storico.py 2026 2026 --rifai` quando la
+  cache copre tutto il 2026. Serve al fuori campione della B con Dukascopy
+  (`docs/studies/b-fuori-campione-2026.md`).
+- **Registro in avanti** (`grafico_live.py`, avviato il 06/10/2026 sul PC):
+  scrive `C:\Users\gabri\dati_grezzi\registro_segnali.jsonl` finche' il PC
+  e MT5 (demo MetaQuotes) sono accesi; si ferma a ogni riavvio.
 
 ## Script di download
 

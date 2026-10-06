@@ -59,7 +59,10 @@ def scarica_lotto(giorni: list[dt.date]) -> None:
     with open(conf, "w") as f:
         for g in giorni:
             f.write(f'url = "{url_di(g)}"\n'
-                    f'output = "{os.path.join(CACHE, g.isoformat())}.bi5"\n')
+                    # barre in avanti: nel file di configurazione curl legge
+                    # "\" come carattere speciale, e su Windows i file finivano
+                    # nella cartella corrente con nomi storpiati
+                    f'output = "{os.path.join(CACHE, g.isoformat()).replace(chr(92), "/")}.bi5"\n')
     subprocess.run(["curl", "-sS", "-Z", "--parallel-max", str(WORKERS),
                     "--retry", "4", "--retry-delay", "3", "--max-time", "90",
                     "-f", "-K", conf],
