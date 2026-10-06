@@ -57,8 +57,10 @@ meno R/op del resto dell'epoca.
 | 9 venerdi' buste paga | altro | -0,69 | 0,502 | altro | -1,70 | 0,056 | nessuna separazione |
 
 **Nessuno dei nove fattori spiega i crolli; nessuno separa neanche una sola
-epoca.** Il p piu' basso e' 0,034 (giovedi', 2009-2019), sei volte sopra la
-soglia, e nell'altra epoca il giovedi' e' la seconda fascia migliore. Il
+epoca.** Il p piu' basso e' 0,034 (giovedi', 2009-2019) con la statistica
+conservativa dello script; a fascia fissa, come la registrazione si legge
+alla lettera, e' 0,009-0,011: sopra la soglia di 0,0056, ma meno di due volte,
+non sei (verifica avversariale), e nell'altra epoca il giovedi' e' la seconda fascia migliore. Il
 venerdi' delle buste paga va nel verso opposto all'atteso: le 19 operazioni
 del primo venerdi' rendono di piu' (+0,44 e +2,15 R/op), non di meno.
 
@@ -89,7 +91,8 @@ ampiezza, tutte nel 2009-2019; escluse solo da quel fattore.
 
 Il quadro per fascia e' quello di BW: in ogni fascia di ogni fattore il
 2009-2019 e' intorno a -0,2 e il 2020-2026 intorno a +0,5. Il salto fra le
-epoche (~0,7-0,8 R/op) e' lo stesso dentro ogni fascia; nessuna fascia lo
+epoche c'e' in ogni fascia, ma non e' uguale: va da +0,43 R/op (tendenza
+alta) a +1,26 (stop largo) e +1,71 (primo venerdi'); nessuna fascia lo
 spiega. Dove il 2020-2026 guadagna di piu' (volatilita' bassa +1,02, stop
 largo +1,12, buste paga +2,15) il 2009-2019 non e' migliore del suo resto.
 
@@ -111,12 +114,19 @@ Quota di operazioni per fascia: tre discese insieme contro il resto del
 | 8 peso costo | basso / medio / alto | 48,1 / 32,5 / 19,4 | 61,2 / 30,6 / 8,2 | basso: 9 / 10 / 11 |
 | 9 buste paga | altro / primo ven | 96,2 / 3,8 | 93,9 / 6,1 | primo ven: 0 / 1 / 2 |
 
-Le tre discese cadono quasi tutte con la **tendenza di fondo alta** (41 su 49,
-nessuna con tendenza bassa) e con ingresso **al mattino** (35 su 49). Sono le
-fasce dove sta la maggioranza del 2020-2026 recente e dove l'epoca rende bene
-(+0,50 e +0,48 R/op): le discese sono avvenute dentro il regime favorevole,
-non in un regime diverso. La discesa del 2026 e' particolare: 14 operazioni
-su 14 in volatilita' alta e 12 su 14 short, con una sola vinta (+7,96 R).
+Le tre discese cadono quasi tutte con la **tendenza di fondo alta** (41 su 49)
+e con ingresso **al mattino** (35 su 49). **Correzione della verifica
+avversariale**: la tendenza alta e' un effetto del periodo, non delle
+discese. Le tre discese sono prese dal cumulato 2009-2026, che resta sotto il
+massimo del 2009 fino al 01/03/2024: per costruzione cadono tutte dopo marzo
+2024, quando la tendenza alta e' il 75,5% di tutte le operazioni (contro
+l'84% delle discese). Sulla serie 2020-2026 da sola le discese piu' profonde
+sono 2020-01 (-13,1 R, tendenza alta 50%), 2021-11 (-9,3 R, 0%) e 2021-05
+(-8,7 R, 0%). Il mattino (71% contro 46-47%) non e' meccanico, ma 16 delle 17
+operazioni in piu' vengono dalla sola discesa del 2025. Nel 2026 il 14/14 in
+volatilita' alta e' meccanico (anche le 9 operazioni fuori discesa sono
+alte); il **12 su 14 short** invece e' davvero anomalo (dopo marzo 2024 gli
+short sono il 6,6%). Una sola vinta (+7,96 R).
 Nessun test, come registrato: 14-18 operazioni per discesa.
 
 ## 4. Esito delle tre previsioni
@@ -225,11 +235,13 @@ all'ingresso (volatilita', tendenza, distanza dalla media, lato, ora, giorno,
 ampiezza dello stop, costo, buste paga) separa le operazioni buone dalle
 cattive in modo coerente fra le epoche, e nessuno lo fa neanche in una sola.
 La meccanica e' semplice: stesse perse (stop pieno), **vinte piu' rare** (23%
-contro 37%) e un po' piu' piccole. Le tre discese del 2020-2026 sono fatte
-della stessa stoffa (stop 72-93%) e avvengono dentro il regime favorevole
-(tendenza alta, mattino), non fuori.
+contro 37%) e un po' piu' piccole. Le discese del 2020-2026 sono fatte della
+stessa stoffa: in tutte le 12 discese di almeno 6 R gli stop sono il 64-100%
+e le vinte lo 0-36%. Non avvengono in una condizione riconoscibile: la
+"tendenza alta" delle tre discese recenti e' solo il regime 2024-2026.
 
 Sapere QUANDO la B crollera' resta fuori portata con questi fattori; lo
 spegnimento a -15 R di `b-prima-della-demo.md` resta l'unico strumento
-misurato. Il risultato va alla verifica avversariale prima di essere
-dichiarato valido.
+misurato. Verifica avversariale (06/10/2026): **reggono le domande 1 e 2**
+(definizioni, causalita' ricalcolata, scomposizione esatta, p riprodotte);
+la domanda 3 e' stata corretta come sopra.
