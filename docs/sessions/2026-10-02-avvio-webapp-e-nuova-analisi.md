@@ -149,6 +149,26 @@ verifica 2018-2026: nessuna delle cinque ipotesi passa):
   (definizione mai scritta); `run_scalp_ritorno_media.py` (CB) puo' superare
   le 21 di al massimo due ore.
 
+## 05-06/10: dove si e' fermato il lavoro (riprendere da qui)
+
+- Distanza dal VWAP sui 18 anni: **NON regge** (`docs/studies/vwap-distanza-18anni.md`),
+  verificatore d'accordo; aggiunta alle strade respinte in CLAUDE.md.
+- **EA della B rimandato** (decisione dell'utente del 06/10): si scrive solo
+  se si decide di operarla con un conto vero. Il fuori campione si raccoglie
+  col registro in avanti + motore Python.
+- **IN CORSO, passo 1**: la B su luglio-ottobre 2026, primo fuori campione
+  vero. Registrazione gia' scritta (`docs/b-fuori-campione-2026-registrazione.md`,
+  commit 4e0cb57). Manca il dato: `datafeed.dukascopy.com` andava in timeout
+  il 06/10 mattina (probabile blocco per raffica; www.dukascopy.com risponde).
+  Riprovare con UN file; poi `estendi_storico.py 2026 2026 --rifai` (cache in
+  C:\Users\gabri\cache_m1, nessun file 2026 scaricato, archivio 2026 intatto;
+  copia di sicurezza nello scratchpad della sessione). Se resta bloccato:
+  dati MT5 (19/06-02/10) con un emendamento alla registrazione PRIMA del
+  calcolo, da far approvare all'utente.
+- **POI, passo 2**: studio dei crolli della B (in che condizioni di mercato
+  perde): archivista, poi registrazione, poi calcolo, poi verificatore.
+- Poi: far girare il registro in avanti (`grafico_live.py`), meglio sul VPS.
+
 ## Web app: prima versione (02/10/2026)
 
 In `app/` (istruzioni in `app/README.md`). Provata nel browser: candele
