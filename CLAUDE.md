@@ -13,6 +13,21 @@
   dell'estensione. Ogni `load_m1` stampa su stderr il periodo effettivo.
 - Dipendenze: `pip install pandas pyarrow pytest tabulate` (non in repo).
 
+## Chat per aree e "chiudi il blocco"
+
+Ogni chat fa UN blocco di un'area (Regia, Ricerca, Backtest, Dati, App):
+regole e prompt di apertura in `docs/COME-USARE-LE-CHAT.md`. Piano in
+`docs/piano-di-lavoro.md`, dati in `docs/registro-dati.md`.
+
+Quando l'utente scrive **"chiudi il blocco"**:
+1. aggiornare il file di stato dell'area (studio in `docs/studies/`, MASTER
+   del bot, `docs/registro-dati.md` o `app/README.md`);
+2. aggiungere una riga al registro di `docs/piano-di-lavoro.md` e aggiornare
+   `docs/RIPRENDI-QUI.md` se cambia il punto di ripresa;
+3. commit locale dei soli file toccati (niente push);
+4. dire all'utente in 3 righe cosa e' stato fatto, il prossimo blocco
+   consigliato e che puo' archiviare la chat.
+
 ## Smistamento del lavoro (sotto-agenti in `.claude/agents/`)
 
 La sessione principale (Opus, impegno alto: `.claude/settings.json`) pianifica
