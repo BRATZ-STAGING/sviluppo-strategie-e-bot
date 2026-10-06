@@ -1,7 +1,8 @@
 """Crollo -> conferma di ripresa -> entrata (e lo specchio short).
 
 Protocollo VINCOLANTE: ``docs/crollo-conferma-registrazione.md`` (commit
-5a2ea2b). Questo modulo contiene solo funzioni pure su array numpy: nessun
+5a2ea2b); per lo swing v2 (stop S1, S2, S3 senza tetto) anche
+``docs/crollo-conferma-swing-v2-registrazione.md`` (commit bf9a30b). Questo modulo contiene solo funzioni pure su array numpy: nessun
 caricamento di dati, nessuna scelta di periodo.
 
 Convenzioni
@@ -39,6 +40,11 @@ Interpretazioni (le piu' prudenti, dichiarate nel rapporto)
   chiusura attuale > livello), non la semplice chiusura sopra.
 - C5: le conferme C1, C2, C3a, C4 contano solo se avvenute dopo l'ultimo
   nuovo minimo (un nuovo minimo azzera i conteggi).
+- Stop (parametro ``stop`` di ``operazioni``): "v1" (default, protocollo v1)
+  = L - 0,1 x ATR con 1R <= 1,5 x ATR; "S1" = stesso stop senza tetto;
+  "S2" = ultimo minimo frattale confermato (noto alla chiusura della barra
+  di conferma) dopo L e sopra L, meno 0,1 x ATR, altrimenti come S1; "S3" =
+  1,5 x ATR dal prezzo d'entrata. S1-S3 scartano solo se 1R < 2 x costo.
 - Stop e obiettivi sulle M5: lo stop prevale nella stessa candela; apertura
   oltre lo stop = uscita all'apertura; apertura oltre l'obiettivo = uscita
   all'obiettivo (non al prezzo migliore).
@@ -53,6 +59,7 @@ import numpy as np
 # ------------------------------------------------------------------ costanti
 CONFERME = ("C1", "C2", "C3a", "C3b", "C3c", "C4", "C5")
 OBIETTIVI = ("1R", "2R", "3R", "H")
+STOP = ("v1", "S1", "S2", "S3")    # "v1" = protocollo v1 (con tetto 1,5 ATR)
 MIN_GIORNATA = 300                 # minuti: sotto e' una sessione parziale
 SPREAD_FINO_2019 = 0.46            # $ round trip
 SPREAD_DAL_2020 = {2020: 0.35, 2021: 0.349, 2022: 0.395, 2023: 0.334,
@@ -253,6 +260,7 @@ class Segnale:
     iH: int
     L: float         # minimo del crollo alla conferma
     iL: int
+    F: float = np.nan   # ultimo minimo frattale noto alla conferma, dopo L e sopra L (S2)
 
 
 def _scaduto(B: Barre, j: int, iL: int, orizzonte: str) -> bool:
@@ -271,16 +279,23 @@ def segnali(B: Barre, k: float, conferma: str, orizzonte: str) -> list[Segnale]:
     out: list[Segnale] = []
     n = len(B.c)
     starts = np.nonzero(fronte)[0]
+    fh, fl = frattali(B.h, B.l)
+    ufh, ufl = ultimo_noto(fh), ultimo_noto(fl)
+
+    def minimo_crescente(j: int, iL: int, L: float) -> float:
+        """Ultimo minimo frattale noto alla chiusura di j, dopo L e sopra L."""
+        f = ufl[j]
+        return float(B.l[f]) if (f > iL and B.l[f] > L) else np.nan
+
     if conferma == "NESSUNA":
         for s in starts:
             iH = int(hix[s])
             seg = B.l[iH:s + 1]
             iL = iH + int(len(seg) - 1 - np.argmin(seg[::-1]))
-            out.append(Segnale(int(s), int(s), float(hw[s]), iH, float(B.l[iL]), iL))
+            out.append(Segnale(int(s), int(s), float(hw[s]), iH, float(B.l[iL]), iL,
+                               minimo_crescente(int(s), iL, float(B.l[iL]))))
         return out
 
-    fh, fl = frattali(B.h, B.l)
-    ufh, ufl = ultimo_noto(fh), ultimo_noto(fl)
     cand = martello(B.o, B.h, B.l, B.c) | engulfing(B.o, B.h, B.l, B.c)
     o, h, l, c, vw, em = B.o, B.h, B.l, B.c, B.vwap, B.ema
     libero = 0
@@ -335,7 +350,8 @@ def segnali(B: Barre, k: float, conferma: str, orizzonte: str) -> list[Segnale]:
                 break
         libero = fine_ep + 1
         if conf >= 0:
-            out.append(Segnale(int(s), int(conf), H, iH, float(L), int(iL)))
+            out.append(Segnale(int(s), int(conf), H, iH, float(L), int(iL),
+                               minimo_crescente(int(conf), int(iL), float(L))))
     return out
 
 
@@ -451,16 +467,26 @@ def esito_usd(dz, ent, px, notti, costo, molt=1.0):
     return dz * (px - ent) + sw - costo * molt
 
 
-def stop_e_rischio(L_m: float, atr: float, ent: float, dz: int):
-    """Stop = L - 0,1 x ATR (nello spazio specchiato) riportato ai prezzi veri,
-    e 1R = distanza entrata-stop."""
-    stop = dz * (L_m - 0.1 * atr)
+def stop_e_rischio(L_m: float, atr: float, ent: float, dz: int, modo: str = "v1",
+                   F_m: float = np.nan):
+    """Stop riportato ai prezzi veri e 1R = distanza entrata-stop.
+
+    ``L_m`` e ``F_m`` (minimo frattale crescente) sono nello spazio
+    specchiato (dz = -1: prezzi negati). "v1"/"S1": L - 0,1 x ATR; "S2":
+    F - 0,1 x ATR se F esiste, altrimenti come S1; "S3": 1,5 x ATR
+    dall'entrata.
+    """
+    if modo == "S3":
+        stop = ent - dz * 1.5 * atr
+    else:
+        base = F_m if (modo == "S2" and np.isfinite(F_m)) else L_m
+        stop = dz * (base - 0.1 * atr)
     return stop, dz * (ent - stop)
 
 
-def rischio_valido(R: float, atr: float, costo: float) -> bool:
-    """Si scarta se 1R > 1,5 x ATR o 1R < 2 x costo."""
-    return (R <= 1.5 * atr) and (R >= 2 * costo)
+def rischio_valido(R: float, atr: float, costo: float, tetto: bool = True) -> bool:
+    """Si scarta se 1R < 2 x costo e, con il tetto (v1), se 1R > 1,5 x ATR."""
+    return ((R <= 1.5 * atr) or not tetto) and (R >= 2 * costo)
 
 
 def obiettivi_prezzo(ent: float, R: float, H_m: float, dz: int) -> list[float]:
@@ -481,7 +507,7 @@ def una_alla_volta(entrate: np.ndarray, uscite: np.ndarray) -> np.ndarray:
 
 
 def operazioni(segn: list[Segnale], B: Barre, m5, orizzonte: str, dz: int, costo: float,
-               fine_giorno=None, giorno5=None) -> dict:
+               fine_giorno=None, giorno5=None, stop: str = "v1") -> dict:
     """Dai segnali (calcolati sulla serie gia' specchiata se dz = -1) agli esiti.
 
     ``m5`` = (t5, o5, h5, l5, c5) ai prezzi VERI. Ritorna array: per segnale
@@ -489,10 +515,14 @@ def operazioni(segn: list[Segnale], B: Barre, m5, orizzonte: str, dz: int, costo
     ``obj`` (prezzo dell'obiettivo), ``x, px, mot, notti`` (direzione dz) e ``xf, pxf, motf, nottif``
     (direzione opposta, stessi istanti, stop e obiettivi specchiati: serve al
     placebo). Segnali scartati: entrata mancante o vietata, rischio fuori
-    dai limiti.
+    dai limiti. ``stop`` in ``STOP`` (default "v1" = protocollo v1); la
+    colonna ``fr`` vale 1 se lo stop S2 usa il minimo frattale crescente.
     """
+    if stop not in STOP:
+        raise ValueError(stop)
+    modo_stop = stop
     t5, o5, h5, l5, c5 = m5
-    cols = {k: [] for k in ("conf", "e", "lim", "ent", "R", "atr", "stop", "obj", "x", "px", "mot",
+    cols = {k: [] for k in ("conf", "e", "lim", "ent", "R", "atr", "stop", "fr", "obj", "x", "px", "mot",
                             "notti", "xf", "pxf", "motf", "nottif")}
     nb = len(B.c)
     for s in segn:
@@ -505,15 +535,16 @@ def operazioni(segn: list[Segnale], B: Barre, m5, orizzonte: str, dz: int, costo
             continue
         atr = float(B.atr_ap[j])
         ent = float(o5[e])
-        stop, R = stop_e_rischio(s.L, atr, ent, dz)
-        if not np.isfinite(R) or not rischio_valido(R, atr, costo):
+        stop, R = stop_e_rischio(s.L, atr, ent, dz, modo_stop, s.F)
+        if not np.isfinite(R) or not rischio_valido(R, atr, costo, modo_stop == "v1"):
             continue
         obj = obiettivi_prezzo(ent, R, s.H, dz)
         es = gestisci(o5, h5, l5, c5, e, lim, dz, stop, obj)
         objf = [2 * ent - v for v in obj]
         esf = gestisci(o5, h5, l5, c5, e, lim, -dz, 2 * ent - stop, objf)
         for nome, v in (("conf", s.conferma), ("e", e), ("lim", lim), ("ent", ent), ("R", R),
-                        ("atr", atr), ("stop", stop)):
+                        ("atr", atr), ("stop", stop),
+                        ("fr", int(modo_stop == "S2" and np.isfinite(s.F)))):
             cols[nome].append(v)
         cols["obj"].append(obj)
         cols["x"].append([r[0] for r in es])
@@ -530,6 +561,6 @@ def operazioni(segn: list[Segnale], B: Barre, m5, orizzonte: str, dz: int, costo
             out[k] = np.array(v, dtype=float).reshape(-1, 4)
         else:
             out[k] = np.array(v, dtype=float)
-    for k in ("conf", "e", "lim", "x", "mot", "notti", "xf", "motf", "nottif"):
+    for k in ("conf", "e", "lim", "fr", "x", "mot", "notti", "xf", "motf", "nottif"):
         out[k] = out[k].astype(np.int64)
     return out

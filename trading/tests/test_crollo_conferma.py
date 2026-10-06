@@ -192,3 +192,111 @@ def test_motore_vettoriale_uguale_al_ciclo():
         a = cc.gestisci(o, h, l, c, e, lim, dz, stop, [tg])[0]
         b = cc.gestisci_barra_per_barra(o, h, l, c, e, lim, dz, stop, tg)
         assert a == b
+
+
+# ------------------------------------------- swing v2: stop S1, S2, S3
+# docs/crollo-conferma-swing-v2-registrazione.md (commit bf9a30b)
+# stesso crollo; dopo L (barra 8) un minimo crescente 99 (barra 11, noto alla
+# chiusura di 13) e un massimo relativo 103,5 (barra 10, noto alla 12)
+CROLLO_S2 = CROLLO[:9] + [
+    (100, 103, 99.5, 102),      # 9
+    (102, 103.5, 100, 101),     # 10 frattale alto 103,5
+    (101, 102, 99, 100),        # 11 frattale basso 99 > L
+    (100, 103, 100.5, 102.5),   # 12
+    (102.5, 105, 101.5, 104.5), # 13 chiusura 104,5 > 103,5: C1; frattale 11 noto
+    (104.5, 105, 104, 104.8),   # 14 entrata all'apertura (104,5)
+    (104.8, 105.5, 104.2, 105), # 15
+]
+
+
+def test_stop_s2_usa_il_minimo_crescente_noto():
+    B = barre_a_mano(CROLLO_S2)
+    s = cc.segnali(B, 1.0, "C1", "intraday")
+    assert [(x.conferma, x.iL, x.L, x.F) for x in s] == [(13, 8, 97.5, 99.0)]
+    m5 = (B.t, B.o, B.h, B.l, B.c)
+    r = {st: cc.operazioni(s, B, m5, "intraday", 1, 0.46, stop=st) for st in ("S1", "S2", "S3")}
+    assert r["S1"]["stop"][0] == pytest.approx(96.5) and r["S1"]["R"][0] == pytest.approx(8.0)
+    assert r["S2"]["stop"][0] == pytest.approx(98.0) and r["S2"]["R"][0] == pytest.approx(6.5)
+    assert r["S2"]["fr"][0] == 1 and r["S1"]["fr"][0] == 0
+    assert r["S3"]["stop"][0] == pytest.approx(89.5) and r["S3"]["R"][0] == pytest.approx(15.0)
+    # obiettivi in R seguono lo stop scelto
+    assert r["S2"]["obj"][0, 0] == pytest.approx(104.5 + 6.5)
+    # il default resta il protocollo v1
+    v1 = cc.operazioni(s, B, m5, "intraday", 1, 0.46)
+    assert v1["stop"][0] == r["S1"]["stop"][0]
+
+
+def test_stop_s2_senza_minimo_crescente_come_s1():
+    # serie originale: nessun minimo frattale noto dopo L alla conferma
+    B = barre_a_mano(CROLLO)
+    s = cc.segnali(B, 1.0, "C1", "intraday")
+    assert np.isnan(s[0].F)
+    m5 = (B.t, B.o, B.h, B.l, B.c)
+    a = cc.operazioni(s, B, m5, "intraday", 1, 0.46, stop="S1")
+    b = cc.operazioni(s, B, m5, "intraday", 1, 0.46, stop="S2")
+    assert a["stop"][0] == b["stop"][0] == pytest.approx(96.5) and b["fr"][0] == 0
+
+
+def test_s1_senza_tetto_v1_con_tetto():
+    from dataclasses import replace
+    B = barre_a_mano(CROLLO)
+    s = cc.segnali(B, 1.0, "C1", "intraday")
+    Bp = replace(B, atr_ap=np.full(len(B.c), 5.0))     # 1R = 11 > 1,5 x 5
+    m5 = (B.t, B.o, B.h, B.l, B.c)
+    assert len(cc.operazioni(s, Bp, m5, "intraday", 1, 0.46)["e"]) == 0
+    op = cc.operazioni(s, Bp, m5, "intraday", 1, 0.46, stop="S1")
+    assert op["R"][0] == pytest.approx(108 - 97.0)
+    # resta il filtro sul costo: 1R < 2 x costo si scarta
+    assert len(cc.operazioni(s, Bp, m5, "intraday", 1, 6.0, stop="S1")["e"]) == 0
+    assert cc.rischio_valido(20, 10, 0.46) is False
+    assert cc.rischio_valido(20, 10, 0.46, tetto=False) is True
+    with pytest.raises(ValueError):
+        cc.operazioni(s, B, m5, "intraday", 1, 0.46, stop="S9")
+
+
+@pytest.mark.parametrize("stop", ["S1", "S2", "S3"])
+@pytest.mark.parametrize("conf", ["C1", "C2", "C4", "C5", "NESSUNA"])
+def test_short_specchio_del_long_stop_v2(conf, stop):
+    t, o, h, l, c = m5_casuale()
+    K = 2000.0
+    B, fg = costruisci(t, o, h, l, c)
+    Bs, _ = costruisci(t, K - o, K - l, K - h, K - c)
+    g5 = cc.giorno_di(fg, t)
+    n_fr = 0
+    for orizz in ("intraday", "swing"):
+        k = 1.0 if orizz == "intraday" else 2.0
+        sl = cc.segnali(B, k, conf, orizz)
+        ss = cc.segnali(cc.specchio(Bs), k, conf, orizz)
+        np.testing.assert_allclose([a.F for a in sl], [a.F + K for a in ss], atol=1e-9)
+        ol = cc.operazioni(sl, B, (t, o, h, l, c), orizz, 1, 0.46, fg, g5, stop=stop)
+        os_ = cc.operazioni(ss, Bs, (t, K - o, K - l, K - h, K - c), orizz, -1, 0.46, fg, g5, stop=stop)
+        assert len(ol["e"]) > 0
+        np.testing.assert_array_equal(ol["e"], os_["e"])
+        np.testing.assert_array_equal(ol["x"], os_["x"])
+        np.testing.assert_array_equal(ol["mot"], os_["mot"])
+        np.testing.assert_array_equal(ol["fr"], os_["fr"])
+        np.testing.assert_allclose(ol["R"], os_["R"], atol=1e-9)
+        np.testing.assert_allclose(ol["stop"], K - os_["stop"], atol=1e-9)
+        gl = (ol["px"] - ol["ent"][:, None]) / ol["R"][:, None]
+        gs = -(os_["px"] - os_["ent"][:, None]) / os_["R"][:, None]
+        np.testing.assert_allclose(gl, gs, atol=1e-9)
+        n_fr += int(ol["fr"].sum())
+    if stop == "S2" and conf != "C4":   # C4 conferma sul minimo: nessun frattale dopo L
+        assert n_fr > 0          # il caso con minimo crescente e' esercitato
+
+
+@pytest.mark.parametrize("conf", ["C1", "C2", "C5", "NESSUNA"])
+def test_minimo_crescente_senza_lookahead(conf):
+    t, o, h, l, c = m5_casuale(seed=11)
+    B, _ = costruisci(t, o, h, l, c)
+    full = [(a.inizio, a.conferma, a.L, a.F) for a in cc.segnali(B, 1.0, conf, "intraday")]
+    assert any(np.isfinite(x[3]) for x in full)
+    for taglio in (len(B.c) // 3, len(B.c) // 2, len(B.c) - 7):
+        n5 = B.i5[taglio]
+        Bt, _ = costruisci(t[:n5], o[:n5], h[:n5], l[:n5], c[:n5])
+        tr = [(a.inizio, a.conferma, a.L, a.F) for a in cc.segnali(Bt, 1.0, conf, "intraday")]
+        a = [x for x in full if x[1] < taglio]
+        b = [x for x in tr if x[1] < taglio]
+        assert len(a) == len(b)
+        for x, y in zip(a, b):
+            assert x[:3] == y[:3] and (x[3] == y[3] or (np.isnan(x[3]) and np.isnan(y[3])))
