@@ -22,6 +22,14 @@ valori gia' pubblicati a quell'ora. Regole fisse (prudenti):
   utilizzabile dalla chiusura della giornata del **venerdi'** di pubblicazione
   (se il venerdi' e' festivo il CFTC pubblica il lunedi': si usa la data di
   pubblicazione = martedi' + 3 giorni lavorativi, prudente).
+
+ATTENZIONE (trovato dall'agente della famiglia C, 06/10/2026): la colonna
+``pubblicato`` NON tiene conto dei festivi federali ne' delle chiusure del
+governo USA, durante le quali il CFTC ha pubblicato con settimane di ritardo
+(ottobre-novembre 2013; 22/12/2018 - 25/01/2019, con i rapporti recuperati fino
+a circa marzo 2019). Chi usa il COT in quei periodi deve applicare le date di
+pubblicazione vere (vedi `macro_c_cot.py`, che lo fa per la scoperta), oppure
+usa informazione futura.
 """
 from __future__ import annotations
 
